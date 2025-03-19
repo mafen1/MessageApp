@@ -22,5 +22,14 @@
         android:id="@+id/privateFragment"
         android:name="com.example.messageapp.ui.splashScreen.PrivateFragment"
         android:label="fragment_privaty"
-        tools:layout="@layout/fragment_privaty" />
+        tools:layout="@layout/fragment_privaty" >
+        <action
+            android:id="@+id/action_privateFragment_to_chatFragment"
+            app:destination="@id/chatFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/chatFragment"
+        android:name="com.example.messageapp.ui.chatScreen.ChatFragment"
+        android:label="fragment_chat"
+        tools:layout="@layout/fragment_chat" />
 </navigation>
