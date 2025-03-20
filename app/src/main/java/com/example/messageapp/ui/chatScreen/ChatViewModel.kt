@@ -10,15 +10,16 @@ class ChatViewModel() : ViewModel() {
 
     fun chat(message: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            WebSocketManager().webSocket?.send(message)
-            WebSocketManager().webSocket?.close(1000, "")
+            if (WebSocketManager.isConnected) {
+                WebSocketManager.webSocket?.send(message)
+            }
 
         }
     }
 
     fun disconnect(){
         viewModelScope.launch(Dispatchers.IO) {
-            WebSocketManager().disconnect()
+            WebSocketManager.disconnect()
         }
     }
 }

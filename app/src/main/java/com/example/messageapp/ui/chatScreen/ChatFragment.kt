@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.viewModels
 import com.example.messageapp.data.network.webSocket.client.WebSocketManager
 import com.example.messageapp.databinding.FragmentChatBinding
@@ -34,21 +35,26 @@ class ChatFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
-        WebSocketManager().connect()
+        WebSocketManager.connect()
         super.onViewCreated(view, savedInstanceState)
     }
 
     private fun initView() {
         binding.imageView3.setOnClickListener {
-            chatViewModel.chat(binding.editTextText.text.toString())
-            Log.d("TAG", binding.editTextText.text.toString())
+            if (WebSocketManager.isConnected) {
+                chatViewModel.chat(binding.editTextText.text.toString())
+            }else {
+                Toast.makeText(requireContext(), "Соединение не установлено", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
     override fun onDestroy() {
         chatViewModel.disconnect()
+        Log.d("TAG", "destroy")
         super.onDestroy()
     }
+
 
 
 }

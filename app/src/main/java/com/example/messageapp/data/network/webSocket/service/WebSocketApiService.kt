@@ -5,6 +5,7 @@ import okhttp3.ResponseBody
 import retrofit2.http.GET
 
 interface WebSocketApiService {
-    @GET
-    fun initWebSocket(): Observable<ResponseBody>
+    fun connect()
+    fun disconnect()
+    fun send(message: String): String
 }
