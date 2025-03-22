@@ -24,12 +24,20 @@
         android:label="fragment_privaty"
         tools:layout="@layout/fragment_privaty" >
         <action
-            android:id="@+id/action_privateFragment_to_chatFragment"
-            app:destination="@id/chatFragment" />
+            android:id="@+id/action_privateFragment_to_registerFragment"
+            app:destination="@id/registerFragment" />
     </fragment>
     <fragment
         android:id="@+id/chatFragment"
         android:name="com.example.messageapp.ui.chatScreen.ChatFragment"
         android:label="fragment_chat"
         tools:layout="@layout/fragment_chat" />
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.example.messageapp.ui.registerScreen.RegisterFragment"
+        android:label="RegisterFragment" >
+        <action
+            android:id="@+id/action_registerFragment_to_chatFragment"
+            app:destination="@id/chatFragment" />
+    </fragment>
 </navigation>

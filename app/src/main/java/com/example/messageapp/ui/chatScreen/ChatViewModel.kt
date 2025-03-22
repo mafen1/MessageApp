@@ -2,7 +2,8 @@ package com.example.messageapp.ui.chatScreen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.messageapp.data.network.webSocket.client.WebSocketManager
+import com.example.messageapp.data.network.webSocket.WebSocket
+import com.example.messageapp.data.network.webSocket.client.WebSocketServiceImpl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -10,16 +11,19 @@ class ChatViewModel() : ViewModel() {
 
     fun chat(message: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            if (WebSocketManager.isConnected) {
-                WebSocketManager.webSocket?.send(message)
-            }
-
+                WebSocket().send(message)
         }
     }
 
     fun disconnect(){
         viewModelScope.launch(Dispatchers.IO) {
-            WebSocketManager.disconnect()
+            WebSocket().disconnect()
+        }
+    }
+
+    fun connect(){
+        viewModelScope.launch(Dispatchers.IO) {
+            WebSocket().connect()
         }
     }
 }

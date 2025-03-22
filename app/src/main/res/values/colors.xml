@@ -5,4 +5,5 @@
     <color name="background">#052151</color>
     <color name="textColor">#0F1828</color>
     <color name="buttonColor">#052151</color>
+    <color name="backgroundMessage">#5d76cb</color>
 </resources>

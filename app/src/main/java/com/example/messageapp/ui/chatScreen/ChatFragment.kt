@@ -8,7 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.viewModels
-import com.example.messageapp.data.network.webSocket.client.WebSocketManager
+import com.example.messageapp.data.network.webSocket.WebSocket
+import com.example.messageapp.data.network.webSocket.client.WebSocketServiceImpl
 import com.example.messageapp.databinding.FragmentChatBinding
 
 
@@ -26,7 +27,6 @@ class ChatFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
 
-
         binding = FragmentChatBinding.inflate(layoutInflater, container, false)
         initView()
         return binding.root
@@ -35,15 +35,15 @@ class ChatFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
-        WebSocketManager.connect()
+        WebSocket().connect()
         super.onViewCreated(view, savedInstanceState)
     }
 
     private fun initView() {
         binding.imageView3.setOnClickListener {
-            if (WebSocketManager.isConnected) {
-                chatViewModel.chat(binding.editTextText.text.toString())
-            }else {
+           try {
+               chatViewModel.chat(binding.editTextText.text.toString())
+           }catch (e: Exception) {
                 Toast.makeText(requireContext(), "Соединение не установлено", Toast.LENGTH_SHORT).show()
             }
         }

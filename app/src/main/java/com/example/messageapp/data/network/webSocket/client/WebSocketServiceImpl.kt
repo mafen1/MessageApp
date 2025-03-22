@@ -1,9 +1,8 @@
 package com.example.messageapp.data.network.webSocket.client
 
 import android.util.Log
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.example.messageapp.data.model.Message
+import com.example.messageapp.data.network.webSocket.service.WebSocketService
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -12,15 +11,13 @@ import okhttp3.WebSocketListener
 
 // синглтон
 // todo сделать приватными поля
-object WebSocketManager {
-    val client = OkHttpClient()
-    var webSocket: WebSocket? = null
-    private val webSocketUrl = "ws://10.0.2.2:8081"
-    var isConnected = false
+object WebSocketServiceImpl : WebSocketService {
+    private val client = OkHttpClient()
+    private var webSocket: WebSocket? = null
+    private const val webSocketUrl = "ws://10.0.2.2:8081"
+    private var isConnected = false
 
-
-    fun connect() {
-
+    override fun connect() {
         try {
             val request = Request.Builder()
                 .url("$webSocketUrl/chat")
@@ -34,8 +31,17 @@ object WebSocketManager {
                 }
 
                 override fun onMessage(webSocket: WebSocket, text: String) {
-                    println("Received message: $text")
-                    Log.d("TAG", text)
+                    if (isConnected) {
+                        println("Received message: $text")
+                        val message = text.split(",")
+                        receive(
+                            Message(
+                                id = message[0].toInt(),
+                                name = message[1],
+                                message = message[0]
+                            )
+                        )
+                    }
                 }
 
                 override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
@@ -58,11 +64,19 @@ object WebSocketManager {
             isConnected = false
 
         }
-
     }
 
-    fun disconnect() {
+    override fun disconnect() {
         webSocket?.close(1000, "Closing connection")
+    }
+
+    override fun send(message: String): String {
+        webSocket?.send(message)
+        return message
+    }
+
+    override fun receive(data: Message): Message {
+        return data
     }
 
 

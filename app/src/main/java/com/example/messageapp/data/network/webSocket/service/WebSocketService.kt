@@ -1,11 +1,10 @@
 package com.example.messageapp.data.network.webSocket.service
 
-import android.database.Observable
-import okhttp3.ResponseBody
-import retrofit2.http.GET
+import com.example.messageapp.data.model.Message
 
-interface WebSocketApiService {
+interface WebSocketService {
     fun connect()
     fun disconnect()
     fun send(message: String): String
+    fun receive(data: Message): Message
 }

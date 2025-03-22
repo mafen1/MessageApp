@@ -26,7 +26,7 @@ class PrivateFragment : Fragment() {
 
     private fun initView() {
         binding.button.setOnClickListener {
-            findNavController().navigate(R.id.action_privateFragment_to_chatFragment)
+            findNavController().navigate(R.id.action_privateFragment_to_registerFragment)
         }
     }
 
