@@ -8,9 +8,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.example.messageapp.data.network.webSocket.WebSocket
 import com.example.messageapp.data.network.webSocket.client.WebSocketServiceImpl
 import com.example.messageapp.databinding.FragmentChatBinding
+import kotlinx.coroutines.launch
 
 
 class ChatFragment : Fragment() {
@@ -34,17 +36,17 @@ class ChatFragment : Fragment() {
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-
-        WebSocket().connect()
+        chatViewModel.connect()
         super.onViewCreated(view, savedInstanceState)
     }
 
     private fun initView() {
         binding.imageView3.setOnClickListener {
-           try {
-               chatViewModel.chat(binding.editTextText.text.toString())
-           }catch (e: Exception) {
-                Toast.makeText(requireContext(), "Соединение не установлено", Toast.LENGTH_SHORT).show()
+            try {
+                chatViewModel.chat(binding.editTextText.text.toString())
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Соединение не установлено", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
     }
@@ -54,7 +56,6 @@ class ChatFragment : Fragment() {
         Log.d("TAG", "destroy")
         super.onDestroy()
     }
-
 
 
 }

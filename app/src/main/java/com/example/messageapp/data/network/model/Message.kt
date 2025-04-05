@@ -1,4 +1,4 @@
-package com.example.messageapp.data.model
+package com.example.messageapp.data.network.model
 
 import android.os.Parcel
 import android.os.Parcelable

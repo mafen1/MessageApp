@@ -1,16 +1,19 @@
 package com.example.messageapp.ui.registerScreen
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.messageapp.R
-import com.example.messageapp.data.model.User
+import com.example.messageapp.data.network.model.User
 import com.example.messageapp.databinding.FragmentRegisterBinding
 import kotlinx.serialization.json.Json
+import kotlin.random.Random
 
 
 class RegisterFragment : Fragment() {
@@ -33,19 +36,37 @@ class RegisterFragment : Fragment() {
 
 
     private fun initView(){
-        binding.button2.setOnClickListener{
-            val id = 2
-
-            val user = User(
-                id,
-                name = binding.editTextText2.text.toString()
-            )
-            val json = Json.encodeToString(user)
-            // добавление аккаунта в базу данных
-            viewModel.addAccount(
-                json
-            )
-            findNavController().navigate(R.id.action_registerFragment_to_chatFragment)
+        binding.btnSave.setOnClickListener{
+            addAccount()
         }
     }
+
+    private fun addAccount(){
+        if (binding.edName.text.isNotEmpty() && binding.edUserName.text.isNotEmpty()) {
+            if (binding.edUserName.text.first() == '@') {
+                // добавление аккаунта в базу данных
+
+                val user = User(
+                    id = Random.nextInt(),
+                    name = binding.edName.text.toString(),
+                    userName = binding.edUserName.text.toString(),
+                    friend = listOf(),
+                    token = ""
+                )
+
+                viewModel.addAccount(
+                    user,
+                    requireContext()
+                )
+
+                val action = RegisterFragmentDirections.actionRegisterFragmentToListUserFragment(user)
+                findNavController().navigate(action)
+            }else{
+                Toast.makeText(requireContext(), "Первый символ в UserName должен быть @ ", Toast.LENGTH_LONG).show()
+            }
+        }else{
+            Toast.makeText(requireContext(), "Заполните все поля", Toast.LENGTH_LONG).show()
+        }
+    }
+
 }

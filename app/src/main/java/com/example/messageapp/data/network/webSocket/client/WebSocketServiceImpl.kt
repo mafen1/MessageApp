@@ -1,8 +1,14 @@
 package com.example.messageapp.data.network.webSocket.client
 
 import android.util.Log
-import com.example.messageapp.data.model.Message
+import com.example.messageapp.data.network.model.Message
 import com.example.messageapp.data.network.webSocket.service.WebSocketService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -16,8 +22,9 @@ object WebSocketServiceImpl : WebSocketService {
     private var webSocket: WebSocket? = null
     private const val webSocketUrl = "ws://10.0.2.2:8081"
     private var isConnected = false
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    override fun connect() {
+    override suspend fun connect() {
         try {
             val request = Request.Builder()
                 .url("$webSocketUrl/chat")
@@ -32,15 +39,19 @@ object WebSocketServiceImpl : WebSocketService {
 
                 override fun onMessage(webSocket: WebSocket, text: String) {
                     if (isConnected) {
+
                         println("Received message: $text")
                         val message = text.split(",")
-                        receive(
-                            Message(
-                                id = message[0].toInt(),
-                                name = message[1],
-                                message = message[0]
+
+                        scope.launch {
+                            receive(
+                                Message(
+                                    id = message[0].toInt(),
+                                    name = message[1],
+                                    message = message[0]
+                                )
                             )
-                        )
+                        }
                     }
                 }
 
@@ -66,16 +77,17 @@ object WebSocketServiceImpl : WebSocketService {
         }
     }
 
-    override fun disconnect() {
+    override suspend fun disconnect() {
         webSocket?.close(1000, "Closing connection")
+        scope.cancel("Завершена работа коорутины")
     }
 
-    override fun send(message: String): String {
+    override suspend fun send(message: String): String {
         webSocket?.send(message)
         return message
     }
 
-    override fun receive(data: Message): Message {
+    override suspend fun receive(data: Message): Message {
         return data
     }
 

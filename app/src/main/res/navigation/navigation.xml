@@ -20,12 +20,15 @@
     </fragment>
     <fragment
         android:id="@+id/privateFragment"
-        android:name="com.example.messageapp.ui.splashScreen.PrivateFragment"
+        android:name="com.example.messageapp.ui.privateScreen.PrivateFragment"
         android:label="fragment_privaty"
         tools:layout="@layout/fragment_privaty" >
         <action
             android:id="@+id/action_privateFragment_to_registerFragment"
             app:destination="@id/registerFragment" />
+        <action
+            android:id="@+id/action_privateFragment_to_listUserFragment"
+            app:destination="@id/listUserFragment" />
     </fragment>
     <fragment
         android:id="@+id/chatFragment"
@@ -37,7 +40,20 @@
         android:name="com.example.messageapp.ui.registerScreen.RegisterFragment"
         android:label="RegisterFragment" >
         <action
-            android:id="@+id/action_registerFragment_to_chatFragment"
+            android:id="@+id/action_registerFragment_to_listUserFragment"
+            app:destination="@id/listUserFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/listUserFragment"
+        android:name="com.example.messageapp.ui.listUserScreen.ListUserFragment"
+        android:label="fragment_list_user"
+        tools:layout="@layout/fragment_list_user" >
+        <action
+            android:id="@+id/action_listUserFragment_to_chatFragment"
             app:destination="@id/chatFragment" />
+        <argument
+            android:name="User"
+            app:argType="com.example.messageapp.data.network.model.User"
+             />
     </fragment>
 </navigation>

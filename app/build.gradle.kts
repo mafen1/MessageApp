@@ -80,6 +80,17 @@ dependencies {
     implementation (libs.retrofit)
     implementation(libs.kotlinx.serialization.json)
 
+    implementation(libs.converter.gson)
+
+    // Основная зависимость для Room
+    implementation (libs.androidx.room.runtime.v252)
+    // Для корутин и LiveData
+    implementation (libs.androidx.room.ktx.v252)
+    // Компилятор для обработки аннотаций (используйте kapt для Kotlin)
+    kapt("androidx.room:room-compiler:2.6.1")
+
+    implementation(libs.converter.scalars)
+
 }
 // Allow references to generated code
 kapt {
