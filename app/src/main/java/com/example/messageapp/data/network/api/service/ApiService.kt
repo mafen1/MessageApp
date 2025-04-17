@@ -13,18 +13,21 @@ import retrofit2.http.POST
 interface ApiService {
     @POST("/register")
     suspend fun addUser(
-    @Body user: User
+        @Body user: User
     ): Response<LoginResponse>
 //    @GET("/friends")
 //    suspend fun friends () : List<User>
 
     @POST("/findUserToken")
     suspend fun findUser(
-       @Body token: Token
+        @Body token: Token
     ): User
 
     @POST("/findUserByName")
     suspend fun findUserByName(
         @Body username: UserRequest
     ): UserResponse
+
+    @GET("/allUser")
+    suspend fun allUser(): MutableList<UserResponse>
 }

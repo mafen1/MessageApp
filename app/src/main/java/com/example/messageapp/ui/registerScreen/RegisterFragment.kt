@@ -1,7 +1,6 @@
 package com.example.messageapp.ui.registerScreen
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,10 +8,8 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import com.example.messageapp.R
 import com.example.messageapp.data.network.model.User
 import com.example.messageapp.databinding.FragmentRegisterBinding
-import kotlinx.serialization.json.Json
 import kotlin.random.Random
 
 
@@ -34,14 +31,13 @@ class RegisterFragment : Fragment() {
     }
 
 
-
-    private fun initView(){
-        binding.btnSave.setOnClickListener{
+    private fun initView() {
+        binding.btnSave.setOnClickListener {
             addAccount()
         }
     }
 
-    private fun addAccount(){
+    private fun addAccount() {
         if (binding.edName.text.isNotEmpty() && binding.edUserName.text.isNotEmpty()) {
             if (binding.edUserName.text.first() == '@') {
                 // добавление аккаунта в базу данных
@@ -59,12 +55,17 @@ class RegisterFragment : Fragment() {
                     requireContext()
                 )
 
-                val action = RegisterFragmentDirections.actionRegisterFragmentToListUserFragment(user)
+                val action =
+                    RegisterFragmentDirections.actionRegisterFragmentToListUserFragment(user)
                 findNavController().navigate(action)
-            }else{
-                Toast.makeText(requireContext(), "Первый символ в UserName должен быть @ ", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(
+                    requireContext(),
+                    "Первый символ в UserName должен быть @ ",
+                    Toast.LENGTH_LONG
+                ).show()
             }
-        }else{
+        } else {
             Toast.makeText(requireContext(), "Заполните все поля", Toast.LENGTH_LONG).show()
         }
     }

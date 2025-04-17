@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UserResponse(
-    @SerializedName("username") val userName: String,
+    @SerializedName("userName") val username: String,
     @SerializedName("name") val name: String
-)
+): java.io.Serializable

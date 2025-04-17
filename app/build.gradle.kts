@@ -91,6 +91,10 @@ dependencies {
 
     implementation(libs.converter.scalars)
 
+    implementation (libs.okhttp)
+    implementation (libs.java.websocket)
+
+
 }
 // Allow references to generated code
 kapt {

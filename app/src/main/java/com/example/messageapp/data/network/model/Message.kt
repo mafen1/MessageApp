@@ -7,10 +7,10 @@ data class Message(
     val id: Int,
     val name: String,
     var message: String
-): Parcelable {
+) : Parcelable {
 
     constructor(parcel: Parcel) : this(
-        id =  parcel.readInt(),
+        id = parcel.readInt(),
         name = parcel.readString().toString(),
         message = parcel.readString().toString()
     ) {
