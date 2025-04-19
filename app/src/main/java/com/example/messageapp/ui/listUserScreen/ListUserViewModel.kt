@@ -1,6 +1,7 @@
 package com.example.messageapp.ui.listUserScreen
 
 import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,15 +15,20 @@ import java.net.URI
 
 class ListUserViewModel : ViewModel() {
 
-    var foundUser = MutableLiveData<MutableList<UserResponse>>()
-    val messageNotification = MutableLiveData<String>()
-    var webSocketClient :ChatWebSocketClient? = null
+    private var _foundUser = MutableLiveData<MutableList<UserResponse>>()
+    var foundUser: LiveData<MutableList<UserResponse>> = _foundUser
+
+    private val _messageNotification = MutableLiveData<String>()
+    var messageNotification: LiveData<String> = _messageNotification
+
+    private var _webSocketClient: ChatWebSocketClient? = null
+
 
     fun searchUser(userName: UserRequest) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val user = RetrofitClient.apiService.findUserByName(userName)
-                foundUser.postValue(mutableListOf(user))
+                _foundUser.postValue(mutableListOf(user))
                 Log.d("TAG", user.toString())
             } catch (e: Exception) {
                 Log.d("TAG", e.message.toString())
@@ -34,13 +40,17 @@ class ListUserViewModel : ViewModel() {
         val serverUri = URI("ws://10.0.2.2:8081/friendMessage/$userName")
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                webSocketClient = ChatWebSocketClient(serverUri) { message ->
-                    messageNotification.postValue(message)
+                _webSocketClient = ChatWebSocketClient(serverUri) { message ->
+                    _messageNotification.postValue(message)
                 }
-                webSocketClient!!.connect()
+                _webSocketClient!!.connect()
             } catch (e: Exception) {
                 Log.d("TAG", e.message.toString())
             }
         }
+    }
+
+    fun sendMessage(message: String) {
+        _webSocketClient?.send(message)
     }
 }

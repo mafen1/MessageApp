@@ -4,11 +4,11 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.messageapp.data.network.model.MessageRC
+import com.example.messageapp.data.network.model.Message
 import com.example.messageapp.databinding.ChatHolderLeftBinding
 import com.example.messageapp.databinding.ChatHolderRightBinding
 
-class ChatAdapter(private val messageList: MutableList<MessageRC>) :
+class ChatAdapter(private val messageList: MutableList<Message>) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private companion object {
@@ -20,7 +20,7 @@ class ChatAdapter(private val messageList: MutableList<MessageRC>) :
     inner class ChatViewRightHolder(private val binding: ChatHolderRightBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bindRight(message: MessageRC) {
+        fun bindRight(message: Message) {
                 binding.textView3.text = message.message
 
         }
@@ -29,7 +29,7 @@ class ChatAdapter(private val messageList: MutableList<MessageRC>) :
     inner class ChatViewLeftHolder(private val binding: ChatHolderLeftBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bindLeft(message: MessageRC) {
+        fun bindLeft(message: Message) {
             binding.textView3.text = message.message
         }
     }
@@ -78,9 +78,10 @@ class ChatAdapter(private val messageList: MutableList<MessageRC>) :
         }
     }
 
-    fun updateList(newList: List<MessageRC>) {
+    fun updateList(newList: List<Message>) {
         messageList.clear()
         messageList.addAll(newList)
+        // todo поправить
         notifyDataSetChanged() // Обновляем адаптер
     }
 }

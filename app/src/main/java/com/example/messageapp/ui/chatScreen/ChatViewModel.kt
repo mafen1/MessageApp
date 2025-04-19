@@ -5,7 +5,7 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.messageapp.data.network.model.MessageRC
+import com.example.messageapp.data.network.model.Message
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.data.network.webSocket.client.ChatWebSocketClient
 import com.example.messageapp.store.SharedPreference
@@ -18,7 +18,7 @@ class ChatViewModel() : ViewModel() {
     val user = MutableLiveData<UserResponse>()
     val messageText = MutableLiveData<String>()
     var webSocketClient: ChatWebSocketClient? = null
-    var messageList = MutableLiveData(mutableListOf<MessageRC>())
+    var messageList = MutableLiveData(mutableListOf<Message>())
 
 
     fun disconnect() {
@@ -33,7 +33,7 @@ class ChatViewModel() : ViewModel() {
         webSocketClient = ChatWebSocketClient(serverUri) { message ->
             viewModelScope.launch(Dispatchers.Main) {
 //                Log.d("TAG", "Сообщение до: $message")
-                updateMessageList(MessageRC(message, false))
+                updateMessageList(Message(message, false))
 //                Log.d("TAG", "Сообщение после: $message") // Теперь должно сработать
             }
         }
@@ -48,7 +48,7 @@ class ChatViewModel() : ViewModel() {
             ?: throw IllegalArgumentException("не найден пользователь с данным юзер неймом")
     }
 
-    fun updateMessageList(message: MessageRC) {
+    fun updateMessageList(message: Message) {
         val newList = messageList.value?.toMutableList() ?: mutableListOf()
         newList.add(message)
         messageList.value = newList

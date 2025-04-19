@@ -5,7 +5,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -29,11 +28,6 @@ class ListUserFragment : Fragment() {
     private val userFragmentArgs: ListUserFragmentArgs by navArgs()
 
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-    }
-
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -52,12 +46,11 @@ class ListUserFragment : Fragment() {
 
         // todo отправка на сервер запроса на получение определенного юзера
         val user = userFragmentArgs.User
-        binding.textView4.text = user?.userName
-                                    // пользователь приложения
+        binding.textView4.text = user.userName
+
         viewModel.connectWebSocket(user.userName)
         initRecyclerView()
         initObserver()
-
 
 
     }
@@ -73,7 +66,8 @@ class ListUserFragment : Fragment() {
                     )
                     viewModel.searchUser(userName)
                 } catch (e: Exception) {
-                    Log.d("TAG", e.message.toString())
+                    Toast.makeText(requireContext(), "Данного пользователя нет", Toast.LENGTH_LONG)
+                        .show()
                 }
                 return true
             }
@@ -95,6 +89,7 @@ class ListUserFragment : Fragment() {
                             "Вы уже находитесь на данном экране",
                             Toast.LENGTH_LONG
                         ).show()
+
                     R.id.navChat ->
                         findNavController().navigate(R.id.action_listUserFragment_to_chatListFragment)
 
@@ -106,9 +101,8 @@ class ListUserFragment : Fragment() {
     }
 
 
-
     @RequiresApi(Build.VERSION_CODES.O)
-    fun initNotification(message: String) {
+    fun initNotification() {
         val chanel = NotificationChannel(
             "friend_request",
             "khdsgf",
@@ -127,22 +121,21 @@ class ListUserFragment : Fragment() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun initRecyclerView(){
+    private fun initRecyclerView() {
 
-        viewModel.foundUser.observe(viewLifecycleOwner){ user ->
-            binding.recyclerView2.adapter = ListUserAdapter(user){ currentUser ->
+        viewModel.foundUser.observe(viewLifecycleOwner) { user ->
+            binding.recyclerView2.adapter = ListUserAdapter(user) { currentUser ->
                 val message = "Заявка в друзья для пользователя ${currentUser.username}"
-                viewModel.webSocketClient?.sendMessage("${userFragmentArgs.User.userName}:${currentUser.username}:$message")
-                Log.d("TAG", "${userFragmentArgs.User.userName}:${currentUser.username}:$message")
+                viewModel.sendMessage("${userFragmentArgs.User.userName}:${currentUser.username}:$message")
             }
             binding.recyclerView2.layoutManager = LinearLayoutManager(requireContext())
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun initObserver(){
-        viewModel.messageNotification.observe(viewLifecycleOwner) { message ->
-            initNotification(message)
+    private fun initObserver() {
+        viewModel.messageNotification.observe(viewLifecycleOwner) { _ ->
+            initNotification()
         }
     }
 

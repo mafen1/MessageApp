@@ -39,12 +39,13 @@ class ChatListFragment : Fragment() {
 
     }
 
-    private fun initObserver(){
-        viewModel.listUser.observe(viewLifecycleOwner){ user ->
+    private fun initObserver() {
+        viewModel.listUser.observe(viewLifecycleOwner) { user ->
 
             val adapter = ChatListAdapter(user) { selectedUser ->
                 // Откроваем новый фрагмент при клике
-                val action = ChatListFragmentDirections.actionChatListFragmentToChatFragment(selectedUser)
+                val action =
+                    ChatListFragmentDirections.actionChatListFragmentToChatFragment(selectedUser)
                 findNavController().navigate(action)
             }
             binding.recyclerView1.adapter = adapter
@@ -52,18 +53,20 @@ class ChatListFragment : Fragment() {
         }
     }
 
-    private fun initNavigate(){
+    private fun initNavigate() {
         binding.bottomNavigationView2.setOnItemSelectedListener { item ->
             run {
                 when (item.itemId) {
                     R.id.navSearch ->
 
-                        findNavController().navigate(R.id.action_listUserFragment_to_chatListFragment)
+                        findNavController().navigate(R.id.action_chatListFragment_to_listUserFragment)
 
                     R.id.navChat ->
-                        Toast.makeText(requireContext(),
+                        Toast.makeText(
+                            requireContext(),
                             "Вы уже на данном экране",
-                            Toast.LENGTH_LONG).show()
+                            Toast.LENGTH_LONG
+                        ).show()
 
                     else -> {}
                 }

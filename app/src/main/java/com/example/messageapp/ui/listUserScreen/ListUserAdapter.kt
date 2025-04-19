@@ -7,21 +7,22 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.databinding.ListUserHolderBinding
 
-class ListUserAdapter(val listUser: MutableList<UserResponse>,
-                      private val onItemClick: (UserResponse) -> Unit) :
+class ListUserAdapter(
+    val listUser: MutableList<UserResponse>,
+    private val onItemClick: (UserResponse) -> Unit
+) :
     RecyclerView.Adapter<ListUserAdapter.ListUserViewHolder>() {
 
-    inner class ListUserViewHolder(val binding: ListUserHolderBinding)
-        : ViewHolder(binding.root) {
-            fun bind(user: UserResponse) {
+    inner class ListUserViewHolder(val binding: ListUserHolderBinding) : ViewHolder(binding.root) {
+        fun bind(user: UserResponse) {
 
-                binding.tvUserName.text = user.username
-                binding.tvName.text = user.name
+            binding.tvUserName.text = user.username
+            binding.tvName.text = user.name
 
-                binding.button2.setOnClickListener {
-                    onItemClick(user)
-                }
+            binding.button2.setOnClickListener {
+                onItemClick(user)
             }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ListUserViewHolder {

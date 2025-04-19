@@ -12,7 +12,8 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.messageapp.R
-import com.example.messageapp.data.network.model.MessageRC
+import com.example.messageapp.data.network.model.Message
+import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.databinding.FragmentChatBinding
 
 
@@ -23,8 +24,6 @@ class ChatFragment : Fragment() {
     private val userFragmentArgs: ChatFragmentArgs by navArgs()
     private lateinit var adapter: ChatAdapter
 
-    // todo перенести в view model
-//    val messageList = mutableListOf<MessageRC>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,28 +48,13 @@ class ChatFragment : Fragment() {
     private fun initView() {
         initObserver()
         viewModel.messageList.value?.let { initRecyclerView(it) }
-        // todo отправку сообщений вынести в отдельную функцию
+
         val user = userFragmentArgs.UserResponse
+        // подключаемся к веб сокету
         viewModel.connect(viewModel.findUserName(requireContext()))
+
         binding.imageView3.setOnClickListener {
-            try {
-                // Получаем username отправителя (текущий пользователь)
-                val senderUsername = viewModel.findUserName(requireContext())
-                val targetUsername = user.username
-                // Имя получателя
-                val messageContent = binding.editTextText.text.toString()
-                // Формируем сообщение в формате "to:username:message"
-                val messageToSend = "to:$targetUsername:$messageContent"
-
-                viewModel.updateMessageList(MessageRC(binding.editTextText.text.toString(), true))
-                viewModel.webSocketClient?.sendMessage(messageToSend)
-
-
-            } catch (e: Exception) {
-                Toast.makeText(requireContext(), "Соединение не установлено", Toast.LENGTH_SHORT)
-                    .show()
-            }
-
+            sendMessage(user)
         }
 
         binding.imageView8.setOnClickListener {
@@ -92,23 +76,39 @@ class ChatFragment : Fragment() {
 
         viewModel.messageText.observe(viewLifecycleOwner) { message ->
 
-            viewModel.updateMessageList(MessageRC(message, false))
-//            initRecyclerView()
+            viewModel.updateMessageList(Message(message, false))
         }
 
 
         viewModel.messageList.observe(viewLifecycleOwner) { list ->
             Log.d("TAG", "Получено сообщений: ${list.size}")
             adapter.updateList(list) // Обновляем адаптер, передавая новый список
-//            initRecyclerView(list)
         }
     }
 
 
-    private fun initRecyclerView(messageList: MutableList<MessageRC>) {
+    private fun initRecyclerView(messageList: MutableList<Message>) {
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         adapter = ChatAdapter(messageList)
         binding.recyclerView.adapter = adapter
+    }
+
+    private fun sendMessage(user: UserResponse){
+        try {
+            // получаем юзер нейм
+            val targetUsername = user.username
+            val messageContent = binding.editTextText.text.toString()
+            // сообщение
+            val messageToSend = "to:$targetUsername:$messageContent"
+
+            viewModel.updateMessageList(Message(binding.editTextText.text.toString(), true))
+            viewModel.webSocketClient?.sendMessage(messageToSend)
+
+
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Соединение не установлено", Toast.LENGTH_SHORT)
+                .show()
+        }
     }
 }
 

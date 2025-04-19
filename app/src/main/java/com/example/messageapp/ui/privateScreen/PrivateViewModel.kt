@@ -31,11 +31,10 @@ class PrivateViewModel : ViewModel() {
                     Log.e("TAGG", "Error fetching user: ${e.message}")
                 }
             } else {
-
+                throw Exception("Токена нет")
             }
         }
     }
-
 
 
 }

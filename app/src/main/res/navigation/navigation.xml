@@ -71,5 +71,8 @@
         <action
             android:id="@+id/action_chatListFragment_to_chatFragment"
             app:destination="@id/chatFragment" />
+        <action
+            android:id="@+id/action_chatListFragment_to_listUserFragment"
+            app:destination="@id/listUserFragment" />
     </fragment>
 </navigation>

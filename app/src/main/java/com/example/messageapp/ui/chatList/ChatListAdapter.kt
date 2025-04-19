@@ -7,8 +7,10 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.databinding.ListChatHolderBinding
 
-class ChatListAdapter(private val listUser: MutableList<UserResponse>,
-                      private val onItemClick: (UserResponse) -> Unit) :
+class ChatListAdapter(
+    private val listUser: MutableList<UserResponse>,
+    private val onItemClick: (UserResponse) -> Unit
+) :
     RecyclerView.Adapter<ChatListAdapter.ChatListViewHolder>() {
 
     inner class ChatListViewHolder(private val binding: ListChatHolderBinding) :
