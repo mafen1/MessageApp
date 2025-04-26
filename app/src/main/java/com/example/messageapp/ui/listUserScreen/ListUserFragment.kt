@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.messageapp.R
 import com.example.messageapp.data.network.model.UserRequest
@@ -39,6 +40,7 @@ class ListUserFragment : Fragment() {
         return binding.root
     }
 
+
     @RequiresApi(Build.VERSION_CODES.O)
     private fun initView() {
         initSearchView()
@@ -48,7 +50,9 @@ class ListUserFragment : Fragment() {
         val user = userFragmentArgs.User
         binding.textView4.text = user.userName
 
+        viewModel.saveUserName(requireContext(), user.userName)
         viewModel.connectWebSocket(user.userName)
+
         initRecyclerView()
         initObserver()
 
@@ -80,22 +84,27 @@ class ListUserFragment : Fragment() {
     }
 
     private fun initBottomNavigation() {
+        binding.bottomNavigationView.setupWithNavController(findNavController())
         binding.bottomNavigationView.setOnItemSelectedListener { item ->
-            run {
-                when (item.itemId) {
-                    R.id.navSearch ->
-                        Toast.makeText(
-                            requireContext(),
-                            "Вы уже находитесь на данном экране",
-                            Toast.LENGTH_LONG
-                        ).show()
 
-                    R.id.navChat ->
-                        findNavController().navigate(R.id.action_listUserFragment_to_chatListFragment)
-
-                    else -> {}
+            when (item.itemId) {
+                R.id.navSearch -> {
+                    Toast.makeText(
+                        requireContext(),
+                        "Вы уже находитесь на данном экране",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    true
                 }
+
+                R.id.navChat -> {
+                    findNavController().navigate(R.id.action_listUserFragment_to_chatListFragment)
+                    true
+                }
+
+                else -> true
             }
+
             return@setOnItemSelectedListener true
         }
     }

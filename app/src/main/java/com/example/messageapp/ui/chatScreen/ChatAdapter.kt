@@ -1,6 +1,5 @@
 package com.example.messageapp.ui.chatScreen
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -22,7 +21,6 @@ class ChatAdapter(private val messageList: MutableList<Message>) :
 
         fun bindRight(message: Message) {
                 binding.textView3.text = message.message
-
         }
     }
 
@@ -43,7 +41,6 @@ class ChatAdapter(private val messageList: MutableList<Message>) :
                         parent,
                         false
                     )
-                    Log.d("TAG", "Создан Right")
                     ChatViewRightHolder(binding)
                 }
             else ->{
@@ -52,7 +49,6 @@ class ChatAdapter(private val messageList: MutableList<Message>) :
                     parent,
                     false
                 )
-                Log.d("TAG", "Создан Left")
                 ChatViewLeftHolder(binding)
             }
         }
@@ -82,6 +78,6 @@ class ChatAdapter(private val messageList: MutableList<Message>) :
         messageList.clear()
         messageList.addAll(newList)
         // todo поправить
-        notifyDataSetChanged() // Обновляем адаптер
+        notifyDataSetChanged()
     }
 }

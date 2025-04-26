@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.messageapp.R
 import com.example.messageapp.databinding.FragmentChatListBinding
@@ -54,23 +55,35 @@ class ChatListFragment : Fragment() {
     }
 
     private fun initNavigate() {
+        binding.bottomNavigationView2.setupWithNavController(findNavController())
         binding.bottomNavigationView2.setOnItemSelectedListener { item ->
-            run {
-                when (item.itemId) {
-                    R.id.navSearch ->
 
-                        findNavController().navigate(R.id.action_chatListFragment_to_listUserFragment)
+            when (item.itemId) {
+                R.id.navSearch -> {
+                    viewModel.findUser(requireContext())
 
-                    R.id.navChat ->
-                        Toast.makeText(
-                            requireContext(),
-                            "Вы уже на данном экране",
-                            Toast.LENGTH_LONG
-                        ).show()
-
-                    else -> {}
+                    viewModel.userResponse.observe(viewLifecycleOwner) {
+                        val action =
+                            ChatListFragmentDirections.actionChatListFragmentToListUserFragment(
+                                viewModel.userResponse.value!!
+                            )
+                        findNavController().navigate(action)
+                    }
+                    true
                 }
+
+                R.id.navChat -> {
+                    Toast.makeText(
+                        requireContext(),
+                        "Вы уже на данном экране",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    true
+                }
+
+                else -> {}
             }
+
             return@setOnItemSelectedListener true
         }
     }

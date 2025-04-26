@@ -28,7 +28,7 @@
             app:destination="@id/registerFragment" />
         <action
             android:id="@+id/action_privateFragment_to_listUserFragment"
-            app:destination="@id/listUserFragment" />
+            app:destination="@id/navSearch" />
     </fragment>
     <fragment
         android:id="@+id/chatFragment"
@@ -40,7 +40,7 @@
             app:argType="com.example.messageapp.data.network.model.UserResponse" />
         <action
             android:id="@+id/action_chatFragment_to_chatListFragment"
-            app:destination="@id/chatListFragment" />
+            app:destination="@id/navChat" />
     </fragment>
     <fragment
         android:id="@+id/registerFragment"
@@ -48,10 +48,10 @@
         android:label="RegisterFragment" >
         <action
             android:id="@+id/action_registerFragment_to_listUserFragment"
-            app:destination="@id/listUserFragment" />
+            app:destination="@id/navSearch" />
     </fragment>
     <fragment
-        android:id="@+id/listUserFragment"
+        android:id="@+id/navSearch"
         android:name="com.example.messageapp.ui.listUserScreen.ListUserFragment"
         android:label="fragment_list_user"
         tools:layout="@layout/fragment_list_user" >
@@ -61,10 +61,10 @@
              />
         <action
             android:id="@+id/action_listUserFragment_to_chatListFragment"
-            app:destination="@id/chatListFragment" />
+            app:destination="@id/navChat" />
     </fragment>
     <fragment
-        android:id="@+id/chatListFragment"
+        android:id="@+id/navChat"
         android:name="com.example.messageapp.ui.chatList.ChatListFragment"
         android:label="fragment_chat_list"
         tools:layout="@layout/fragment_chat_list" >
@@ -73,6 +73,6 @@
             app:destination="@id/chatFragment" />
         <action
             android:id="@+id/action_chatListFragment_to_listUserFragment"
-            app:destination="@id/listUserFragment" />
+            app:destination="@id/navSearch" />
     </fragment>
 </navigation>

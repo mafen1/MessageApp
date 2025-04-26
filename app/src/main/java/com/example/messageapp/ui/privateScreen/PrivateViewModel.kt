@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 
 class PrivateViewModel : ViewModel() {
 
+    //todo переделать
     var userResponse = MutableLiveData<User>()
 
     fun findUser(context: Context) {

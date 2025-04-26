@@ -8,8 +8,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.messageapp.R
-import com.example.messageapp.data.network.model.User
 import com.example.messageapp.databinding.FragmentPrivatyBinding
+import com.example.messageapp.store.SharedPreference
 
 class PrivateFragment : Fragment() {
 
@@ -29,21 +29,18 @@ class PrivateFragment : Fragment() {
 
     private fun initView() {
         binding.button.setOnClickListener {
-            viewModel.findUser(requireContext())
+            if (SharedPreference(requireContext()).getValueString("tokenJWT") != "") {
+                viewModel.findUser(requireContext())
 
-            viewModel.userResponse.observe(viewLifecycleOwner) { user ->
-                validateUser(user)
+                viewModel.userResponse.observe(viewLifecycleOwner) { user ->
+                    val action =
+                        PrivateFragmentDirections.actionPrivateFragmentToListUserFragment(viewModel.userResponse.value!!)
+                    findNavController().navigate(action)
+
+                }
+            } else {
+                findNavController().navigate(R.id.action_privateFragment_to_registerFragment)
             }
-        }
-    }
-
-    // проверка есть ли пользователь в базе данных
-    private fun validateUser(user: User?) {
-        if (user?.userName?.isNotEmpty() == true) {
-            val action = PrivateFragmentDirections.actionPrivateFragmentToListUserFragment(user)
-            findNavController().navigate(action)
-        } else {
-            findNavController().navigate(R.id.action_privateFragment_to_registerFragment)
         }
     }
 

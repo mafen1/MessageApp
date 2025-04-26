@@ -54,4 +54,6 @@ class ChatViewModel() : ViewModel() {
         messageList.value = newList
         Log.d("TAG", messageList.value.toString())
     }
+
+
 }

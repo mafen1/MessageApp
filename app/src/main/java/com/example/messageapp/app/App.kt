@@ -1,5 +1,5 @@
 package com.example.messageapp.app
 
-class App {
+class App() {
 
 }

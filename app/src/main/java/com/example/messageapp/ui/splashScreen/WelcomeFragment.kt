@@ -14,11 +14,11 @@ import kotlinx.coroutines.launch
 
 class WelcomeFragment : Fragment() {
 
-    lateinit var binding: FragmentWelcomeBinding
+    private lateinit var binding: FragmentWelcomeBinding
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentWelcomeBinding.inflate(layoutInflater, container, false)
         return binding.root
 
@@ -36,5 +36,4 @@ class WelcomeFragment : Fragment() {
         }
 
     }
-
 }

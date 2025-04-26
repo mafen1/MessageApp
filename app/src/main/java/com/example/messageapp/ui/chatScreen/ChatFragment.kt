@@ -25,9 +25,7 @@ class ChatFragment : Fragment() {
     private lateinit var adapter: ChatAdapter
 
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,10 +38,7 @@ class ChatFragment : Fragment() {
     }
 
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
-        super.onViewCreated(view, savedInstanceState)
-    }
 
     private fun initView() {
         initObserver()
@@ -52,7 +47,7 @@ class ChatFragment : Fragment() {
         val user = userFragmentArgs.UserResponse
         // подключаемся к веб сокету
         viewModel.connect(viewModel.findUserName(requireContext()))
-
+        Log.d("TAG", viewModel.findUserName(requireContext()))
         binding.imageView3.setOnClickListener {
             sendMessage(user)
         }

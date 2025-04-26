@@ -1,5 +1,6 @@
 package com.example.messageapp.ui.listUserScreen
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -9,6 +10,7 @@ import com.example.messageapp.data.network.api.client.RetrofitClient
 import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.data.network.webSocket.client.ChatWebSocketClient
+import com.example.messageapp.store.SharedPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.net.URI
@@ -52,5 +54,11 @@ class ListUserViewModel : ViewModel() {
 
     fun sendMessage(message: String) {
         _webSocketClient?.send(message)
+    }
+
+    fun saveUserName(context: Context, userName: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            SharedPreference(context).save("username", userName)
+        }
     }
 }

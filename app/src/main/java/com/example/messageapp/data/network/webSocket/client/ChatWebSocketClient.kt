@@ -13,16 +13,16 @@ class ChatWebSocketClient (serverUri: URI, private val messageListener: (String)
     override fun onMessage(message: String?) {
         if (message != null) {
             messageListener.invoke(message)
-//            Log.d("TAG", message)
+            Log.d("TAG", message)
         }
     }
 
     override fun onClose(code: Int, reason: String?, remote: Boolean) {
-
+        Log.d("TAG", code.toString())
     }
 
     override fun onError(ex: Exception?) {
-
+        Log.e("TAG", ex.toString())
     }
 
     fun sendMessage(message: String){

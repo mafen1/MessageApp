@@ -7,7 +7,7 @@ import android.util.Log
 class SharedPreference(context: Context) {
 
     private val PREFS_NAME = "DATA"
-    val sharedPreference: SharedPreferences =
+    private val sharedPreference: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     fun save(keyName: String, value: String) {

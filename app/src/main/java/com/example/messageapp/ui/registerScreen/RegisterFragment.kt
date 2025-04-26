@@ -40,8 +40,9 @@ class RegisterFragment : Fragment() {
     private fun addAccount() {
         if (binding.edName.text.isNotEmpty() && binding.edUserName.text.isNotEmpty()) {
             if (binding.edUserName.text.first() == '@') {
-                // добавление аккаунта в базу данных
 
+
+                // создаем нового юзера
                 val user = User(
                     id = Random.nextInt(),
                     name = binding.edName.text.toString(),
@@ -49,7 +50,7 @@ class RegisterFragment : Fragment() {
                     friend = listOf(),
                     token = ""
                 )
-
+                // Добавляем в бд
                 viewModel.addAccount(
                     user,
                     requireContext()
