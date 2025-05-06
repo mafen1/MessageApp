@@ -55,7 +55,7 @@ class ListUserFragment : Fragment() {
 
         initRecyclerView()
         initObserver()
-
+        hiddenRecyclerView()
 
     }
 
@@ -77,6 +77,11 @@ class ListUserFragment : Fragment() {
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
+                if (newText != null) {
+                    viewModel.findUserByStr(newText)
+                }else{
+                    hiddenRecyclerView()
+                }
                 return true
             }
 
@@ -147,5 +152,13 @@ class ListUserFragment : Fragment() {
             initNotification()
         }
     }
+
+    private fun hiddenRecyclerView(){
+        binding.searchView.setOnCloseListener {
+            binding.recyclerView2.adapter = ListUserAdapter(mutableListOf()){}
+            return@setOnCloseListener true
+        }
+    }
+
 
 }

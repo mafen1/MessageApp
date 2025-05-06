@@ -19,7 +19,6 @@ class ChatListViewModel : ViewModel() {
     private var _listUser = MutableLiveData<MutableList<UserResponse>>()
     var listUser: LiveData<MutableList<UserResponse>> = _listUser
 
-    // todo переделать
     private var _userResponse = MutableLiveData<User>()
     var userResponse: LiveData<User> = _userResponse
 

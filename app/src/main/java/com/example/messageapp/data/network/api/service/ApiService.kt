@@ -30,4 +30,7 @@ interface ApiService {
 
     @GET("/allUser")
     suspend fun allUser(): MutableList<UserResponse>
+
+    @POST("/findUserByStr")
+    suspend fun findUserByStr(@Body userName: UserRequest): List<UserResponse>
 }

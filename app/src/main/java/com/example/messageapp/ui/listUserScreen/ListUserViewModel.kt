@@ -61,4 +61,11 @@ class ListUserViewModel : ViewModel() {
             SharedPreference(context).save("username", userName)
         }
     }
+
+    fun findUserByStr(userName: String){
+        viewModelScope.launch(Dispatchers.IO) {
+            val users = RetrofitClient.apiService.findUserByStr(UserRequest(userName))
+            _foundUser.postValue(users.toMutableList())
+        }
+    }
 }
