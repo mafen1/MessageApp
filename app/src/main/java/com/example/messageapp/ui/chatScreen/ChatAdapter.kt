@@ -6,8 +6,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.messageapp.data.network.model.Message
 import com.example.messageapp.databinding.ChatHolderLeftBinding
 import com.example.messageapp.databinding.ChatHolderRightBinding
+import javax.inject.Inject
 
-class ChatAdapter(private val messageList: MutableList<Message>) :
+class ChatAdapter @Inject  constructor(private val messageList: MutableList<Message>) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private companion object {

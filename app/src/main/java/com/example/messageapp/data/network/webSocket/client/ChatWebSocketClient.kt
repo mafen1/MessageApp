@@ -4,8 +4,9 @@ import android.util.Log
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import java.net.URI
+import javax.inject.Inject
 
-class ChatWebSocketClient (serverUri: URI, private val messageListener: (String) -> Unit) : WebSocketClient(serverUri) {
+class ChatWebSocketClient @Inject constructor(serverUri: URI, private val messageListener: (String) -> Unit) : WebSocketClient(serverUri) {
     override fun onOpen(handshakedata: ServerHandshake?) {
         Log.d("TAG", "вызов функции on Open")
     }

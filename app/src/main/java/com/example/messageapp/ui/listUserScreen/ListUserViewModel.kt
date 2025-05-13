@@ -11,11 +11,14 @@ import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.data.network.webSocket.client.ChatWebSocketClient
 import com.example.messageapp.store.SharedPreference
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.net.URI
+import javax.inject.Inject
 
-class ListUserViewModel : ViewModel() {
+@HiltViewModel
+class ListUserViewModel @Inject constructor() : ViewModel() {
 
     private var _foundUser = MutableLiveData<MutableList<UserResponse>>()
     var foundUser: LiveData<MutableList<UserResponse>> = _foundUser

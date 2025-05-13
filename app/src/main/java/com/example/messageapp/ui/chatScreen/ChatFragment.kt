@@ -15,8 +15,9 @@ import com.example.messageapp.R
 import com.example.messageapp.data.network.model.Message
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.databinding.FragmentChatBinding
+import dagger.hilt.android.AndroidEntryPoint
 
-
+@AndroidEntryPoint
 class ChatFragment : Fragment() {
 
     lateinit var binding: FragmentChatBinding

@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:title="News"
+        android:id="@+id/navNews"
+        android:icon="@drawable/news"
+        tools:ignore="DuplicateIds" />
 
     <item android:title="Search"
         android:id="@+id/navSearch"
@@ -8,4 +14,9 @@
     <item android:title="Chat"
         android:id="@+id/navChat"
         android:icon="@drawable/chat"/>
+
+    <item android:title="Account"
+        android:id="@+id/navAccount"
+        android:icon="@drawable/account"/>
+
 </menu>

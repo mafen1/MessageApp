@@ -1,4 +1,4 @@
-package com.example.messageapp.ui.chatList
+package com.example.messageapp.ui.chatListScreen
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -12,8 +12,9 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.messageapp.R
 import com.example.messageapp.databinding.FragmentChatListBinding
+import dagger.hilt.android.AndroidEntryPoint
 
-
+@AndroidEntryPoint
 class ChatListFragment : Fragment() {
 
     private lateinit var binding: FragmentChatListBinding
@@ -87,6 +88,7 @@ class ChatListFragment : Fragment() {
             return@setOnItemSelectedListener true
         }
     }
+
 
 
 }

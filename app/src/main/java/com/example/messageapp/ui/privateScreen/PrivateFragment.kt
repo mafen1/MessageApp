@@ -10,7 +10,9 @@ import androidx.navigation.fragment.findNavController
 import com.example.messageapp.R
 import com.example.messageapp.databinding.FragmentPrivatyBinding
 import com.example.messageapp.store.SharedPreference
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class PrivateFragment : Fragment() {
 
     lateinit var binding: FragmentPrivatyBinding
@@ -30,7 +32,7 @@ class PrivateFragment : Fragment() {
     private fun initView() {
         binding.button.setOnClickListener {
             if (SharedPreference(requireContext()).getValueString("tokenJWT") != "") {
-                viewModel.findUser(requireContext())
+                viewModel.findUser()
 
                 viewModel.userResponse.observe(viewLifecycleOwner) { user ->
                     val action =

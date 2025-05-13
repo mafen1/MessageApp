@@ -12,6 +12,7 @@ object RetrofitClient {
     private val client = OkHttpClient.Builder()
         .build()
 
+
     val gson = GsonBuilder()
         .setLenient()
         .create()

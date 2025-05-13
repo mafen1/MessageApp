@@ -70,6 +70,7 @@ dependencies {
 
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
 
     implementation(libs.androidx.recyclerview)
 

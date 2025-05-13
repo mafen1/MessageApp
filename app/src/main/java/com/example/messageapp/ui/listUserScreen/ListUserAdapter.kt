@@ -6,8 +6,10 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.databinding.ListUserHolderBinding
+import javax.inject.Inject
 
-class ListUserAdapter(
+
+class ListUserAdapter @Inject constructor(
     val listUser: MutableList<UserResponse>,
     private val onItemClick: (UserResponse) -> Unit
 ) :

@@ -1,4 +1,4 @@
-package com.example.messageapp.ui.chatList
+package com.example.messageapp.ui.chatListScreen
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -6,8 +6,10 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.databinding.ListChatHolderBinding
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class ChatListAdapter(
+class ChatListAdapter @Inject constructor(
     private val listUser: MutableList<UserResponse>,
     private val onItemClick: (UserResponse) -> Unit
 ) :

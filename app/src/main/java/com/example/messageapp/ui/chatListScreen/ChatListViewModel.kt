@@ -1,4 +1,4 @@
-package com.example.messageapp.ui.chatList
+package com.example.messageapp.ui.chatListScreen
 
 import android.content.Context
 import android.util.Log
@@ -11,10 +11,13 @@ import com.example.messageapp.data.network.model.Token
 import com.example.messageapp.data.network.model.User
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.store.SharedPreference
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ChatListViewModel : ViewModel() {
+@HiltViewModel
+class ChatListViewModel @Inject constructor() : ViewModel() {
 
     private var _listUser = MutableLiveData<MutableList<UserResponse>>()
     var listUser: LiveData<MutableList<UserResponse>> = _listUser
@@ -27,6 +30,7 @@ class ChatListViewModel : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             _listUser.postValue(RetrofitClient.apiService.allUser())
         }
+
     }
 
     fun findUser(context: Context) {

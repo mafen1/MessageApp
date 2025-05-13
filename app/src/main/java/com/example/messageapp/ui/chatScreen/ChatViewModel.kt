@@ -9,11 +9,14 @@ import com.example.messageapp.data.network.model.Message
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.data.network.webSocket.client.ChatWebSocketClient
 import com.example.messageapp.store.SharedPreference
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.net.URI
+import javax.inject.Inject
 
-class ChatViewModel() : ViewModel() {
+@HiltViewModel
+class ChatViewModel @Inject constructor() : ViewModel() {
 
     val user = MutableLiveData<UserResponse>()
     val messageText = MutableLiveData<String>()

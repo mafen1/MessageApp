@@ -65,7 +65,7 @@
     </fragment>
     <fragment
         android:id="@+id/navChat"
-        android:name="com.example.messageapp.ui.chatList.ChatListFragment"
+        android:name="com.example.messageapp.ui.chatListScreen.ChatListFragment"
         android:label="fragment_chat_list"
         tools:layout="@layout/fragment_chat_list" >
         <action
