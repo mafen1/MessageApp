@@ -47,8 +47,10 @@ class ChatFragment : Fragment() {
 
         val user = userFragmentArgs.UserResponse
         // подключаемся к веб сокету
-        viewModel.connect(viewModel.findUserName(requireContext()))
-        Log.d("TAG", viewModel.findUserName(requireContext()))
+        viewModel.connect(viewModel.findUserName())
+
+        Log.d("TAG", viewModel.findUserName())
+
         binding.imageView3.setOnClickListener {
             sendMessage(user)
         }

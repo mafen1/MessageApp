@@ -10,7 +10,7 @@ import javax.inject.Inject
 
 
 class ListUserAdapter @Inject constructor(
-    val listUser: MutableList<UserResponse>,
+    private val listUser: MutableList<UserResponse>,
     private val onItemClick: (UserResponse) -> Unit
 ) :
     RecyclerView.Adapter<ListUserAdapter.ListUserViewHolder>() {

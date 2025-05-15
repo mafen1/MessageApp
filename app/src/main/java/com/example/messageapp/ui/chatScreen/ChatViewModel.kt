@@ -1,6 +1,5 @@
 package com.example.messageapp.ui.chatScreen
 
-import android.content.Context
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -8,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.messageapp.data.network.model.Message
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.data.network.webSocket.client.ChatWebSocketClient
-import com.example.messageapp.store.SharedPreference
+import com.example.messageapp.domain.useCase.AppPreferencesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -16,7 +15,9 @@ import java.net.URI
 import javax.inject.Inject
 
 @HiltViewModel
-class ChatViewModel @Inject constructor() : ViewModel() {
+class ChatViewModel @Inject constructor(
+    private val appPreference: AppPreferencesUseCase,
+) : ViewModel() {
 
     val user = MutableLiveData<UserResponse>()
     val messageText = MutableLiveData<String>()
@@ -35,9 +36,7 @@ class ChatViewModel @Inject constructor() : ViewModel() {
 
         webSocketClient = ChatWebSocketClient(serverUri) { message ->
             viewModelScope.launch(Dispatchers.Main) {
-//                Log.d("TAG", "Сообщение до: $message")
                 updateMessageList(Message(message, false))
-//                Log.d("TAG", "Сообщение после: $message") // Теперь должно сработать
             }
         }
 
@@ -46,8 +45,8 @@ class ChatViewModel @Inject constructor() : ViewModel() {
     }
 
 
-    fun findUserName(context: Context): String {
-        return SharedPreference(context).getValueString("username")
+    fun findUserName(): String {
+        return appPreference.getValueString("username")
             ?: throw IllegalArgumentException("не найден пользователь с данным юзер неймом")
     }
 

@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.example.messageapp.data.network.api.service.ApiService
 import com.example.messageapp.data.network.model.LoginRequest
+import com.example.messageapp.data.network.model.LoginResponse
 import com.example.messageapp.data.network.model.Token
 import com.example.messageapp.data.network.model.User
 import com.example.messageapp.data.network.model.UserRequest
@@ -11,6 +12,7 @@ import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.domain.repo.apiRepository.ApiRepository
 import com.example.messageapp.store.SharedPreference
 import dagger.hilt.android.qualifiers.ApplicationContext
+import retrofit2.Response
 import javax.inject.Inject
 
 class ApiServiceImpl @Inject constructor(
@@ -19,7 +21,7 @@ class ApiServiceImpl @Inject constructor(
     private val sharedPreference: SharedPreference
 ) : ApiRepository {
 
-    override suspend fun addUser(user: User) {
+    override suspend fun addUser(user: User): Response<LoginResponse> {
         try {
             val response = apiService.addUser(user)
             if (response.isSuccessful) {

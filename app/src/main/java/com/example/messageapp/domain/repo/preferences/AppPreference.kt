@@ -1,4 +1,4 @@
-package com.example.messageapp.store
+package com.example.messageapp.domain.repo.preferences
 
 interface AppPreference {
     fun save(keyName: String, value: String)

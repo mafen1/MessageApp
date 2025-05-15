@@ -51,7 +51,7 @@ class ListUserFragment : Fragment() {
         val user = userFragmentArgs.User
         binding.textView4.text = user.userName
 
-        viewModel.saveUserName(requireContext(), user.userName)
+        viewModel.saveUserName(user.userName)
         viewModel.connectWebSocket(user.userName)
 
         initRecyclerView()

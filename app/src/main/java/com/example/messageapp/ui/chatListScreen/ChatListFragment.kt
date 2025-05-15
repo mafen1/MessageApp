@@ -61,7 +61,7 @@ class ChatListFragment : Fragment() {
 
             when (item.itemId) {
                 R.id.navSearch -> {
-                    viewModel.findUser(requireContext())
+                    viewModel.findUser()
 
                     viewModel.userResponse.observe(viewLifecycleOwner) {
                         val action =

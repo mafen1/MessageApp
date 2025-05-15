@@ -36,6 +36,6 @@ interface ApiService {
     @POST("/findUserByStr")
     suspend fun findUserByStr(@Body userName: UserRequest): List<UserResponse>
 
-    @POST("/loginUser")
+    @POST("/login")
     suspend fun loginUser(@Body loginRequest: LoginRequest) : User
 }

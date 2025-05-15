@@ -28,7 +28,7 @@ class PrivateFragment : Fragment() {
         initView()
         return binding.root
     }
-
+    // todo перенести sharedPreferences в viewModel
     private fun initView() {
         binding.button.setOnClickListener {
             if (SharedPreference(requireContext()).getValueString("tokenJWT") != "") {

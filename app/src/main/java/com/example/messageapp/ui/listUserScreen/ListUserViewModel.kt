@@ -1,16 +1,15 @@
 package com.example.messageapp.ui.listUserScreen
 
-import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.messageapp.data.network.api.client.RetrofitClient
 import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.data.network.webSocket.client.ChatWebSocketClient
-import com.example.messageapp.store.SharedPreference
+import com.example.messageapp.domain.useCase.ApiServiceUseCase
+import com.example.messageapp.domain.useCase.AppPreferencesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,7 +17,10 @@ import java.net.URI
 import javax.inject.Inject
 
 @HiltViewModel
-class ListUserViewModel @Inject constructor() : ViewModel() {
+class ListUserViewModel @Inject constructor(
+    private val appPreference: AppPreferencesUseCase,
+    private val apiServiceUseCase: ApiServiceUseCase
+) : ViewModel() {
 
     private var _foundUser = MutableLiveData<MutableList<UserResponse>>()
     var foundUser: LiveData<MutableList<UserResponse>> = _foundUser
@@ -32,8 +34,8 @@ class ListUserViewModel @Inject constructor() : ViewModel() {
     fun searchUser(userName: UserRequest) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val user = RetrofitClient.apiService.findUserByName(userName)
-                _foundUser.postValue(mutableListOf(user))
+                val user = apiServiceUseCase.findUserByName(userName)
+                _foundUser.postValue(mutableListOf(user.getOrThrow()))
                 Log.d("TAG", user.toString())
             } catch (e: Exception) {
                 Log.d("TAG", e.message.toString())
@@ -59,16 +61,16 @@ class ListUserViewModel @Inject constructor() : ViewModel() {
         _webSocketClient?.send(message)
     }
 
-    fun saveUserName(context: Context, userName: String) {
+    fun saveUserName( userName: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            SharedPreference(context).save("username", userName)
+            appPreference.save("username", userName)
         }
     }
 
     fun findUserByStr(userName: String){
         viewModelScope.launch(Dispatchers.IO) {
-            val users = RetrofitClient.apiService.findUserByStr(UserRequest(userName))
-            _foundUser.postValue(users.toMutableList())
+            val users = apiServiceUseCase.findUserByStr(UserRequest(userName))
+            _foundUser.postValue(users.getOrThrow().toMutableList())
         }
     }
 }

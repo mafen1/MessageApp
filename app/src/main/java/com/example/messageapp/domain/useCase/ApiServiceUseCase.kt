@@ -1,17 +1,19 @@
 package com.example.messageapp.domain.useCase
 
 import com.example.messageapp.data.network.model.LoginRequest
+import com.example.messageapp.data.network.model.LoginResponse
 import com.example.messageapp.data.network.model.Token
 import com.example.messageapp.data.network.model.User
 import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.domain.repoImpl.ApiServiceImpl
+import retrofit2.Response
 import javax.inject.Inject
 
 class ApiServiceUseCase @Inject constructor(private val apiServiceImpl: ApiServiceImpl) {
 
-    suspend fun addUser(user: User) {
-        apiServiceImpl.addUser(user)
+    suspend fun addUser(user: User): Response<LoginResponse> {
+        return apiServiceImpl.addUser(user)
     }
 
     suspend fun findUser(

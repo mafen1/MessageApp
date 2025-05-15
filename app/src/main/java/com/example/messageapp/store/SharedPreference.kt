@@ -3,6 +3,7 @@ package com.example.messageapp.store
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
+import com.example.messageapp.domain.repo.preferences.AppPreference
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 

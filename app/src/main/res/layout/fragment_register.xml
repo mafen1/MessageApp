@@ -11,10 +11,10 @@
         android:id="@+id/tvRegistration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="112dp"
         android:layout_marginTop="88dp"
         android:text="Registration"
         android:textSize="35sp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -61,10 +61,10 @@
         android:id="@+id/tvLogin"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="116dp"
         android:layout_marginTop="20dp"
         android:text="Есть уже аккаунт? Войдите"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/edUserName"
+        app:layout_constraintStart_toStartOf="@+id/edUserName"
         app:layout_constraintTop_toBottomOf="@+id/edUserName" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
