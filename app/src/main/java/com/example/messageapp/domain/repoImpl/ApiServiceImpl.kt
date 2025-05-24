@@ -5,6 +5,7 @@ import android.util.Log
 import com.example.messageapp.data.network.api.service.ApiService
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.LoginResponse
+import com.example.messageapp.data.network.model.NewsRequest
 import com.example.messageapp.data.network.model.Token
 import com.example.messageapp.data.network.model.User
 import com.example.messageapp.data.network.model.UserRequest
@@ -12,6 +13,7 @@ import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.domain.repo.apiRepository.ApiRepository
 import com.example.messageapp.store.SharedPreference
 import dagger.hilt.android.qualifiers.ApplicationContext
+import okhttp3.MultipartBody
 import retrofit2.Response
 import javax.inject.Inject
 
@@ -22,8 +24,9 @@ class ApiServiceImpl @Inject constructor(
 ) : ApiRepository {
 
     override suspend fun addUser(user: User): Response<LoginResponse> {
+        val response = apiService.addUser(user)
         try {
-            val response = apiService.addUser(user)
+
             if (response.isSuccessful) {
                 sharedPreference.save("tokenJWT", response.body()?.token!!)
                 Log.d("TAG", "Token: ${SharedPreference(context).getValueString("tokenJWT")}")
@@ -33,6 +36,7 @@ class ApiServiceImpl @Inject constructor(
         } catch (e: Exception) {
             Log.d("TAG", e.toString())
         }
+        return response
     }
 
     override suspend fun findUser(token: Token): Result<User> = try {
@@ -65,6 +69,10 @@ class ApiServiceImpl @Inject constructor(
         Result.success(apiService.loginUser(loginRequest))
     }catch (e: Exception){
         Result.failure(e)
+    }
+
+    override suspend fun addNews( part: MultipartBody.Part) {
+        apiService.addNews(part)
     }
 
 }

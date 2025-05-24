@@ -7,6 +7,7 @@ import com.example.messageapp.data.network.model.User
 import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.domain.repoImpl.ApiServiceImpl
+import okhttp3.MultipartBody
 import retrofit2.Response
 import javax.inject.Inject
 
@@ -38,6 +39,10 @@ class ApiServiceUseCase @Inject constructor(private val apiServiceImpl: ApiServi
 
     suspend fun loginUser(loginRequest: LoginRequest): Result<User> {
         return apiServiceImpl.loginUser(loginRequest)
+    }
+
+    suspend fun addNews(part: MultipartBody.Part){
+        apiServiceImpl.addNews(part)
     }
 
 }

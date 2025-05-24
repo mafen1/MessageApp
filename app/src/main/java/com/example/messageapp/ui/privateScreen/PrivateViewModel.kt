@@ -17,12 +17,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PrivateViewModel @Inject constructor(
-    // todo переделать в UseCase
     private val appPreference: AppPreferencesUseCase,
     private val apiServiceUseCase: ApiServiceUseCase
 ) : ViewModel() {
 
-    //todo переделать
     private val _userResponse = MutableLiveData<User>()
     var userResponse = _userResponse
 

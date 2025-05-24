@@ -6,6 +6,7 @@ import com.example.messageapp.data.network.model.Token
 import com.example.messageapp.data.network.model.User
 import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.data.network.model.UserResponse
+import okhttp3.MultipartBody
 import retrofit2.Response
 
 interface ApiRepository {
@@ -27,4 +28,8 @@ interface ApiRepository {
     suspend fun findUserByStr( userName: UserRequest): Result<List<UserResponse>>
 
     suspend fun loginUser( loginRequest: LoginRequest) : Result<User>
+
+    suspend fun addNews(inputStream: MultipartBody.Part)
+
+
 }

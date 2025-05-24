@@ -6,7 +6,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.databinding.ListChatHolderBinding
-import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 class ChatListAdapter @Inject constructor(
@@ -18,12 +17,14 @@ class ChatListAdapter @Inject constructor(
     inner class ChatListViewHolder(private val binding: ListChatHolderBinding) :
         ViewHolder(binding.root) {
         fun bind(user: UserResponse) {
+
             binding.tvUserName.text = user.username
             binding.tvName.text = user.name
 
             binding.root.setOnClickListener {
                 onItemClick(user)
             }
+
         }
     }
 

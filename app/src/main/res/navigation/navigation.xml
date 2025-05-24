@@ -62,6 +62,9 @@
         <action
             android:id="@+id/action_listUserFragment_to_chatListFragment"
             app:destination="@id/navChat" />
+        <action
+            android:id="@+id/action_navSearch_to_newsListFragment"
+            app:destination="@id/newsListFragment" />
     </fragment>
     <fragment
         android:id="@+id/navChat"
@@ -74,5 +77,23 @@
         <action
             android:id="@+id/action_chatListFragment_to_listUserFragment"
             app:destination="@id/navSearch" />
+    </fragment>
+    <fragment
+        android:id="@+id/newsListFragment"
+        android:name="com.example.messageapp.ui.newsListScreen.NewsListFragment"
+        android:label="fragment_news_list"
+        tools:layout="@layout/fragment_news_list" >
+        <action
+            android:id="@+id/action_newsListFragment_to_addNewsFragment"
+            app:destination="@id/addNewsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/addNewsFragment"
+        android:name="com.example.messageapp.ui.addNewsScreen.AddNewsFragment"
+        android:label="fragment_add_news"
+        tools:layout="@layout/fragment_add_news" >
+        <action
+            android:id="@+id/action_addNewsFragment_to_newsListFragment"
+            app:destination="@id/newsListFragment" />
     </fragment>
 </navigation>

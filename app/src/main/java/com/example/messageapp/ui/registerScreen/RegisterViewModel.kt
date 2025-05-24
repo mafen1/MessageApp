@@ -25,6 +25,9 @@ class RegisterViewModel @Inject constructor(
     private var _foundUser: MutableLiveData<User> = MutableLiveData()
     var foundUser: MutableLiveData<User> = _foundUser
 
+    private var _messageUser: MutableLiveData<String> = MutableLiveData()
+    var messageUser: MutableLiveData<String> = _messageUser
+
     fun addAccount(user: User) {
         viewModelScope.launch(Dispatchers.IO) {
             val response = apiServiceUseCase.addUser(user)
@@ -47,6 +50,7 @@ class RegisterViewModel @Inject constructor(
             appPreference.save(ConstVariables.tokenJWT, user.token!!)
         }
     }
+
 
 
 

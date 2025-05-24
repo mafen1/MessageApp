@@ -6,10 +6,13 @@ import com.example.messageapp.data.network.model.Token
 import com.example.messageapp.data.network.model.User
 import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.data.network.model.UserResponse
+import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.Part
 
 interface ApiService {
 
@@ -17,7 +20,6 @@ interface ApiService {
     suspend fun addUser(
         @Body user: User
     ): Response<LoginResponse>
-
 
 
     @POST("/findUserToken")
@@ -37,5 +39,12 @@ interface ApiService {
     suspend fun findUserByStr(@Body userName: UserRequest): List<UserResponse>
 
     @POST("/login")
-    suspend fun loginUser(@Body loginRequest: LoginRequest) : User
+    suspend fun loginUser(@Body loginRequest: LoginRequest): User
+
+    @Multipart
+    @POST("/uploadNews")
+    suspend fun addNews(
+        @Part
+        part: MultipartBody.Part
+    )
 }

@@ -7,9 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import com.example.messageapp.R
 import com.example.messageapp.databinding.FragmentPrivatyBinding
-import com.example.messageapp.store.SharedPreference
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -28,21 +26,22 @@ class PrivateFragment : Fragment() {
         initView()
         return binding.root
     }
-    // todo перенести sharedPreferences в viewModel
+
+
     private fun initView() {
         binding.button.setOnClickListener {
-            if (SharedPreference(requireContext()).getValueString("tokenJWT") != "") {
-                viewModel.findUser()
+            viewModel.findUser()
+        }
+        initObserver()
+    }
 
-                viewModel.userResponse.observe(viewLifecycleOwner) { user ->
-                    val action =
-                        PrivateFragmentDirections.actionPrivateFragmentToListUserFragment(viewModel.userResponse.value!!)
-                    findNavController().navigate(action)
 
-                }
-            } else {
-                findNavController().navigate(R.id.action_privateFragment_to_registerFragment)
-            }
+    private fun initObserver() {
+        viewModel.userResponse.observe(viewLifecycleOwner) { user ->
+            val action =
+                PrivateFragmentDirections.actionPrivateFragmentToListUserFragment(user)
+            findNavController().navigate(action)
+
         }
     }
 

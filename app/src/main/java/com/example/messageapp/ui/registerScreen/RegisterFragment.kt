@@ -28,8 +28,10 @@ class RegisterFragment @Inject constructor() : Fragment() {
     ): View {
         binding =
             FragmentRegisterBinding.inflate(layoutInflater, container, false)
+
         initView()
         initObserver()
+
         return binding.root
     }
 
@@ -46,7 +48,6 @@ class RegisterFragment @Inject constructor() : Fragment() {
 
 
     // todo доделать editPassword
-    // todo перенести все if else во viewModel
     private fun registrationAccount() {
         if (binding.edName.text.isNotEmpty() && binding.edUserName.text.isNotEmpty()) {
             if (binding.edUserName.text.first() == '@') {
@@ -68,6 +69,7 @@ class RegisterFragment @Inject constructor() : Fragment() {
                         token = ""
                     )
                     // Добавляем в бд
+
                     viewModel.addAccount(
                         user
                     )

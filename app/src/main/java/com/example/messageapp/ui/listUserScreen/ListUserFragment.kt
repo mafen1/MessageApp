@@ -18,6 +18,7 @@ import androidx.navigation.fragment.navArgs
 import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.messageapp.R
+import com.example.messageapp.core.snackBar
 import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.databinding.FragmentListUserBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -94,17 +95,19 @@ class ListUserFragment : Fragment() {
         binding.bottomNavigationView.setOnItemSelectedListener { item ->
 
             when (item.itemId) {
+
                 R.id.navSearch -> {
-                    Toast.makeText(
-                        requireContext(),
-                        "Вы уже находитесь на данном экране",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    snackBar(binding.root, "Вы уже находитесь на данном экране")
                     true
                 }
 
                 R.id.navChat -> {
                     findNavController().navigate(R.id.action_listUserFragment_to_chatListFragment)
+                    true
+                }
+
+                R.id.navNews -> {
+                    findNavController().navigate(R.id.action_navSearch_to_newsListFragment)
                     true
                 }
 
