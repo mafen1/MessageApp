@@ -1,6 +1,5 @@
 package com.example.messageapp.ui.addNewsScreen
 
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -12,6 +11,8 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
+import com.example.messageapp.R
 import com.example.messageapp.data.network.model.NewsRequest
 import com.example.messageapp.databinding.FragmentAddNewsBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -25,22 +26,20 @@ class AddNewsFragment : Fragment() {
     private val viewModel: AddNewsViewModel by viewModels()
 
     // todo переделать
-    private lateinit var bitMap1: Bitmap
+    private lateinit var image: Bitmap
     private lateinit var imagePickerLauncher: ActivityResultLauncher<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         imagePickerLauncher =
             registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-                val file = createTempFile()
                 uri?.let { context?.contentResolver?.openInputStream(it) }.use { input ->
-
-                    requireContext().contentResolver
                     val bitMap = BitmapFactory.decodeStream(input)
-                    bitMap1 = bitMap
+                    image = bitMap
+
+                    viewModel.convertBitMapToPart(image)
                 }
             }
-
     }
 
     override fun onCreateView(
@@ -61,26 +60,27 @@ class AddNewsFragment : Fragment() {
 
         binding.button4.setOnClickListener {
 
-            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
-                type = "image/*"
-            }
-
             imagePickerLauncher.launch("image/*")
+
         }
 
         binding.imageView9.setOnClickListener {
+            if (viewModel.imagePart.value !=  null) {
+                val newsRequest = NewsRequest(
+                    id = Random.nextInt(),
+                    userName = viewModel.userName.value.toString(),
+                    image = viewModel.imagePart.value!!,
+                    text = binding.editTextText3.text.toString()
+                )
 
-            val newsRequest = NewsRequest(
-                id = Random.nextInt(),
-                userName = viewModel.userName.value.toString(),
-                text = binding.editTextText3.text.toString()
-            )
+                viewModel.sendImage(newsRequest)
+                findNavController().navigate(R.id.action_addNewsFragment_to_newsListFragment)
+            }else{
 
-            viewModel.sendImage(
-                bitMap1,
-                newsRequest
-            )
+            }
         }
     }
+
+
 
 }

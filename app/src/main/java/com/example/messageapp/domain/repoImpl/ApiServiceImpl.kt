@@ -71,8 +71,12 @@ class ApiServiceImpl @Inject constructor(
         Result.failure(e)
     }
 
-    override suspend fun addNews( part: MultipartBody.Part) {
-        apiService.addNews(part)
+    override suspend fun sendImage( image: MultipartBody.Part, newsRequest: NewsRequest) {
+        apiService.sendImage(newsRequest)
+    }
+
+    override suspend fun addNews(newsRequest: NewsRequest) {
+        apiService.addNews(newsRequest)
     }
 
 }

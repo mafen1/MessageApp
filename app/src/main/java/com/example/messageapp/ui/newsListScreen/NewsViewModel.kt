@@ -12,5 +12,4 @@ class NewsViewModel @Inject constructor(
 
     
 
-
 }

@@ -2,6 +2,7 @@ package com.example.messageapp.ui.addNewsScreen
 
 import android.graphics.Bitmap
 import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -24,28 +25,48 @@ import kotlin.random.Random
 class AddNewsViewModel @Inject constructor(
     private val appPreference: AppPreferencesUseCase,
     private val apiServiceUseCase: ApiServiceUseCase,
-    ): ViewModel() {
+) : ViewModel() {
 
-        private var _userName: MutableLiveData<String> = MutableLiveData()
-        var userName: MutableLiveData<String> = _userName
+    private var _userName: MutableLiveData<String> = MutableLiveData()
+    var userName: MutableLiveData<String> = _userName
 
-//    fun addNews(newsRequest: NewsRequest){
-//        viewModelScope.launch(Dispatchers.IO) {
-//            try {
-//                apiServiceUseCase.addNews(newsRequest)
-//            } catch (e: Exception) {
-//                logD(e.toString())
-//            }
-//        }
-//    }
+    private var _imagePart: MutableLiveData<MultipartBody.Part> = MutableLiveData()
+    var imagePart: LiveData<MultipartBody.Part> = _imagePart
 
-    fun getUserName(){
+
+    fun addNews(newsRequest: NewsRequest) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                apiServiceUseCase.addNews(newsRequest)
+            } catch (e: Exception) {
+                logD(e.toString())
+            }
+        }
+    }
+
+    fun getUserName() {
         viewModelScope.launch(Dispatchers.IO) {
             _userName.postValue(appPreference.getValueString(ConstVariables.userName))
         }
     }
 
-    fun sendImage(image: Bitmap, newsRequest: NewsRequest){
+    fun sendImage(newsRequest: NewsRequest) {
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                if (_imagePart.value != null ) {
+                    apiServiceUseCase.sendImage(_imagePart.value!!, newsRequest)
+                    logD("Файл сохранен")
+                }else{
+                    logD("imagePart Не получен ")
+                }
+            } catch (e: Exception) {
+                Log.e("ERROR", e.toString())
+            }
+        }
+    }
+
+    fun convertBitMapToPart(image: Bitmap) {
         val stream = ByteArrayOutputStream()
         image.compress(Bitmap.CompressFormat.JPEG, 80, stream)
         val byteArray = stream.toByteArray()
@@ -53,15 +74,7 @@ class AddNewsViewModel @Inject constructor(
             "photo[content]", Random.nextInt().toString(),
             byteArray.toRequestBody("image/*".toMediaTypeOrNull(), 0, byteArray.size)
         )
-
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                apiServiceUseCase.addNews(body)
-                logD("Файл сохранен")
-            } catch (e: Exception) {
-                Log.e("ERROR", e.toString())
-            }
-        }
+        _imagePart.value = body
     }
 
 }

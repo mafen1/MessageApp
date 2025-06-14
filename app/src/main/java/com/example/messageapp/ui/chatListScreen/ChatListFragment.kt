@@ -82,6 +82,10 @@ class ChatListFragment : Fragment() {
                     true
                 }
 
+                R.id.navNews -> {
+                    findNavController().navigate(R.id.action_navChat_to_newsListFragment)
+                }
+
                 else -> {}
             }
 

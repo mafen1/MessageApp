@@ -2,6 +2,7 @@ package com.example.messageapp.domain.repo.apiRepository
 
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.LoginResponse
+import com.example.messageapp.data.network.model.NewsRequest
 import com.example.messageapp.data.network.model.Token
 import com.example.messageapp.data.network.model.User
 import com.example.messageapp.data.network.model.UserRequest
@@ -29,7 +30,8 @@ interface ApiRepository {
 
     suspend fun loginUser( loginRequest: LoginRequest) : Result<User>
 
-    suspend fun addNews(inputStream: MultipartBody.Part)
+    suspend fun sendImage(image: MultipartBody.Part, newsRequest: NewsRequest)
 
+    suspend fun addNews(newsRequest: NewsRequest)
 
 }

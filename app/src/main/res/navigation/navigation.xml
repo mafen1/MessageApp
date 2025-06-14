@@ -77,6 +77,12 @@
         <action
             android:id="@+id/action_chatListFragment_to_listUserFragment"
             app:destination="@id/navSearch" />
+        <action
+            android:id="@+id/action_navChat_to_newsListFragment"
+            app:destination="@id/newsListFragment" />
+        <action
+            android:id="@+id/action_navChat_to_newsListFragment2"
+            app:destination="@id/newsListFragment" />
     </fragment>
     <fragment
         android:id="@+id/newsListFragment"
@@ -86,6 +92,12 @@
         <action
             android:id="@+id/action_newsListFragment_to_addNewsFragment"
             app:destination="@id/addNewsFragment" />
+        <action
+            android:id="@+id/action_newsListFragment_to_navChat"
+            app:destination="@id/navChat" />
+        <action
+            android:id="@+id/action_newsListFragment_to_navSearch"
+            app:destination="@id/navSearch" />
     </fragment>
     <fragment
         android:id="@+id/addNewsFragment"

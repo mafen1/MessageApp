@@ -2,6 +2,7 @@ package com.example.messageapp.domain.useCase
 
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.LoginResponse
+import com.example.messageapp.data.network.model.NewsRequest
 import com.example.messageapp.data.network.model.Token
 import com.example.messageapp.data.network.model.User
 import com.example.messageapp.data.network.model.UserRequest
@@ -41,8 +42,12 @@ class ApiServiceUseCase @Inject constructor(private val apiServiceImpl: ApiServi
         return apiServiceImpl.loginUser(loginRequest)
     }
 
-    suspend fun addNews(part: MultipartBody.Part){
-        apiServiceImpl.addNews(part)
+    suspend fun sendImage(part: MultipartBody.Part, newsRequest: NewsRequest){
+        apiServiceImpl.sendImage(part, newsRequest)
+    }
+
+    suspend fun addNews(newsRequest: NewsRequest){
+        apiServiceImpl.addNews(newsRequest)
     }
 
 }

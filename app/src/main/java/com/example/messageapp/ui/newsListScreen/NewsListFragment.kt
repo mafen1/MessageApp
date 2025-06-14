@@ -7,6 +7,8 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.messageapp.R
+import com.example.messageapp.core.logD
+import com.example.messageapp.core.snackBar
 import com.example.messageapp.databinding.FragmentNewsListBinding
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -30,16 +32,39 @@ class NewsListFragment : Fragment() {
 
 
     private fun initView() {
-//        val gallery =
-//            registerForActivityResult(ActivityResultContracts.GetContent()) { galleryUri ->
-//                try {
-//                   binding.imageView10.setImageURI(galleryUri)
-//                } catch (e: Exception) {
-//                    logD(e.toString())
-//                }
-//            }
+        initBottomNavigationView()
         binding.button3.setOnClickListener {
             findNavController().navigate(R.id.action_newsListFragment_to_addNewsFragment)
+        }
+
+    }
+
+
+    private fun initBottomNavigationView() {
+        binding.bottomNavigationView3.setOnItemSelectedListener { item ->
+
+            when (item.itemId) {
+                R.id.navSearch -> {
+                    findNavController().navigate(R.id.action_newsListFragment_to_navSearch)
+                    true
+                }
+
+                R.id.navChat -> {
+                    findNavController().navigate(R.id.action_newsListFragment_to_navChat)
+                    true
+                }
+
+                R.id.navNews -> {
+                    snackBar(binding.root, "Вы уже на данном экране")
+                    true
+                }
+
+                else -> {
+                    logD("Ошибка")
+                    true
+                }
+            }
+
         }
     }
 
