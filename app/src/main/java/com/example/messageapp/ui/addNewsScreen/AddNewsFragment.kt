@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.messageapp.R
+import com.example.messageapp.core.logD
 import com.example.messageapp.data.network.model.NewsRequest
 import com.example.messageapp.databinding.FragmentAddNewsBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -72,7 +73,7 @@ class AddNewsFragment : Fragment() {
                     image = viewModel.imagePart.value!!,
                     text = binding.editTextText3.text.toString()
                 )
-
+                logD(newsRequest.toString())
                 viewModel.sendImage(newsRequest)
                 findNavController().navigate(R.id.action_addNewsFragment_to_newsListFragment)
             }else{

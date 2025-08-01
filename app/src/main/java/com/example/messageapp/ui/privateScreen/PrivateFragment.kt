@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.example.messageapp.R
 import com.example.messageapp.databinding.FragmentPrivatyBinding
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -38,10 +39,13 @@ class PrivateFragment : Fragment() {
 
     private fun initObserver() {
         viewModel.userResponse.observe(viewLifecycleOwner) { user ->
-            val action =
-                PrivateFragmentDirections.actionPrivateFragmentToListUserFragment(user)
-            findNavController().navigate(action)
-
+            if (user != null ) {
+                val action =
+                    PrivateFragmentDirections.actionPrivateFragmentToListUserFragment(user)
+                findNavController().navigate(action)
+            }else{
+                findNavController().navigate(R.id.action_privateFragment_to_registerFragment)
+            }
         }
     }
 

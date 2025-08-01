@@ -21,7 +21,7 @@ class PrivateViewModel @Inject constructor(
     private val apiServiceUseCase: ApiServiceUseCase
 ) : ViewModel() {
 
-    private val _userResponse = MutableLiveData<User>()
+    private val _userResponse = MutableLiveData<User?>()
     var userResponse = _userResponse
 
     fun findUser() {
@@ -41,7 +41,7 @@ class PrivateViewModel @Inject constructor(
                     Log.e("TAGG", "Error fetching user: ${e.message}")
                 }
             } else {
-                throw Exception("Токена нет")
+                _userResponse.postValue(null)
             }
         }
     }

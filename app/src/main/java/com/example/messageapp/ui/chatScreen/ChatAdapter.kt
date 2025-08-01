@@ -8,7 +8,7 @@ import com.example.messageapp.databinding.ChatHolderLeftBinding
 import com.example.messageapp.databinding.ChatHolderRightBinding
 import javax.inject.Inject
 
-class ChatAdapter @Inject  constructor(private val messageList: MutableList<Message>) :
+class ChatAdapter @Inject constructor(private val messageList: MutableList<Message>) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private companion object {
@@ -21,7 +21,7 @@ class ChatAdapter @Inject  constructor(private val messageList: MutableList<Mess
         RecyclerView.ViewHolder(binding.root) {
 
         fun bindRight(message: Message) {
-                binding.textView3.text = message.message
+            binding.textView3.text = message.message
         }
     }
 
@@ -34,17 +34,18 @@ class ChatAdapter @Inject  constructor(private val messageList: MutableList<Mess
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        return when(viewType){
+        return when (viewType) {
             // Для ваших сообщений (справа)
-                VIEW_TYPE_MINE -> {
-                    val binding = ChatHolderRightBinding.inflate(
-                        LayoutInflater.from(parent.context),
-                        parent,
-                        false
-                    )
-                    ChatViewRightHolder(binding)
-                }
-            else ->{
+            VIEW_TYPE_MINE -> {
+                val binding = ChatHolderRightBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false
+                )
+                ChatViewRightHolder(binding)
+            }
+
+            else -> {
                 val binding = ChatHolderLeftBinding.inflate(
                     LayoutInflater.from(parent.context),
                     parent,
@@ -57,7 +58,7 @@ class ChatAdapter @Inject  constructor(private val messageList: MutableList<Mess
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val message = messageList[position]
-        when(holder){
+        when (holder) {
             is ChatViewLeftHolder -> holder.bindLeft(message)
             is ChatViewRightHolder -> holder.bindRight(message)
         }
@@ -78,7 +79,6 @@ class ChatAdapter @Inject  constructor(private val messageList: MutableList<Mess
     fun updateList(newList: List<Message>) {
         messageList.clear()
         messageList.addAll(newList)
-        // todo поправить
-        notifyDataSetChanged()
+        notifyItemChanged(messageList.size)
     }
 }

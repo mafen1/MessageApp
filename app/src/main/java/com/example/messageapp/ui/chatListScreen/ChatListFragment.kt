@@ -8,9 +8,12 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.messageapp.R
+import com.example.messageapp.core.logD
+import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.databinding.FragmentChatListBinding
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -18,8 +21,8 @@ import dagger.hilt.android.AndroidEntryPoint
 class ChatListFragment : Fragment() {
 
     private lateinit var binding: FragmentChatListBinding
-
     private val viewModel by viewModels<ChatListViewModel>()
+    private val fragmentArgs: ChatListFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -38,21 +41,29 @@ class ChatListFragment : Fragment() {
 
     private fun initAdapter() {
         viewModel.allUser()
-
     }
 
     private fun initObserver() {
+
         viewModel.listUser.observe(viewLifecycleOwner) { user ->
 
-            val adapter = ChatListAdapter(user) { selectedUser ->
-                // Откроваем новый фрагмент при клике
-                val action =
-                    ChatListFragmentDirections.actionChatListFragmentToChatFragment(selectedUser)
-                findNavController().navigate(action)
-            }
+            val adapter =
+                ChatListAdapter(user, fragmentArgs.User.userName) { selectedUser ->
+                    // Откроваем новый фрагмент при клике
+                    val action =
+                        ChatListFragmentDirections.actionChatListFragmentToChatFragment(
+                            selectedUser
+                        )
+                    findNavController().navigate(action)
+                }
             binding.recyclerView1.adapter = adapter
             binding.recyclerView1.layoutManager = LinearLayoutManager(requireContext())
+
+            val indexYourAccount = user.indexOf(UserResponse(name = fragmentArgs.User.name, username = fragmentArgs.User.userName))
+            user.removeAt(indexYourAccount)
+            adapter.notifyItemRemoved(indexYourAccount)
         }
+
     }
 
     private fun initNavigate() {
@@ -92,7 +103,6 @@ class ChatListFragment : Fragment() {
             return@setOnItemSelectedListener true
         }
     }
-
 
 
 }

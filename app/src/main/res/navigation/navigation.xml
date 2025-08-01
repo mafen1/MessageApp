@@ -83,6 +83,9 @@
         <action
             android:id="@+id/action_navChat_to_newsListFragment2"
             app:destination="@id/newsListFragment" />
+        <argument
+            android:name="User"
+            app:argType="com.example.messageapp.data.network.model.User" />
     </fragment>
     <fragment
         android:id="@+id/newsListFragment"

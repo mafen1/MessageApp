@@ -21,6 +21,7 @@ import com.example.messageapp.R
 import com.example.messageapp.core.snackBar
 import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.databinding.FragmentListUserBinding
+import com.example.messageapp.ui.chatListScreen.ChatListFragmentDirections
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -102,7 +103,8 @@ class ListUserFragment : Fragment() {
                 }
 
                 R.id.navChat -> {
-                    findNavController().navigate(R.id.action_listUserFragment_to_chatListFragment)
+                    val action = ListUserFragmentDirections.actionListUserFragmentToChatListFragment(userFragmentArgs.User)
+                    findNavController().navigate(action)
                     true
                 }
 

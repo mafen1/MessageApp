@@ -4,13 +4,16 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import com.example.messageapp.core.logD
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.databinding.ListChatHolderBinding
 import javax.inject.Inject
 
 class ChatListAdapter @Inject constructor(
     private val listUser: MutableList<UserResponse>,
-    private val onItemClick: (UserResponse) -> Unit
+    private val currentAccount: String,
+    private val onItemClick: (UserResponse) -> Unit,
+
 ) :
     RecyclerView.Adapter<ChatListAdapter.ChatListViewHolder>() {
 
@@ -18,13 +21,20 @@ class ChatListAdapter @Inject constructor(
         ViewHolder(binding.root) {
         fun bind(user: UserResponse) {
 
-            binding.tvUserName.text = user.username
-            binding.tvName.text = user.name
+            if (user.username != currentAccount) {
+                binding.tvUserName.text = user.username
+                binding.tvName.text = user.name
 
-            binding.root.setOnClickListener {
-                onItemClick(user)
+                binding.root.setOnClickListener {
+                    onItemClick(user)
+                }
+            }else{
+                listUser.remove(user)
+                run {
+                    notifyItemRemoved(listUser.indexOf(user))
+
+                }
             }
-
         }
     }
 

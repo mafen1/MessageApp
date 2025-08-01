@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.messageapp.core.ConstVariables
 import com.example.messageapp.data.network.model.Token
 import com.example.messageapp.data.network.model.User
 import com.example.messageapp.data.network.model.UserResponse
@@ -36,13 +37,14 @@ class ChatListViewModel @Inject constructor(
 
     fun findUser() {
         viewModelScope.launch(Dispatchers.IO) {
-            val token = appPreference.getValueString("tokenJWT")
-            Log.d("TAG", token.toString())
+            val token = appPreference.getValueString(ConstVariables.tokenJWT)
+
             if (token!!.isNotEmpty()) {
                 try {
                     val user = apiServiceUseCase.findUser(Token(token))
                     Log.d("TAGG", "Received user: $user")
-                    _userResponse.postValue(user.getOrThrow())
+                    _userResponse.value = user.getOrThrow()
+
 
                 } catch (e: Exception) {
                     Log.e("TAGG", "Error fetching user: ${e.message}")

@@ -12,7 +12,7 @@ import com.example.messageapp.core.snackBar
 import com.example.messageapp.databinding.FragmentNewsListBinding
 import dagger.hilt.android.AndroidEntryPoint
 
-
+// todo перемещение с newsListFragment на другие экраны
 @AndroidEntryPoint
 class NewsListFragment : Fragment() {
 
