@@ -3,12 +3,14 @@ package com.example.messageapp.domain.useCase
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.LoginResponse
 import com.example.messageapp.data.network.model.NewsRequest
+import com.example.messageapp.data.network.model.NewsResponse
 import com.example.messageapp.data.network.model.Token
 import com.example.messageapp.data.network.model.User
 import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.domain.repoImpl.ApiServiceImpl
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
 import javax.inject.Inject
 
@@ -42,12 +44,24 @@ class ApiServiceUseCase @Inject constructor(private val apiServiceImpl: ApiServi
         return apiServiceImpl.loginUser(loginRequest)
     }
 
-    suspend fun sendImage(part: MultipartBody.Part, newsRequest: NewsRequest){
-        apiServiceImpl.sendImage(part, newsRequest)
+//    suspend fun sendImage(part: MultipartBody.Part, newsRequest: NewsRequest){
+//        apiServiceImpl.sendImage(part, newsRequest)
+//    }
+
+    suspend fun addNews(newsRequest: NewsRequest) {
+        apiServiceImpl.addNews(newsRequest)
     }
 
-    suspend fun addNews(newsRequest: NewsRequest){
-        apiServiceImpl.addNews(newsRequest)
+    suspend fun uploadNews(
+        part: MultipartBody.Part,
+        nameNews: RequestBody,
+        userName: RequestBody
+    ) {
+        apiServiceImpl.uploadNews(part, nameNews, userName)
+    }
+
+    suspend fun allNews(): List<NewsResponse>{
+        return apiServiceImpl.allNews()
     }
 
 }

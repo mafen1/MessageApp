@@ -5,16 +5,20 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.messageapp.R
 import com.example.messageapp.databinding.FragmentWelcomeBinding
+import com.example.messageapp.ui.privateScreen.PrivateFragmentDirections
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class WelcomeFragment : Fragment() {
+
+    private val viewModel by viewModels<WelcomeViewModel>()
 
     private lateinit var binding: FragmentWelcomeBinding
     override fun onCreateView(
@@ -33,11 +37,22 @@ class WelcomeFragment : Fragment() {
 
     private fun initView() {
         lifecycleScope.launch {
+            initObserver()
+            viewModel.findUser()
             delay(3000)
-            findNavController().navigate(R.id.action_welcomeFragment_to_privateFragment)
         }
 
+    }
 
-
+    private fun initObserver() {
+        viewModel.userResponse.observe(viewLifecycleOwner) { user ->
+            if (user != null) {
+                val action =
+                    WelcomeFragmentDirections.actionWelcomeFragmentToNavSearch(user)
+                findNavController().navigate(action)
+            } else {
+                findNavController().navigate(R.id.action_welcomeFragment_to_privateFragment)
+            }
+        }
     }
 }

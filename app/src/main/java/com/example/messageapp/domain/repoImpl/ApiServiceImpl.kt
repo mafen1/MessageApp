@@ -6,6 +6,7 @@ import com.example.messageapp.data.network.api.service.ApiService
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.LoginResponse
 import com.example.messageapp.data.network.model.NewsRequest
+import com.example.messageapp.data.network.model.NewsResponse
 import com.example.messageapp.data.network.model.Token
 import com.example.messageapp.data.network.model.User
 import com.example.messageapp.data.network.model.UserRequest
@@ -14,6 +15,7 @@ import com.example.messageapp.domain.repo.apiRepository.ApiRepository
 import com.example.messageapp.store.SharedPreference
 import dagger.hilt.android.qualifiers.ApplicationContext
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
 import javax.inject.Inject
 
@@ -71,12 +73,24 @@ class ApiServiceImpl @Inject constructor(
         Result.failure(e)
     }
 
-    override suspend fun sendImage( image: MultipartBody.Part, newsRequest: NewsRequest) {
-        apiService.sendImage(newsRequest)
-    }
+//    override suspend fun sendImage( image: MultipartBody.Part, newsRequest: NewsRequest) {
+//        apiService.sendImage(newsRequest)
+//    }
 
     override suspend fun addNews(newsRequest: NewsRequest) {
         apiService.addNews(newsRequest)
+    }
+
+    override suspend fun uploadNews(
+        part: MultipartBody.Part,
+        nameNews: RequestBody,
+        userName: RequestBody
+    ) {
+       apiService.uploadNews(part, nameNews, userName)
+    }
+    // todo убрать скобки
+    override suspend fun allNews(): List<NewsResponse> {
+        return apiService.allNews()
     }
 
 }

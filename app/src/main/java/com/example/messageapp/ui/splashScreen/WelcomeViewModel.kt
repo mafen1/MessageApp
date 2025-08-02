@@ -1,4 +1,4 @@
-package com.example.messageapp.ui.privateScreen
+package com.example.messageapp.ui.splashScreen
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
@@ -16,10 +16,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class PrivateViewModel @Inject constructor(
+class WelcomeViewModel @Inject constructor(
     private val appPreference: AppPreferencesUseCase,
     private val apiServiceUseCase: ApiServiceUseCase
-) : ViewModel() {
+): ViewModel() {
 
     private val _userResponse = MutableLiveData<User?>()
     var userResponse = _userResponse
@@ -45,6 +45,5 @@ class PrivateViewModel @Inject constructor(
             }
         }
     }
-
 
 }

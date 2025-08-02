@@ -16,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
@@ -50,13 +51,15 @@ class AddNewsViewModel @Inject constructor(
         }
     }
 
-    fun sendImage(newsRequest: NewsRequest) {
+    fun sendImage(part: MultipartBody.Part,
+                  nameNews: RequestBody,
+                  userName: RequestBody) {
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 if (_imagePart.value != null ) {
-                    apiServiceUseCase.sendImage(_imagePart.value!!, newsRequest)
-                    logD("Файл сохранен")
+                    apiServiceUseCase.uploadNews(part, nameNews, userName)
+                    logD("Новость успешна отправлена")
                 }else{
                     logD("imagePart Не получен ")
                 }

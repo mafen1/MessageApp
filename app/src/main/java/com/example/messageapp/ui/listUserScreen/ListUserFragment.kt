@@ -21,7 +21,6 @@ import com.example.messageapp.R
 import com.example.messageapp.core.snackBar
 import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.databinding.FragmentListUserBinding
-import com.example.messageapp.ui.chatListScreen.ChatListFragmentDirections
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -29,7 +28,7 @@ class ListUserFragment : Fragment() {
 
     private lateinit var binding: FragmentListUserBinding
     private val viewModel by viewModels<ListUserViewModel>()
-    private val userFragmentArgs: ListUserFragmentArgs by navArgs()
+    private val userArgs: ListUserFragmentArgs by navArgs()
 
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -50,7 +49,7 @@ class ListUserFragment : Fragment() {
         initBottomNavigation()
 
         // todo отправка на сервер запроса на получение определенного юзера
-        val user = userFragmentArgs.User
+        val user = userArgs.User
         binding.textView4.text = user.userName
 
         viewModel.saveUserName(user.userName)
@@ -103,13 +102,14 @@ class ListUserFragment : Fragment() {
                 }
 
                 R.id.navChat -> {
-                    val action = ListUserFragmentDirections.actionListUserFragmentToChatListFragment(userFragmentArgs.User)
+                    val action = ListUserFragmentDirections.actionListUserFragmentToChatListFragment(userArgs.User)
                     findNavController().navigate(action)
                     true
                 }
 
                 R.id.navNews -> {
-                    findNavController().navigate(R.id.action_navSearch_to_newsListFragment)
+                    val action = ListUserFragmentDirections.actionNavSearchToNewsListFragment(userArgs.User)
+                    findNavController().navigate(action)
                     true
                 }
 
@@ -146,7 +146,7 @@ class ListUserFragment : Fragment() {
         viewModel.foundUser.observe(viewLifecycleOwner) { user ->
             binding.recyclerView2.adapter = ListUserAdapter(user) { currentUser ->
                 val message = "Заявка в друзья для пользователя ${currentUser.username}"
-                viewModel.sendMessage("${userFragmentArgs.User.userName}:${currentUser.username}:$message")
+                viewModel.sendMessage("${userArgs.User.userName}:${currentUser.username}:$message")
             }
             binding.recyclerView2.layoutManager = LinearLayoutManager(requireContext())
         }

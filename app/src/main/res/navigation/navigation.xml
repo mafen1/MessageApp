@@ -17,6 +17,9 @@
             app:popEnterAnim="@anim/anim"
             app:exitAnim="@anim/anim"
             app:popExitAnim="@anim/anim"/>
+        <action
+            android:id="@+id/action_welcomeFragment_to_navSearch"
+            app:destination="@id/navSearch" />
     </fragment>
     <fragment
         android:id="@+id/privateFragment"
@@ -101,6 +104,9 @@
         <action
             android:id="@+id/action_newsListFragment_to_navSearch"
             app:destination="@id/navSearch" />
+        <argument
+            android:name="user"
+            app:argType="com.example.messageapp.data.network.model.User" />
     </fragment>
     <fragment
         android:id="@+id/addNewsFragment"

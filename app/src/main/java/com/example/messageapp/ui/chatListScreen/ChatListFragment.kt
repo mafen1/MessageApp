@@ -12,7 +12,6 @@ import androidx.navigation.fragment.navArgs
 import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.messageapp.R
-import com.example.messageapp.core.logD
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.databinding.FragmentChatListBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -22,7 +21,7 @@ class ChatListFragment : Fragment() {
 
     private lateinit var binding: FragmentChatListBinding
     private val viewModel by viewModels<ChatListViewModel>()
-    private val fragmentArgs: ChatListFragmentArgs by navArgs()
+    private val userArgs: ChatListFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -48,7 +47,7 @@ class ChatListFragment : Fragment() {
         viewModel.listUser.observe(viewLifecycleOwner) { user ->
 
             val adapter =
-                ChatListAdapter(user, fragmentArgs.User.userName) { selectedUser ->
+                ChatListAdapter(user, userArgs.User.userName) { selectedUser ->
                     // Откроваем новый фрагмент при клике
                     val action =
                         ChatListFragmentDirections.actionChatListFragmentToChatFragment(
@@ -59,12 +58,19 @@ class ChatListFragment : Fragment() {
             binding.recyclerView1.adapter = adapter
             binding.recyclerView1.layoutManager = LinearLayoutManager(requireContext())
 
-            val indexYourAccount = user.indexOf(UserResponse(name = fragmentArgs.User.name, username = fragmentArgs.User.userName))
+            val indexYourAccount = user.indexOf(
+                UserResponse(
+                    name = userArgs.User.name,
+                    username = userArgs.User.userName
+                )
+            )
             user.removeAt(indexYourAccount)
             adapter.notifyItemRemoved(indexYourAccount)
         }
 
     }
+
+
 
     private fun initNavigate() {
         binding.bottomNavigationView2.setupWithNavController(findNavController())
@@ -72,15 +78,12 @@ class ChatListFragment : Fragment() {
 
             when (item.itemId) {
                 R.id.navSearch -> {
-                    viewModel.findUser()
 
-                    viewModel.userResponse.observe(viewLifecycleOwner) {
-                        val action =
-                            ChatListFragmentDirections.actionChatListFragmentToListUserFragment(
-                                viewModel.userResponse.value!!
-                            )
-                        findNavController().navigate(action)
-                    }
+                    val action =
+                        ChatListFragmentDirections.actionChatListFragmentToListUserFragment(
+                            userArgs.User
+                        )
+                    findNavController().navigate(action)
                     true
                 }
 
@@ -94,7 +97,9 @@ class ChatListFragment : Fragment() {
                 }
 
                 R.id.navNews -> {
-                    findNavController().navigate(R.id.action_navChat_to_newsListFragment)
+                    val action =
+                        ChatListFragmentDirections.actionNavChatToNewsListFragment(userArgs.User)
+                    findNavController().navigate(action)
                 }
 
                 else -> {}

@@ -1,11 +1,11 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
     id("androidx.navigation.safeargs.kotlin")
     id("kotlin-parcelize")
     kotlin("plugin.serialization") version "2.1.0"
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -45,8 +45,6 @@ android {
 
 dependencies {
 
-    // todo ksp 
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -62,15 +60,15 @@ dependencies {
     implementation(libs.androidx.fragment.ktx)
 
     implementation(libs.androidx.room.runtime)
-    kapt(libs.androidx.room.compiler)
+    ksp(libs.androidx.room.compiler)
 
     // Для поддержки RxJava или Coroutine
     implementation(libs.androidx.room.ktx)
     implementation(libs.kotlinx.coroutines.android)
 
     implementation(libs.hilt.android)
-    kapt(libs.hilt.android.compiler)
-    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
+    ksp(libs.hilt.android.compiler)
+    implementation (libs.androidx.lifecycle.viewmodel.compose)
 
     implementation(libs.androidx.recyclerview)
 
@@ -88,16 +86,16 @@ dependencies {
     // Для корутин и LiveData
     implementation (libs.androidx.room.ktx.v252)
     // Компилятор для обработки аннотаций (используйте kapt для Kotlin)
-    kapt("androidx.room:room-compiler:2.6.1")
+    ksp(libs.androidx.room.compiler.v261)
 
     implementation(libs.converter.scalars)
 
     implementation (libs.okhttp)
     implementation (libs.java.websocket)
 
+    implementation(libs.glide)
+    annotationProcessor(libs.compiler)
+
 
 }
-// Allow references to generated code
-kapt {
-    correctErrorTypes = true
-}
+

@@ -15,7 +15,6 @@ import dagger.hilt.android.AndroidEntryPoint
 class PrivateFragment : Fragment() {
 
     lateinit var binding: FragmentPrivatyBinding
-    private val viewModel by viewModels<PrivateViewModel>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -31,22 +30,9 @@ class PrivateFragment : Fragment() {
 
     private fun initView() {
         binding.button.setOnClickListener {
-            viewModel.findUser()
-        }
-        initObserver()
-    }
-
-
-    private fun initObserver() {
-        viewModel.userResponse.observe(viewLifecycleOwner) { user ->
-            if (user != null ) {
-                val action =
-                    PrivateFragmentDirections.actionPrivateFragmentToListUserFragment(user)
-                findNavController().navigate(action)
-            }else{
-                findNavController().navigate(R.id.action_privateFragment_to_registerFragment)
-            }
+            findNavController().navigate(R.id.action_privateFragment_to_registerFragment)
         }
     }
+
 
 }

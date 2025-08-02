@@ -17,7 +17,12 @@ import com.example.messageapp.core.logD
 import com.example.messageapp.data.network.model.NewsRequest
 import com.example.messageapp.databinding.FragmentAddNewsBinding
 import dagger.hilt.android.AndroidEntryPoint
+import okhttp3.RequestBody
 import kotlin.random.Random
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 
 
 @AndroidEntryPoint
@@ -67,14 +72,20 @@ class AddNewsFragment : Fragment() {
 
         binding.imageView9.setOnClickListener {
             if (viewModel.imagePart.value !=  null) {
-                val newsRequest = NewsRequest(
-                    id = Random.nextInt(),
-                    userName = viewModel.userName.value.toString(),
-                    image = viewModel.imagePart.value!!,
-                    text = binding.editTextText3.text.toString()
-                )
-                logD(newsRequest.toString())
-                viewModel.sendImage(newsRequest)
+//                val newsRequest = NewsRequest(
+//                    id = Random.nextInt(),
+//                    userName = viewModel.userName.value.toString(),
+//                    image = viewModel.imagePart.value!!,
+//                    text = binding.editTextText3.text.toString()
+//                )
+//                logD(newsRequest.toString())
+
+                val nameNews = binding.editTextText3.text.toString().toRequestBody()
+                val userName = viewModel.userName.value?.toString()?.toRequestBody()
+
+                if (userName != null) {
+                    viewModel.sendImage(viewModel.imagePart.value!!, nameNews, userName)
+                }
                 findNavController().navigate(R.id.action_addNewsFragment_to_newsListFragment)
             }else{
 
