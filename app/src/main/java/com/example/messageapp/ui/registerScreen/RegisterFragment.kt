@@ -46,48 +46,56 @@ class RegisterFragment @Inject constructor() : Fragment() {
         }
     }
 
-
-    // todo доделать editPassword
-    private fun registrationAccount() {
-        if (binding.edName.text.isNotEmpty() && binding.edUserName.text.isNotEmpty()) {
-            if (binding.edUserName.text.first() == '@') {
-                if (binding.tvRegistration.text == "Login") {
-
-                    val loginRequest = LoginRequest(
-                        userName = binding.edName.text.toString(),
-                        password = binding.edUserName.text.toString()
-                    )
-                    viewModel.loginAccount(loginRequest)
-                } else {
-                    // создаем нового юзера
-
-                    val user = User(
-                        id = Random.nextInt(),
-                        name = binding.edName.text.toString(),
-                        userName = binding.edUserName.text.toString(),
-                        friend = listOf(),
-                        token = ""
-                    )
-                    // Добавляем в бд
-
-                    viewModel.addAccount(
-                        user
-                    )
-
-                    val action =
-                        RegisterFragmentDirections.actionRegisterFragmentToListUserFragment(user)
-                    findNavController().navigate(action)
-                }
-            } else {
-                snackBar(binding.root, "Первый символ в UserName должен быть @ ")
+    private fun registrationAccount(){
+        with(binding){
+            if (edName.text.isNotEmpty() && edUserName.text.isNotEmpty() && binding.edPassword.text.isNotEmpty()){
+                snackBar(binding.root, "Заполните все поля")
+                return
             }
-        } else {
-            snackBar(binding.root, "Заполните все поля")
+            if (binding.edUserName.text.first() == '@'){
+                snackBar(binding.root, "Первый символ в UserName должен быть @ ")
+                return
+            }
+
+            when(binding.tvRegistration.text){
+                "Вход" -> handleLogin()
+                else -> handleRegistration()
+            }
         }
     }
 
+    private fun handleRegistration() {
+        val user = User(
+            id = Random.nextInt(),
+            name = binding.edName.text.toString(),
+            userName = binding.edUserName.text.toString(),
+            friend = listOf(),
+            token = "",
+            password = binding.edPassword.text.toString()
+        )
+        // Добавляем в бд
+
+        viewModel.addAccount(
+            user
+        )
+
+        val action =
+            RegisterFragmentDirections.actionRegisterFragmentToListUserFragment(user)
+        findNavController().navigate(action)
+    }
+
+    private fun handleLogin() {
+        val loginRequest = LoginRequest(
+            name = binding.edName.text.toString(),
+            userName = binding.edUserName.text.toString(),
+            password = binding.edPassword.text.toString(),
+
+            )
+        viewModel.loginAccount(loginRequest)
+    }
+
     private fun initObserver() {
-        viewModel.foundUser.observe(viewLifecycleOwner) { user ->
+        viewModel.currentUser.observe(viewLifecycleOwner) { user ->
             val action =
                 RegisterFragmentDirections.actionRegisterFragmentToListUserFragment(user)
             findNavController().navigate(action)
@@ -95,11 +103,11 @@ class RegisterFragment @Inject constructor() : Fragment() {
     }
 
     private fun changeTextView() {
-        if (binding.tvRegistration.text == "Registration") {
-            binding.tvRegistration.text = "Login"
+        if (binding.tvRegistration.text == "Регистрация") {
+            binding.tvRegistration.text = "Вход"
             binding.tvLogin.text = "Нету аккаунта? Создайте его"
         } else {
-            binding.tvRegistration.text = "Registration"
+            binding.tvRegistration.text = "Регистрация"
             binding.tvLogin.text = "Есть уже аккаунт? Войдите"
         }
     }

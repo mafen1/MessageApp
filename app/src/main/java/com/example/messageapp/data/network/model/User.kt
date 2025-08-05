@@ -10,5 +10,6 @@ data class User(
     @SerializedName("name") val name: String,
     @SerializedName("userName") val userName: String,
     @SerializedName("friend") val friend: List<String>?,
-    @SerializedName("token") val token: String?
+    @SerializedName("token") val token: String?,
+    @SerializedName("password") val password: String?
 ) : java.io.Serializable

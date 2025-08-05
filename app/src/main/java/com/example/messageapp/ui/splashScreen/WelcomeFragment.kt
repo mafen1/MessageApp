@@ -10,7 +10,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.messageapp.R
 import com.example.messageapp.databinding.FragmentWelcomeBinding
-import com.example.messageapp.ui.privateScreen.PrivateFragmentDirections
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -45,7 +44,7 @@ class WelcomeFragment : Fragment() {
     }
 
     private fun initObserver() {
-        viewModel.userResponse.observe(viewLifecycleOwner) { user ->
+        viewModel.user.observe(viewLifecycleOwner) { user ->
             if (user != null) {
                 val action =
                     WelcomeFragmentDirections.actionWelcomeFragmentToNavSearch(user)

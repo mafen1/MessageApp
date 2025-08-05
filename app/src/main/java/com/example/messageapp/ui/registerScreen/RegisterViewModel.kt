@@ -15,18 +15,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// todo apiServiceUseCase
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
     private val appPreference: AppPreferencesUseCase,
     private val apiServiceUseCase: ApiServiceUseCase
 ) : ViewModel() {
 
-    private var _foundUser: MutableLiveData<User> = MutableLiveData()
-    var foundUser: MutableLiveData<User> = _foundUser
+    private var _currentUser: MutableLiveData<User> = MutableLiveData()
+    var currentUser: MutableLiveData<User> = _currentUser
 
-    private var _messageUser: MutableLiveData<String> = MutableLiveData()
-    var messageUser: MutableLiveData<String> = _messageUser
 
     fun addAccount(user: User) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -46,7 +43,7 @@ class RegisterViewModel @Inject constructor(
             val user = RetrofitClient.apiService.loginUser(
                 loginRequest
             )
-            _foundUser.postValue(user)
+            _currentUser.postValue(user)
             appPreference.save(ConstVariables.tokenJWT, user.token!!)
         }
     }

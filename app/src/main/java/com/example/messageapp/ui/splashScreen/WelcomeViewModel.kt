@@ -21,8 +21,8 @@ class WelcomeViewModel @Inject constructor(
     private val apiServiceUseCase: ApiServiceUseCase
 ): ViewModel() {
 
-    private val _userResponse = MutableLiveData<User?>()
-    var userResponse = _userResponse
+    private val _user = MutableLiveData<User?>()
+    var user = _user
 
     fun findUser() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -34,14 +34,14 @@ class WelcomeViewModel @Inject constructor(
 
                     logD("Received user: $user")
 
-                    _userResponse.postValue(user.getOrThrow())
+                    _user.postValue(user.getOrThrow())
                     appPreference.save(ConstVariables.userName, user.getOrThrow().userName)
 
                 } catch (e: Exception) {
                     Log.e("TAGG", "Error fetching user: ${e.message}")
                 }
             } else {
-                _userResponse.postValue(null)
+                _user.postValue(null)
             }
         }
     }

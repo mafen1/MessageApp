@@ -88,9 +88,6 @@ class ApiServiceImpl @Inject constructor(
     ) {
        apiService.uploadNews(part, nameNews, userName)
     }
-    // todo убрать скобки
-    override suspend fun allNews(): List<NewsResponse> {
-        return apiService.allNews()
-    }
+    override suspend fun allNews(): List<NewsResponse> = apiService.allNews()
 
 }

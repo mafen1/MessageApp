@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="88dp"
-        android:text="Registration"
+        android:text="Регистрация"
         android:textSize="35sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -26,7 +26,7 @@
         android:ems="10"
         android:inputType="text"
         android:text=""
-        android:hint="Name"
+        android:hint="Отображаемое имя"
         app:layout_constraintEnd_toEndOf="@+id/tvRegistration"
         app:layout_constraintHorizontal_bias="0.521"
         app:layout_constraintStart_toStartOf="@+id/tvRegistration"
@@ -36,12 +36,12 @@
         android:id="@+id/btnSave"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="64dp"
-        android:text="Save"
-        app:layout_constraintEnd_toEndOf="@+id/edUserName"
-        app:layout_constraintHorizontal_bias="0.491"
-        app:layout_constraintStart_toStartOf="@+id/edUserName"
-        app:layout_constraintTop_toBottomOf="@+id/edUserName" />
+        android:layout_marginTop="16dp"
+        android:text="Сохранить"
+        app:layout_constraintEnd_toEndOf="@+id/tvLogin"
+        app:layout_constraintHorizontal_bias="0.433"
+        app:layout_constraintStart_toStartOf="@+id/tvLogin"
+        app:layout_constraintTop_toBottomOf="@+id/tvLogin" />
 
     <EditText
         android:id="@+id/edUserName"
@@ -51,7 +51,7 @@
         android:ems="10"
         android:inputType="text"
         android:text=""
-        android:hint="UserName"
+        android:hint="Пользовательское имя"
         app:layout_constraintEnd_toEndOf="@+id/edName"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/edName"
@@ -64,6 +64,20 @@
         android:layout_marginTop="20dp"
         android:text="Есть уже аккаунт? Войдите"
         app:layout_constraintEnd_toEndOf="@+id/edUserName"
+        app:layout_constraintHorizontal_bias="0.612"
+        app:layout_constraintStart_toStartOf="@+id/edUserName"
+        app:layout_constraintTop_toBottomOf="@+id/edPassword" />
+
+    <EditText
+        android:id="@+id/edPassword"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:ems="10"
+        android:hint="Пароль"
+        android:inputType="text"
+        app:layout_constraintEnd_toEndOf="@+id/edUserName"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/edUserName"
         app:layout_constraintTop_toBottomOf="@+id/edUserName" />
 

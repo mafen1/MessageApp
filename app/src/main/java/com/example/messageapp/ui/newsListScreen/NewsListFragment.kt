@@ -9,14 +9,12 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.Glide
 import com.example.messageapp.R
 import com.example.messageapp.core.logD
 import com.example.messageapp.core.snackBar
 import com.example.messageapp.databinding.FragmentNewsListBinding
 import dagger.hilt.android.AndroidEntryPoint
 
-// todo перемещение с newsListFragment на другие экраны
 @AndroidEntryPoint
 class NewsListFragment : Fragment() {
 
@@ -48,9 +46,8 @@ class NewsListFragment : Fragment() {
 
     private fun initRecyclerView() {
        viewModel.newsList.observe(viewLifecycleOwner) { news ->
-           // todo переименовать recycler View + apply
-           binding.recyclerView3.layoutManager = LinearLayoutManager(requireContext())
-           binding.recyclerView3.adapter = NewsAdapter(news)
+           binding.rcNews.layoutManager = LinearLayoutManager(requireContext())
+           binding.rcNews.adapter = NewsAdapter(news)
        }
     }
 

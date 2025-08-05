@@ -100,7 +100,7 @@ class ChatFragment : Fragment() {
             val messageToSend = "to:$targetUsername:$messageContent"
 
             viewModel.updateMessageList(Message(binding.editTextText.text.toString(), true))
-            viewModel.webSocketClient?.sendMessage(messageToSend)
+            viewModel.webSocketClient.value?.sendMessage(messageToSend)
 
 
         } catch (e: Exception) {

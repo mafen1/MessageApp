@@ -1,11 +1,11 @@
 package com.example.messageapp.ui.chatScreen
 
 import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.messageapp.data.network.model.Message
-import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.data.network.webSocket.client.ChatWebSocketClient
 import com.example.messageapp.domain.useCase.AppPreferencesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,28 +19,36 @@ class ChatViewModel @Inject constructor(
     private val appPreference: AppPreferencesUseCase,
 ) : ViewModel() {
 
-    val user = MutableLiveData<UserResponse>()
-    val messageText = MutableLiveData<String>()
-    var webSocketClient: ChatWebSocketClient? = null
-    var messageList = MutableLiveData(mutableListOf<Message>())
+//    private val _user:MutableLiveData<UserResponse> = MutableLiveData()
+//    var user:LiveData<UserResponse> = _user
+
+    private val _messageText:MutableLiveData<String> = MutableLiveData()
+    var messageText:LiveData<String> = _messageText
+
+    private var _webSocketClient: MutableLiveData<ChatWebSocketClient?> = MutableLiveData()
+    var webSocketClient: LiveData<ChatWebSocketClient?> = _webSocketClient
+
+    private var _messageList: MutableLiveData<MutableList<Message>> = MutableLiveData()
+    var messageList : LiveData<MutableList<Message>> = _messageList
+
 
 
     fun disconnect() {
         viewModelScope.launch(Dispatchers.IO) {
-            webSocketClient?.disconnect()
+            _webSocketClient.value?.disconnect()
         }
     }
 
     fun connect(userName: String) {
         val serverUri = URI("ws://10.0.2.2:8081/chat/$userName")
 
-        webSocketClient = ChatWebSocketClient(serverUri) { message ->
+        _webSocketClient.value = ChatWebSocketClient(serverUri) { message ->
             viewModelScope.launch(Dispatchers.Main) {
                 updateMessageList(Message(message, false))
             }
         }
 
-        webSocketClient!!.connect()
+        _webSocketClient.value?.connect()
 
     }
 
@@ -51,10 +59,10 @@ class ChatViewModel @Inject constructor(
     }
 
     fun updateMessageList(message: Message) {
-        val newList = messageList.value?.toMutableList() ?: mutableListOf()
+        val newList = _messageList.value?.toMutableList() ?: mutableListOf()
         newList.add(message)
-        messageList.value = newList
-        Log.d("TAG", messageList.value.toString())
+        _messageList.value = newList
+        Log.d("TAG", _messageList.value.toString())
     }
 
 

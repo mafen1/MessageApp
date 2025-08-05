@@ -44,7 +44,7 @@ class ChatListFragment : Fragment() {
 
     private fun initObserver() {
 
-        viewModel.listUser.observe(viewLifecycleOwner) { user ->
+        viewModel.listUsers.observe(viewLifecycleOwner) { user ->
 
             val adapter =
                 ChatListAdapter(user, userArgs.User.userName) { selectedUser ->

@@ -31,8 +31,8 @@ class AddNewsViewModel @Inject constructor(
     private var _userName: MutableLiveData<String> = MutableLiveData()
     var userName: MutableLiveData<String> = _userName
 
-    private var _imagePart: MutableLiveData<MultipartBody.Part> = MutableLiveData()
-    var imagePart: LiveData<MultipartBody.Part> = _imagePart
+    private var _image: MutableLiveData<MultipartBody.Part> = MutableLiveData()
+    var image: LiveData<MultipartBody.Part> = _image
 
 
     fun addNews(newsRequest: NewsRequest) {
@@ -57,7 +57,7 @@ class AddNewsViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                if (_imagePart.value != null ) {
+                if (_image.value != null ) {
                     apiServiceUseCase.uploadNews(part, nameNews, userName)
                     logD("Новость успешна отправлена")
                 }else{
@@ -77,7 +77,7 @@ class AddNewsViewModel @Inject constructor(
             "photo[content]", Random.nextInt().toString(),
             byteArray.toRequestBody("image/*".toMediaTypeOrNull(), 0, byteArray.size)
         )
-        _imagePart.value = body
+        _image.value = body
     }
 
 }

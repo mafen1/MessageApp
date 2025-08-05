@@ -65,7 +65,6 @@ class ListUserFragment : Fragment() {
         binding.searchView.setOnQueryTextListener(object :
             android.widget.SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                // todo добавить проверку, что юзер ввел валидные данные
                 try {
                     val userName = UserRequest(
                         username = query!!
