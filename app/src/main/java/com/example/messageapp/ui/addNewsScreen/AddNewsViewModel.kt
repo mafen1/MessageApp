@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.messageapp.core.ConstVariables
 import com.example.messageapp.core.logD
-import com.example.messageapp.data.network.model.NewsRequest
 import com.example.messageapp.domain.useCase.ApiServiceUseCase
 import com.example.messageapp.domain.useCase.AppPreferencesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,7 +19,6 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
-import kotlin.random.Random
 
 @HiltViewModel
 class AddNewsViewModel @Inject constructor(
@@ -35,15 +33,7 @@ class AddNewsViewModel @Inject constructor(
     var image: LiveData<MultipartBody.Part> = _image
 
 
-    fun addNews(newsRequest: NewsRequest) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                apiServiceUseCase.addNews(newsRequest)
-            } catch (e: Exception) {
-                logD(e.toString())
-            }
-        }
-    }
+
 
     fun getUserName() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -51,9 +41,9 @@ class AddNewsViewModel @Inject constructor(
         }
     }
 
-    fun sendImage(part: MultipartBody.Part,
-                  nameNews: RequestBody,
-                  userName: RequestBody) {
+    fun uploadNews(part: MultipartBody.Part,
+                   nameNews: RequestBody,
+                   userName: RequestBody) {
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -70,14 +60,20 @@ class AddNewsViewModel @Inject constructor(
     }
 
     fun convertBitMapToPart(image: Bitmap) {
-        val stream = ByteArrayOutputStream()
-        image.compress(Bitmap.CompressFormat.JPEG, 80, stream)
-        val byteArray = stream.toByteArray()
-        val body = MultipartBody.Part.createFormData(
-            "photo[content]", Random.nextInt().toString(),
-            byteArray.toRequestBody("image/*".toMediaTypeOrNull(), 0, byteArray.size)
-        )
-        _image.value = body
+        try {
+            val stream = ByteArrayOutputStream()
+            image.compress(Bitmap.CompressFormat.JPEG, 80, stream)
+            val byteArray = stream.toByteArray()
+            val nameImage = image.config?.name
+
+            val body = MultipartBody.Part.createFormData(
+                "photo[content]", nameImage,
+                byteArray.toRequestBody("image/*".toMediaTypeOrNull(), 0, byteArray.size)
+            )
+            _image.value = body
+        } catch (e: Exception) {
+            logD("convertBitMapToPart failed ")
+        }
     }
 
 }

@@ -8,7 +8,7 @@ import com.example.messageapp.databinding.ChatHolderLeftBinding
 import com.example.messageapp.databinding.ChatHolderRightBinding
 import javax.inject.Inject
 
-class ChatAdapter @Inject constructor(private val messageList: MutableList<Message>) :
+class ChatAdapter @Inject constructor(private var messageList: MutableList<Message>) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private companion object {

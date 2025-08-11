@@ -29,9 +29,13 @@ class RegisterViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val response = apiServiceUseCase.addUser(user)
             try {
-                appPreference.save(ConstVariables.tokenJWT,  response.body()?.token!!)
+                if (response.isSuccess && response.getOrNull()?.token != null) {
+                    val token = response.getOrNull()!!.token
 
-                logD("${appPreference.getValueString(ConstVariables.tokenJWT)}")
+                    appPreference.save(ConstVariables.tokenJWT,  token)
+
+                    logD("${appPreference.getValueString(ConstVariables.tokenJWT)}")
+                }
             } catch (e: Exception) {
                 logD(e.toString())
             }

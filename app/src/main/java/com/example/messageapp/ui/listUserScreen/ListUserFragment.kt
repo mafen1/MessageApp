@@ -48,7 +48,6 @@ class ListUserFragment : Fragment() {
         initSearchView()
         initBottomNavigation()
 
-        // todo отправка на сервер запроса на получение определенного юзера
         val user = userArgs.User
         binding.textView4.text = user.userName
 
@@ -164,6 +163,7 @@ class ListUserFragment : Fragment() {
             return@setOnCloseListener true
         }
     }
+
 
 
 }

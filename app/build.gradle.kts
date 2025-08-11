@@ -81,11 +81,8 @@ dependencies {
 
     implementation(libs.converter.gson)
 
-    // Основная зависимость для Room
     implementation (libs.androidx.room.runtime.v252)
-    // Для корутин и LiveData
     implementation (libs.androidx.room.ktx.v252)
-    // Компилятор для обработки аннотаций (используйте kapt для Kotlin)
     ksp(libs.androidx.room.compiler.v261)
 
     implementation(libs.converter.scalars)
@@ -96,6 +93,8 @@ dependencies {
     implementation(libs.glide)
     annotationProcessor(libs.compiler)
 
+    implementation(libs.mockito.core)
+    testImplementation(libs.mockwebserver)
 
 }
 

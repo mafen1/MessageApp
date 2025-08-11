@@ -10,7 +10,6 @@ import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.data.network.model.UserResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Multipart
@@ -22,7 +21,7 @@ interface ApiService {
     @POST("/register")
     suspend fun addUser(
         @Body user: User
-    ): Response<LoginResponse>
+    ): LoginResponse
 
 
     @POST("/findUserToken")

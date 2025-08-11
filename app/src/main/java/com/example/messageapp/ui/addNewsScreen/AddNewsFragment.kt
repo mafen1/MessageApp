@@ -24,7 +24,6 @@ class AddNewsFragment : Fragment() {
     lateinit var binding: FragmentAddNewsBinding
     private val viewModel: AddNewsViewModel by viewModels()
 
-    // todo переделать
     private lateinit var image: Bitmap
     private lateinit var imagePickerLauncher: ActivityResultLauncher<String>
 
@@ -65,19 +64,12 @@ class AddNewsFragment : Fragment() {
 
         binding.imageView9.setOnClickListener {
             if (viewModel.image.value !=  null) {
-//                val newsRequest = NewsRequest(
-//                    id = Random.nextInt(),
-//                    userName = viewModel.userName.value.toString(),
-//                    image = viewModel.imagePart.value!!,
-//                    text = binding.editTextText3.text.toString()
-//                )
-//                logD(newsRequest.toString())
 
                 val nameNews = binding.editTextText3.text.toString().toRequestBody()
                 val userName = viewModel.userName.value?.toString()?.toRequestBody()
 
                 if (userName != null) {
-                    viewModel.sendImage(viewModel.image.value!!, nameNews, userName)
+                    viewModel.uploadNews(viewModel.image.value!!, nameNews, userName)
                 }
                 findNavController().navigate(R.id.action_addNewsFragment_to_newsListFragment)
             }else{

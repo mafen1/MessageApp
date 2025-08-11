@@ -11,7 +11,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.messageapp.R
+import com.example.messageapp.core.logD
 import com.example.messageapp.data.network.model.Message
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.databinding.FragmentChatBinding
@@ -26,72 +26,70 @@ class ChatFragment : Fragment() {
     private lateinit var adapter: ChatAdapter
 
 
-
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
 
         binding = FragmentChatBinding.inflate(layoutInflater, container, false)
-        initView()
         return binding.root
     }
 
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        initView()
+        super.onViewCreated(view, savedInstanceState)
+    }
 
 
     private fun initView() {
+        viewModel.findUser()
+        viewModel.connect(viewModel.findUserName())
         initObserver()
-        viewModel.messageList.value?.let { initRecyclerView(it) }
+//        viewModel.messageList.value?.let { initRecyclerView(it) }
 
         val user = userFragmentArgs.UserResponse
-        // подключаемся к веб сокету
-        viewModel.connect(viewModel.findUserName())
-
-        Log.d("TAG", viewModel.findUserName())
+        initRecyclerView()
 
         binding.imageView3.setOnClickListener {
             sendMessage(user)
         }
 
         binding.imageView8.setOnClickListener {
-            findNavController().navigate(R.id.action_chatFragment_to_chatListFragment)
+            val action =
+                ChatFragmentDirections.actionChatFragmentToChatListFragment(viewModel.user.value!!)
+            findNavController().navigate(action)
         }
 
         binding.textView6.text = user.name
 
-
-    }
-
-    override fun onDestroy() {
-        viewModel.disconnect()
-        Log.d("TAG", "destroy")
-        super.onDestroy()
     }
 
     private fun initObserver() {
 
         viewModel.messageText.observe(viewLifecycleOwner) { message ->
-
             viewModel.updateMessageList(Message(message, false))
         }
 
 
         viewModel.messageList.observe(viewLifecycleOwner) { list ->
-            Log.d("TAG", "Получено сообщений: ${list.size}")
-            adapter.updateList(list) // Обновляем адаптер, передавая новый список
+            if (list != null) {
+                Log.d("TAG", "Получено сообщений: ${list.size}")
+                adapter.updateList(list) // Обновляем адаптер, передавая новый список
+            }else{
+                logD("сообщение не получено ${list?.size}")
+            }
         }
     }
 
 
-    private fun initRecyclerView(messageList: MutableList<Message>) {
+    private fun initRecyclerView() {
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        adapter = ChatAdapter(messageList)
+        adapter = ChatAdapter(mutableListOf())
         binding.recyclerView.adapter = adapter
     }
 
-    private fun sendMessage(user: UserResponse){
+    private fun sendMessage(user: UserResponse) {
         try {
             // получаем юзер нейм
             val targetUsername = user.username
@@ -100,13 +98,20 @@ class ChatFragment : Fragment() {
             val messageToSend = "to:$targetUsername:$messageContent"
 
             viewModel.updateMessageList(Message(binding.editTextText.text.toString(), true))
-            viewModel.webSocketClient.value?.sendMessage(messageToSend)
+            viewModel.webSocketClient?.sendMessage(messageToSend)
 
 
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Соединение не установлено", Toast.LENGTH_SHORT)
+            Toast.makeText(requireContext(), "Соединение не установлено ${e.toString()}", Toast.LENGTH_SHORT)
                 .show()
+            logD(e.toString())
         }
+    }
+
+    override fun onDestroy() {
+        viewModel.disconnect()
+        Log.d("TAG", "destroy")
+        super.onDestroy()
     }
 }
 

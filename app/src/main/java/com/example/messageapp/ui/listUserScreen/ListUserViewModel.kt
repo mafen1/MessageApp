@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.messageapp.core.ConstVariables
 import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.data.network.webSocket.client.ChatWebSocketClient
@@ -44,7 +45,9 @@ class ListUserViewModel @Inject constructor(
     }
 
     fun connectWebSocket(userName: String) {
-        val serverUri = URI("ws://10.0.2.2:8081/friendMessage/$userName")
+        val serverUri = URI("${ConstVariables.wsUrl}/friendMessage/$userName")
+        // проверка есть ли такое же соединение
+//        _webSocketClient?.disconnect()
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _webSocketClient = ChatWebSocketClient(serverUri) { message ->
@@ -72,5 +75,17 @@ class ListUserViewModel @Inject constructor(
             val users = apiServiceUseCase.findUserByStr(UserRequest(userName))
             _foundUser.postValue(users.getOrThrow().toMutableList())
         }
+    }
+    // todo onDestroy
+
+    fun disconnect() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _webSocketClient?.disconnect()
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        disconnect()
     }
 }

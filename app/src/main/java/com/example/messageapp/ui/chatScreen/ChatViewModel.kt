@@ -5,8 +5,13 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.messageapp.core.ConstVariables
+import com.example.messageapp.core.logD
 import com.example.messageapp.data.network.model.Message
+import com.example.messageapp.data.network.model.Token
+import com.example.messageapp.data.network.model.User
 import com.example.messageapp.data.network.webSocket.client.ChatWebSocketClient
+import com.example.messageapp.domain.useCase.ApiServiceUseCase
 import com.example.messageapp.domain.useCase.AppPreferencesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -17,53 +22,80 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val appPreference: AppPreferencesUseCase,
+    private val apiUseCase: ApiServiceUseCase
 ) : ViewModel() {
 
-//    private val _user:MutableLiveData<UserResponse> = MutableLiveData()
-//    var user:LiveData<UserResponse> = _user
+    private val _user: MutableLiveData<User> = MutableLiveData()
+    var user: LiveData<User> = _user
 
-    private val _messageText:MutableLiveData<String> = MutableLiveData()
-    var messageText:LiveData<String> = _messageText
+    private val _messageText: MutableLiveData<String> = MutableLiveData()
+    var messageText: LiveData<String> = _messageText
 
-    private var _webSocketClient: MutableLiveData<ChatWebSocketClient?> = MutableLiveData()
-    var webSocketClient: LiveData<ChatWebSocketClient?> = _webSocketClient
+    var webSocketClient: ChatWebSocketClient? = null
+
+
+//    private var _webSocketClient: MutableLiveData<ChatWebSocketClient?> = MutableLiveData()
+//    var webSocketClient: LiveData<ChatWebSocketClient?> = _webSocketClient
 
     private var _messageList: MutableLiveData<MutableList<Message>> = MutableLiveData()
-    var messageList : LiveData<MutableList<Message>> = _messageList
-
+    var messageList: LiveData<MutableList<Message>> = _messageList
 
 
     fun disconnect() {
         viewModelScope.launch(Dispatchers.IO) {
-            _webSocketClient.value?.disconnect()
+            webSocketClient?.disconnect()
         }
     }
 
     fun connect(userName: String) {
-        val serverUri = URI("ws://10.0.2.2:8081/chat/$userName")
+        try {
+            val serverUri = URI("${ConstVariables.wsUrl}/chat/$userName")
+            // для закрытия старого соединения
+//        webSocketClient?.disconnect()
 
-        _webSocketClient.value = ChatWebSocketClient(serverUri) { message ->
-            viewModelScope.launch(Dispatchers.Main) {
-                updateMessageList(Message(message, false))
+            webSocketClient = ChatWebSocketClient(serverUri) { message ->
+                viewModelScope.launch(Dispatchers.Main) {
+                    updateMessageList(Message(message, false))
+                }
             }
-        }
 
-        _webSocketClient.value?.connect()
+            webSocketClient?.connect()
+            logD("connect web socket")
+        } catch (e: Exception) {
+            logD(e.toString())
+        }
 
     }
 
 
     fun findUserName(): String {
-        return appPreference.getValueString("username")
-            ?: throw IllegalArgumentException("не найден пользователь с данным юзер неймом")
+        return appPreference.getValueString("username").toString()
     }
 
     fun updateMessageList(message: Message) {
-        val newList = _messageList.value?.toMutableList() ?: mutableListOf()
+        // Инициализируем пустой список, если он null
+        val currentList = _messageList.value ?: mutableListOf()
+        val newList = currentList.toMutableList()
         newList.add(message)
         _messageList.value = newList
-        Log.d("TAG", _messageList.value.toString())
     }
+
+    fun findUser() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val token = Token(appPreference.getValueString(ConstVariables.tokenJWT).toString())
+                _user.postValue(apiUseCase.findUser(token).getOrNull())
+            } catch (e: Exception) {
+                Log.d(ConstVariables.LoggerDebugTag, e.toString())
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        disconnect()
+    }
+
 
 
 }

@@ -48,11 +48,11 @@ class RegisterFragment @Inject constructor() : Fragment() {
 
     private fun registrationAccount(){
         with(binding){
-            if (edName.text.isNotEmpty() && edUserName.text.isNotEmpty() && binding.edPassword.text.isNotEmpty()){
+            if (edName.text.isNullOrEmpty() || edUserName.text.isNullOrEmpty() || binding.edPassword.text.isNullOrEmpty()){
                 snackBar(binding.root, "Заполните все поля")
                 return
             }
-            if (binding.edUserName.text.first() == '@'){
+            if (binding.edUserName.text.first() != '@'){
                 snackBar(binding.root, "Первый символ в UserName должен быть @ ")
                 return
             }

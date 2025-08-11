@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.bumptech.glide.Glide
 import com.example.messageapp.R
+import com.example.messageapp.core.ConstVariables
 import com.example.messageapp.data.network.model.NewsResponse
 import com.example.messageapp.databinding.NewsHolderBinding
 import javax.inject.Inject
@@ -19,7 +20,7 @@ class NewsAdapter @Inject constructor(private val newsList: MutableList<NewsResp
             binding.tvDescription.text = news.text
 
             Glide.with(binding.root.context)
-                .load("http://10.0.2.2:8081/images/${news.image}")
+                .load("${ConstVariables.url}/images/${news.image}.jpg")
                 .placeholder(R.drawable.news) // заглушка
                 .error(R.drawable.chat)            // ошибка
                 .into(binding.ivPhoto)

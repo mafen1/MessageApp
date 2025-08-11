@@ -1,10 +1,13 @@
 package com.example.messageapp.ui.chatListScreen
 
+//import androidx.lifecycle.map
+
+
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
-import com.example.messageapp.data.network.model.User
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.domain.useCase.ApiServiceUseCase
 import com.example.messageapp.domain.useCase.AppPreferencesUseCase
@@ -22,8 +25,8 @@ class ChatListViewModel @Inject constructor(
     private var _listUsers = MutableLiveData<MutableList<UserResponse>>()
     var listUsers: LiveData<MutableList<UserResponse>> = _listUsers
 
-    private var _userResponse = MutableLiveData<User>()
-    var userResponse: LiveData<User> = _userResponse
+//    private var _userResponse = MutableLiveData<User>()
+//    var userResponse: LiveData<User> = _userResponse
 
 
     fun allUser() {
@@ -31,6 +34,23 @@ class ChatListViewModel @Inject constructor(
             _listUsers.postValue(apiServiceUseCase.allUser().getOrThrow())
         }
     }
+
+    fun filteredUsers(
+        currentUserName: String,
+        currentUserFullName: String
+    ): LiveData<List<UserResponse>> {
+        return _listUsers.map { users ->
+            users.filterNot { user ->
+                user.username == currentUserName && user.name == currentUserFullName
+            }
+        }
+    }
+
+//    fun deleteCurrentUser(currentUserName: String, currentName: String){
+//        _listUsers.value = _listUsers.value?.filterNot {
+//            it.username == currentUserName && it.name == currentName
+//        } as MutableList<UserResponse>?
+//    }
 
 //    fun findUser() {
 //        viewModelScope.launch(Dispatchers.IO) {

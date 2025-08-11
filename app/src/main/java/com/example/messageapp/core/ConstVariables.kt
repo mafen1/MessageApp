@@ -2,7 +2,7 @@ package com.example.messageapp.core
 
 object ConstVariables {
     // LOG
-    const val TAG = "TAG"
+    const val LoggerDebugTag = "TAG"
 
     // SharedPreferences
     const val tokenJWT = "tokenJWT"
@@ -10,4 +10,5 @@ object ConstVariables {
 
     // retrofit
     const val url = "http://10.0.2.2:8081"
+    const val wsUrl = "ws://10.0.2.2:8081"
 }

@@ -11,12 +11,11 @@ import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.domain.repoImpl.ApiServiceImpl
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import retrofit2.Response
 import javax.inject.Inject
 
 class ApiServiceUseCase @Inject constructor(private val apiServiceImpl: ApiServiceImpl) {
 
-    suspend fun addUser(user: User): Response<LoginResponse> {
+    suspend fun addUser(user: User): Result<LoginResponse> {
         return apiServiceImpl.addUser(user)
     }
 
