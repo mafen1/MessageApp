@@ -43,14 +43,6 @@ class ApiServiceUseCase @Inject constructor(private val apiServiceImpl: ApiServi
         return apiServiceImpl.loginUser(loginRequest)
     }
 
-//    suspend fun sendImage(part: MultipartBody.Part, newsRequest: NewsRequest){
-//        apiServiceImpl.sendImage(part, newsRequest)
-//    }
-
-    suspend fun addNews(newsRequest: NewsRequest) {
-        apiServiceImpl.addNews(newsRequest)
-    }
-
     suspend fun uploadNews(
         part: MultipartBody.Part,
         nameNews: RequestBody,

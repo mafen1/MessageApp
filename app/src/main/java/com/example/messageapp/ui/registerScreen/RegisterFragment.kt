@@ -1,42 +1,23 @@
 package com.example.messageapp.ui.registerScreen
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.messageapp.core.snackBar
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.User
 import com.example.messageapp.databinding.FragmentRegisterBinding
+import com.example.messageapp.ui.BaseFragment
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlin.random.Random
 
 
 @AndroidEntryPoint
-class RegisterFragment @Inject constructor() : Fragment() {
+class RegisterFragment @Inject constructor() : BaseFragment<FragmentRegisterBinding>(FragmentRegisterBinding::inflate) {
 
-    private lateinit var binding: FragmentRegisterBinding
     private val viewModel by viewModels<RegisterViewModel>()
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding =
-            FragmentRegisterBinding.inflate(layoutInflater, container, false)
-
-        initView()
-        initObserver()
-
-        return binding.root
-    }
-
-
-    private fun initView() {
+    override fun initView() {
         binding.btnSave.setOnClickListener {
             registrationAccount()
         }
@@ -44,6 +25,8 @@ class RegisterFragment @Inject constructor() : Fragment() {
             registrationAccount()
             changeTextView()
         }
+
+        initObserver()
     }
 
     private fun registrationAccount(){

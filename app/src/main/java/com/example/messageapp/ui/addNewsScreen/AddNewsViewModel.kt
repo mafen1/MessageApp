@@ -33,17 +33,15 @@ class AddNewsViewModel @Inject constructor(
     var image: LiveData<MultipartBody.Part> = _image
 
 
-
-
-    fun getUserName() {
+    fun userNameAccount() {
         viewModelScope.launch(Dispatchers.IO) {
             _userName.postValue(appPreference.getValueString(ConstVariables.userName))
         }
     }
 
-    fun uploadNews(part: MultipartBody.Part,
-                   nameNews: RequestBody,
-                   userName: RequestBody) {
+    fun uploadNewsWithImage(part: MultipartBody.Part,
+                            nameNews: RequestBody,
+                            userName: RequestBody) {
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -74,6 +72,10 @@ class AddNewsViewModel @Inject constructor(
         } catch (e: Exception) {
             logD("convertBitMapToPart failed ")
         }
+    }
+
+    fun uploadNewsWithOutImage(){
+
     }
 
 }

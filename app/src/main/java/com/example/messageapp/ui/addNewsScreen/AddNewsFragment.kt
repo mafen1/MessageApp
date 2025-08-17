@@ -4,24 +4,20 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.messageapp.R
 import com.example.messageapp.databinding.FragmentAddNewsBinding
+import com.example.messageapp.ui.BaseFragment
 import dagger.hilt.android.AndroidEntryPoint
 import okhttp3.RequestBody.Companion.toRequestBody
 
 
 @AndroidEntryPoint
-class AddNewsFragment : Fragment() {
+class AddNewsFragment : BaseFragment<FragmentAddNewsBinding>(FragmentAddNewsBinding::inflate) {
 
-    lateinit var binding: FragmentAddNewsBinding
     private val viewModel: AddNewsViewModel by viewModels()
 
     private lateinit var image: Bitmap
@@ -40,44 +36,32 @@ class AddNewsFragment : Fragment() {
             }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = FragmentAddNewsBinding.inflate(layoutInflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        initView()
-    }
-
-    private fun initView() {
-        viewModel.getUserName()
+    override fun initView() {
+        viewModel.userNameAccount()
 
         binding.button4.setOnClickListener {
-
             imagePickerLauncher.launch("image/*")
-
         }
 
         binding.imageView9.setOnClickListener {
-            if (viewModel.image.value !=  null) {
-
-                val nameNews = binding.editTextText3.text.toString().toRequestBody()
-                val userName = viewModel.userName.value?.toString()?.toRequestBody()
-
-                if (userName != null) {
-                    viewModel.uploadNews(viewModel.image.value!!, nameNews, userName)
-                }
-                findNavController().navigate(R.id.action_addNewsFragment_to_newsListFragment)
-            }else{
-
-            }
+            uploadNews()
         }
     }
 
+    private fun uploadNews() {
+        if (viewModel.image.value != null) {
+
+            val nameNews = binding.editTextText3.text.toString().toRequestBody()
+            val userName = viewModel.userName.value?.toString()?.toRequestBody()
+
+            if (userName != null) {
+                viewModel.uploadNewsWithImage(viewModel.image.value!!, nameNews, userName)
+            }
+            findNavController().navigate(R.id.action_addNewsFragment_to_newsListFragment)
+        } else {
+
+        }
+    }
 
 
 }

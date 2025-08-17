@@ -15,38 +15,20 @@ import com.example.messageapp.core.logD
 import com.example.messageapp.data.network.model.Message
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.databinding.FragmentChatBinding
+import com.example.messageapp.ui.BaseFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class ChatFragment : Fragment() {
+class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::inflate) {
 
-    lateinit var binding: FragmentChatBinding
     private val viewModel by viewModels<ChatViewModel>()
     private val userFragmentArgs: ChatFragmentArgs by navArgs()
     private lateinit var adapter: ChatAdapter
 
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-
-        binding = FragmentChatBinding.inflate(layoutInflater, container, false)
-        return binding.root
-    }
-
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        initView()
-        super.onViewCreated(view, savedInstanceState)
-    }
-
-
-    private fun initView() {
+    override fun initView() {
         viewModel.findUser()
         viewModel.connect(viewModel.findUserName())
         initObserver()
-//        viewModel.messageList.value?.let { initRecyclerView(it) }
 
         val user = userFragmentArgs.UserResponse
         initRecyclerView()

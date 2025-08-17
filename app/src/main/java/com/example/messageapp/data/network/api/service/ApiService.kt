@@ -2,7 +2,6 @@ package com.example.messageapp.data.network.api.service
 
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.LoginResponse
-import com.example.messageapp.data.network.model.NewsRequest
 import com.example.messageapp.data.network.model.NewsResponse
 import com.example.messageapp.data.network.model.Token
 import com.example.messageapp.data.network.model.User
@@ -54,13 +53,12 @@ interface ApiService {
         userName: RequestBody
     )
 
-    @POST("/uploadNews1")
-    suspend fun addNews(
-        @Body newsRequest: NewsRequest
-    )
-
     @GET("/allNews")
     suspend fun allNews(): List<NewsResponse>
 
+    @POST
+    suspend fun uploadNewsWithOutImage(
+
+    )
 
 }

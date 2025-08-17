@@ -4,14 +4,9 @@ package com.example.messageapp.ui.listUserScreen
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -21,30 +16,21 @@ import com.example.messageapp.R
 import com.example.messageapp.core.snackBar
 import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.databinding.FragmentListUserBinding
+import com.example.messageapp.ui.BaseFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class ListUserFragment : Fragment() {
+class ListUserFragment : BaseFragment<FragmentListUserBinding>(FragmentListUserBinding::inflate) {
 
-    private lateinit var binding: FragmentListUserBinding
     private val viewModel by viewModels<ListUserViewModel>()
     private val userArgs: ListUserFragmentArgs by navArgs()
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = FragmentListUserBinding.inflate(layoutInflater, container, false)
-        initView()
 
-        return binding.root
-    }
 
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun initView() {
+    override fun initView() {
         initSearchView()
         initBottomNavigation()
 

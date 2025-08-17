@@ -3,7 +3,6 @@ package com.example.messageapp.domain.repoImpl
 import com.example.messageapp.data.network.api.service.ApiService
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.LoginResponse
-import com.example.messageapp.data.network.model.NewsRequest
 import com.example.messageapp.data.network.model.NewsResponse
 import com.example.messageapp.data.network.model.Token
 import com.example.messageapp.data.network.model.User
@@ -44,13 +43,6 @@ class ApiServiceImpl @Inject constructor(
             return safeApiCall { apiService.loginUser(loginRequest) }
         }
 
-//    override suspend fun sendImage( image: MultipartBody.Part, newsRequest: NewsRequest) {
-//        apiService.sendImage(newsRequest)
-//    }
-
-        override suspend fun addNews(newsRequest: NewsRequest) {
-            safeApiCall{ apiService.addNews(newsRequest) }
-        }
 
         override suspend fun uploadNews(
             part: MultipartBody.Part,

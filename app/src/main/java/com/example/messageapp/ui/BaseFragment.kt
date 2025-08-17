@@ -12,7 +12,7 @@ import androidx.viewbinding.ViewBinding
 abstract class BaseFragment<T : ViewBinding>(private val bindingInflater: (LayoutInflater, ViewGroup?, Boolean) -> T) :
     Fragment() {
 
-    var binding: T? = null
+    protected lateinit var binding: T
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -22,6 +22,11 @@ abstract class BaseFragment<T : ViewBinding>(private val bindingInflater: (Layou
         binding = bindingInflater(inflater, container, false)
         return binding?.root
 
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        initView()
     }
 
 

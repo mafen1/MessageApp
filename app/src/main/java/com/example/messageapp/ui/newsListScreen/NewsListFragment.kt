@@ -1,10 +1,5 @@
 package com.example.messageapp.ui.newsListScreen
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -13,34 +8,23 @@ import com.example.messageapp.R
 import com.example.messageapp.core.logD
 import com.example.messageapp.core.snackBar
 import com.example.messageapp.databinding.FragmentNewsListBinding
+import com.example.messageapp.ui.BaseFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class NewsListFragment : Fragment() {
+class NewsListFragment : BaseFragment<FragmentNewsListBinding>(FragmentNewsListBinding::inflate) {
 
-    lateinit var binding: FragmentNewsListBinding
     private val userArgs: NewsListFragmentArgs by navArgs()
     private val viewModel by viewModels<NewsViewModel>()
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-
-        binding = FragmentNewsListBinding.inflate(layoutInflater, container, false)
-        initView()
-        initRecyclerView()
-        return binding.root
-
-    }
-
-
-    private fun initView() {
+    override fun initView() {
         initBottomNavigationView()
         binding.button3.setOnClickListener {
             findNavController().navigate(R.id.action_newsListFragment_to_addNewsFragment)
         }
         viewModel.allNews()
+
+        initRecyclerView()
     }
 
 

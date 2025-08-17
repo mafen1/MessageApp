@@ -31,10 +31,6 @@ interface ApiRepository {
 
     suspend fun loginUser(loginRequest: LoginRequest): Result<User>
 
-//    suspend fun sendImage(image: MultipartBody.Part, newsRequest: NewsRequest)
-
-    suspend fun addNews(newsRequest: NewsRequest)
-
     suspend fun uploadNews(
         part: MultipartBody.Part,
         nameNews: RequestBody,
