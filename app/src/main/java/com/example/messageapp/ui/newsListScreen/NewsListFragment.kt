@@ -19,11 +19,13 @@ class NewsListFragment : BaseFragment<FragmentNewsListBinding>(FragmentNewsListB
 
     override fun initView() {
         initBottomNavigationView()
-        binding.button3.setOnClickListener {
-            findNavController().navigate(R.id.action_newsListFragment_to_addNewsFragment)
+        binding.fabCreatePost.setOnClickListener {
+            val action = NewsListFragmentDirections.actionNewsListFragmentToAddNewsFragment(userArgs.user)
+            findNavController().navigate(action)
         }
-        viewModel.allNews()
 
+        viewModel.allNews()
+        viewModel.saveUser(userArgs.user)
         initRecyclerView()
     }
 
@@ -35,9 +37,8 @@ class NewsListFragment : BaseFragment<FragmentNewsListBinding>(FragmentNewsListB
        }
     }
 
-
     private fun initBottomNavigationView() {
-        binding.bottomNavigationView3.setOnItemSelectedListener { item ->
+        binding.bottomNavigationView.setOnItemSelectedListener { item ->
 
             when (item.itemId) {
                 R.id.navSearch -> {
@@ -46,9 +47,9 @@ class NewsListFragment : BaseFragment<FragmentNewsListBinding>(FragmentNewsListB
                     findNavController().navigate(action)
                     true
                 }
-                // todo переделать
                 R.id.navChat -> {
-                    findNavController().navigate(R.id.action_newsListFragment_to_navChat)
+                    val action = NewsListFragmentDirections.actionNewsListFragmentToNavChat(userArgs.user)
+                    findNavController().navigate(action)
                     true
                 }
 

@@ -33,7 +33,7 @@ class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::infl
         val user = userFragmentArgs.UserResponse
         initRecyclerView()
 
-        binding.imageView3.setOnClickListener {
+        binding.sendButton.setOnClickListener {
             sendMessage(user)
         }
 

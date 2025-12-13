@@ -18,8 +18,8 @@ class ChatListAdapter @Inject constructor(
     inner class ChatListViewHolder(private val binding: ListChatHolderBinding) :
         ViewHolder(binding.root) {
         fun bind(user: UserResponse) {
-                binding.tvUserName.text = user.username
-                binding.tvName.text = user.name
+                binding.username.text = user.username
+                binding.tvUserId.text = user.name
 
                 binding.root.setOnClickListener {
                     onItemClick(user)

@@ -11,6 +11,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Headers
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
@@ -18,9 +19,8 @@ import retrofit2.http.Part
 interface ApiService {
 
     @POST("/register")
-    suspend fun addUser(
-        @Body user: User
-    ): LoginResponse
+    @Headers("Content-Type: application/json", "Accept: application/json")
+    suspend fun addUser(@Body user: User): LoginResponse
 
 
     @POST("/findUserToken")
@@ -40,6 +40,7 @@ interface ApiService {
     suspend fun findUserByStr(@Body userName: UserRequest): List<UserResponse>
 
     @POST("/login")
+    @Headers("Content-Type: application/json", "Accept: application/json")
     suspend fun loginUser(@Body loginRequest: LoginRequest): User
 
     @Multipart

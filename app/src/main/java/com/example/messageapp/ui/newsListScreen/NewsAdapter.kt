@@ -17,18 +17,14 @@ class NewsAdapter @Inject constructor(private val newsList: MutableList<NewsResp
     inner class NewsViewHolder(private val binding: NewsHolderBinding) : ViewHolder(binding.root) {
         fun bind(news: NewsResponse) {
 
-            binding.tvUserName.text = news.userName
-            binding.tvDescription.text = news.text
+            binding.authorUsername.text = news.userName
+            binding.postText.text = news.text
 
-            if (news.image != null) {
-                Glide.with(binding.root.context)
-                    .load("${ConstVariables.url}/images/${news.image}.jpg")
-                    .placeholder(R.drawable.news) // заглушка
-                    .error(R.drawable.chat)            // ошибка
-                    .into(binding.ivPhoto)
-            }else{
-                binding.ivPhoto.setImageResource(R.drawable.news)
-            }
+            Glide.with(binding.root.context)
+                .load("${ConstVariables.url}/images/${news.image}.jpg")
+                .placeholder(R.drawable.news) // заглушка
+                .error(R.drawable.chat)            // ошибка
+                .into(binding.postImage)
         }
     }
 

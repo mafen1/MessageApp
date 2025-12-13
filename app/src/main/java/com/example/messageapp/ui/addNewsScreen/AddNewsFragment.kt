@@ -8,6 +8,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.example.messageapp.R
 import com.example.messageapp.databinding.FragmentAddNewsBinding
 import com.example.messageapp.ui.BaseFragment
@@ -22,6 +23,8 @@ class AddNewsFragment : BaseFragment<FragmentAddNewsBinding>(FragmentAddNewsBind
 
     private lateinit var image: Bitmap
     private lateinit var imagePickerLauncher: ActivityResultLauncher<String>
+
+    private val navFragmentArgs: AddNewsFragmentArgs by navArgs()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,29 +42,54 @@ class AddNewsFragment : BaseFragment<FragmentAddNewsBinding>(FragmentAddNewsBind
     override fun initView() {
         viewModel.userNameAccount()
 
-        binding.button4.setOnClickListener {
-            imagePickerLauncher.launch("image/*")
+        binding.toolbar.setOnMenuItemClickListener{ menuItem ->
+            when(menuItem.itemId){
+                R.id.menuAddImage -> {
+                    imagePickerLauncher.launch("image/*")
+                    true
+                }
+
+                else -> false
+            }
+        }
+        binding.toolbar.setNavigationOnClickListener {
+           navigateToNewsList()
         }
 
-        binding.imageView9.setOnClickListener {
+        binding.addImageButton.setOnClickListener {
             uploadNews()
         }
+
     }
 
     private fun uploadNews() {
         if (viewModel.image.value != null) {
 
-            val nameNews = binding.editTextText3.text.toString().toRequestBody()
-            val userName = viewModel.userName.value?.toString()?.toRequestBody()
+            val nameNews = binding.textInputLayout.editText?.text.toString().toRequestBody()
+            val userName = viewModel.userName.value?.toRequestBody()
 
             if (userName != null) {
                 viewModel.uploadNewsWithImage(viewModel.image.value!!, nameNews, userName)
             }
-            findNavController().navigate(R.id.action_addNewsFragment_to_newsListFragment)
+            navigateToNewsList()
         } else {
 
         }
     }
 
-
+    private fun navigateToNewsList() {
+        // Безопасная навигация с проверкой
+        try {
+            val action = AddNewsFragmentDirections.actionAddNewsFragmentToNewsListFragment(navFragmentArgs.Userr)
+            findNavController().navigate(action)
+        } catch (e: Exception) {
+            // Если действие не найдено, пытаемся использовать базовый ID
+            try {
+                findNavController().navigate(R.id.newsListFragment)
+            } catch (ex: Exception) {
+                findNavController().popBackStack()
+            }
+        }
+    }
 }
+

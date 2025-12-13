@@ -41,6 +41,11 @@ android {
     buildFeatures {
         viewBinding = true
     }
+    packaging {
+        resources {
+            excludes.add("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
+        }
+    }
 }
 
 dependencies {
@@ -89,12 +94,22 @@ dependencies {
 
     implementation (libs.okhttp)
     implementation (libs.java.websocket)
+    implementation("com.google.code.gson:gson:2.13.2")
 
     implementation(libs.glide)
     annotationProcessor(libs.compiler)
 
     implementation(libs.mockito.core)
     testImplementation(libs.mockwebserver)
+
+    implementation(libs.logging.interceptor)
+    implementation(libs.converter.gson.v300)
+    implementation(libs.circleimageview)
+
+    implementation(libs.androidx.datastore.preferences)
+
+    implementation(libs.material.v1110)
+
 
 }
 

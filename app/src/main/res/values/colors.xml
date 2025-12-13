@@ -2,8 +2,18 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="background">#052151</color>
+<!--    <color name="background">#052151</color>-->
     <color name="textColor">#0F1828</color>
     <color name="buttonColor">#052151</color>
     <color name="backgroundMessage">#5d76cb</color>
+    <color name="primary">#673AB7</color>
+    <color name="primary_dark">#512DA8</color>
+    <color name="accent">#FF4081</color>
+    <color name="background">#F5F5F5</color>
+    <color name="card_background">#FFFFFF</color>
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="green">#4CAF50</color>
+    <color name="divider">#E0E0E0</color>
+    <color name="backgroundLogo">#052151</color>
 </resources>

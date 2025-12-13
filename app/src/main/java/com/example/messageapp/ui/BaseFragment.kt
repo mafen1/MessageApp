@@ -20,7 +20,7 @@ abstract class BaseFragment<T : ViewBinding>(private val bindingInflater: (Layou
         savedInstanceState: Bundle?
     ): View? {
         binding = bindingInflater(inflater, container, false)
-        return binding?.root
+        return binding.root
 
     }
 

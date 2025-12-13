@@ -1,5 +1,6 @@
 package com.example.messageapp.domain.useCase
 
+import com.example.messageapp.core.logD
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.LoginResponse
 import com.example.messageapp.data.network.model.NewsRequest
@@ -17,6 +18,7 @@ class ApiServiceUseCase @Inject constructor(private val apiServiceImpl: ApiServi
 
     suspend fun addUser(user: User): Result<LoginResponse> {
         return apiServiceImpl.addUser(user)
+        logD(user.toString())
     }
 
     suspend fun findUser(

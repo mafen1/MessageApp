@@ -8,7 +8,7 @@ import com.example.messageapp.domain.repo.preferences.AppPreference
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
-
+// todo data store
 class SharedPreference @Inject constructor(@ApplicationContext context: Context) : AppPreference {
 
     private val PREFS_NAME = "DATA"
@@ -20,7 +20,7 @@ class SharedPreference @Inject constructor(@ApplicationContext context: Context)
             putString(keyName, value)
         }
 
-        Log.d("TAG", sharedPreference.getString("tokenJwt", "")!!)
+        Log.d("TAG", sharedPreference.getString(keyName, "")!!)
     }
 
     override fun getValueString(keyName: String): String? {

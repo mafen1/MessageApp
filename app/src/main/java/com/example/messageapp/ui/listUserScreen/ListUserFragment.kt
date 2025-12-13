@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.appcompat.widget.SearchView
 import androidx.core.app.NotificationCompat
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -26,29 +27,24 @@ class ListUserFragment : BaseFragment<FragmentListUserBinding>(FragmentListUserB
     private val userArgs: ListUserFragmentArgs by navArgs()
 
 
-
-
-
     @RequiresApi(Build.VERSION_CODES.O)
     override fun initView() {
         initSearchView()
         initBottomNavigation()
 
-        val user = userArgs.User
-        binding.textView4.text = user.userName
-
-        viewModel.saveUserName(user.userName)
-        viewModel.connectWebSocket(user.userName)
+        viewModel.saveUserName(userArgs.User.userName)
+        viewModel.connectWebSocket(userArgs.User.userName)
 
         initRecyclerView()
         initObserver()
         hiddenRecyclerView()
 
+
     }
 
     private fun initSearchView() {
         binding.searchView.setOnQueryTextListener(object :
-            android.widget.SearchView.OnQueryTextListener {
+            SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 try {
                     val userName = UserRequest(
@@ -62,10 +58,11 @@ class ListUserFragment : BaseFragment<FragmentListUserBinding>(FragmentListUserB
                 return true
             }
 
+
             override fun onQueryTextChange(newText: String?): Boolean {
                 if (newText != null) {
                     viewModel.findUserByStr(newText)
-                }else{
+                } else {
                     hiddenRecyclerView()
                 }
                 return true
@@ -86,13 +83,15 @@ class ListUserFragment : BaseFragment<FragmentListUserBinding>(FragmentListUserB
                 }
 
                 R.id.navChat -> {
-                    val action = ListUserFragmentDirections.actionListUserFragmentToChatListFragment(userArgs.User)
+                    val action =
+                        ListUserFragmentDirections.actionListUserFragmentToChatListFragment(userArgs.User)
                     findNavController().navigate(action)
                     true
                 }
 
                 R.id.navNews -> {
-                    val action = ListUserFragmentDirections.actionNavSearchToNewsListFragment(userArgs.User)
+                    val action =
+                        ListUserFragmentDirections.actionNavSearchToNewsListFragment(userArgs.User)
                     findNavController().navigate(action)
                     true
                 }
@@ -143,13 +142,13 @@ class ListUserFragment : BaseFragment<FragmentListUserBinding>(FragmentListUserB
         }
     }
 
-    private fun hiddenRecyclerView(){
-        binding.searchView.setOnCloseListener {
-            binding.recyclerView2.adapter = ListUserAdapter(mutableListOf()){}
+    private fun hiddenRecyclerView() {
+        val searchView = binding.searchView as androidx.appcompat.widget.SearchView
+        searchView.setOnCloseListener {
+            binding.recyclerView2.adapter = ListUserAdapter(mutableListOf()) {}
             return@setOnCloseListener true
         }
     }
-
 
 
 }

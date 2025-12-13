@@ -10,7 +10,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class PrivateFragment : BaseFragment<FragmentPrivatyBinding>(FragmentPrivatyBinding::inflate) {
 
     override fun initView() {
-        binding?.button?.setOnClickListener {
+        binding.button.setOnClickListener {
             findNavController().navigate(R.id.action_privateFragment_to_registerFragment)
         }
     }
