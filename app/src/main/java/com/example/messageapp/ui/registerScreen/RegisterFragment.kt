@@ -22,7 +22,7 @@ class RegisterFragment @Inject constructor() : BaseFragment<FragmentRegisterBind
             registrationAccount()
         }
 
-        binding.tvLogin.setOnClickListener {
+        binding.btnLogin.setOnClickListener {
             changeTextView()
         }
 
@@ -35,7 +35,7 @@ class RegisterFragment @Inject constructor() : BaseFragment<FragmentRegisterBind
                 snackBar(binding.root, "Заполните все поля")
                 return
             }
-            if (edUserName.text.first() != '@') {
+            if (edUserName.text?.first() != '@') {
                 snackBar(binding.root, "Первый символ в UserName должен быть @")
                 return
             }
@@ -101,10 +101,10 @@ class RegisterFragment @Inject constructor() : BaseFragment<FragmentRegisterBind
     private fun changeTextView() {
         if (binding.tvRegistration.text == "Регистрация") {
             binding.tvRegistration.text = "Вход"
-            binding.tvLogin.text = "Нет аккаунта? Создайте его"
+            binding.btnLogin.text = "Нет аккаунта? Создайте его"
         } else {
             binding.tvRegistration.text = "Регистрация"
-            binding.tvLogin.text = "Уже есть аккаунт? Войдите"
+            binding.btnLogin.text = "Уже есть аккаунт? Войдите"
         }
     }
 }
