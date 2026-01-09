@@ -1,5 +1,8 @@
 package com.example.messageapp.domain.repoImpl
 
+import android.util.Log
+import android.util.MalformedJsonException
+import com.example.messageapp.core.logD
 import com.example.messageapp.data.network.api.service.ApiService
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.LoginResponse
@@ -9,6 +12,8 @@ import com.example.messageapp.data.network.model.User
 import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.domain.repo.apiRepository.ApiRepository
+import com.google.gson.Gson
+import com.google.gson.JsonParseException
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.Response
@@ -23,6 +28,7 @@ class ApiServiceImpl @Inject constructor(
     }
 
     override suspend fun findUser(token: Token): Result<User> {
+//        logD("${apiService.findUser(token)} hfdhjfhjdfjdhf")
         return safeApiCall { apiService.findUser(token) }
     }
 
@@ -55,11 +61,19 @@ class ApiServiceImpl @Inject constructor(
 
     override suspend fun allNews(): List<NewsResponse> = apiService.allNews()
 
-    /// TODO: разобрать
+    ///
     override suspend fun <T> safeApiCall(apiCall: suspend () -> T): Result<T> {
         return try {
-            Result.success(apiCall())
+            val result = apiCall()
+            Log.d("API_SUCCESS", "Response: ${Gson().toJson(result)}")
+            Result.success(result)
         } catch (e: Exception) {
+            // Пытаемся получить raw response при ошибке
+            if (e is JsonParseException || e is MalformedJsonException) {
+                Log.e("JSON_ERROR", "Malformed JSON received. Check network logs for raw response", e)
+                // Здесь можно попытаться получить raw response из стека
+            }
+            Log.e("API_ERROR", "API call failed: ${e.message}", e)
             Result.failure(e)
         }
     }

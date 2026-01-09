@@ -12,6 +12,10 @@ import com.example.messageapp.domain.useCase.ApiServiceUseCase
 import com.example.messageapp.domain.useCase.AppPreferencesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -26,16 +30,16 @@ class AddNewsViewModel @Inject constructor(
     private val apiServiceUseCase: ApiServiceUseCase,
 ) : ViewModel() {
 
-    private var _userName: MutableLiveData<String> = MutableLiveData()
-    var userName: MutableLiveData<String> = _userName
+    private var _userName: MutableStateFlow<String> = MutableStateFlow("")
+    var userName: StateFlow<String> = _userName
+    private var _image: MutableStateFlow<MultipartBody.Part?> = MutableStateFlow(null)
+    var image: StateFlow<MultipartBody.Part?> = _image
 
-    private var _image: MutableLiveData<MultipartBody.Part> = MutableLiveData()
-    var image: LiveData<MultipartBody.Part> = _image
 
 
     fun userNameAccount() {
         viewModelScope.launch(Dispatchers.IO) {
-            _userName.postValue(appPreference.getValueString(ConstVariables.userName))
+            _userName.value = appPreference.getString(ConstVariables.userName).toString()
         }
     }
 
@@ -47,9 +51,9 @@ class AddNewsViewModel @Inject constructor(
             try {
                 if (_image.value != null ) {
                     apiServiceUseCase.uploadNews(part, nameNews, userName)
-                    logD("Новость успешна отправлена")
+//                    logD("Новость успешна отправлена")
                 }else{
-                    logD("imagePart Не получен ")
+//                    logD("imagePart Не получен ")
                 }
             } catch (e: Exception) {
                 Log.e("ERROR", e.toString())
@@ -74,6 +78,7 @@ class AddNewsViewModel @Inject constructor(
         }
     }
 
+    // todo доделать
     fun uploadNewsWithOutImage(){
 
     }

@@ -1,7 +1,5 @@
 package com.example.messageapp.ui.splashScreen
 
-import android.os.Bundle
-import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -20,7 +18,7 @@ class WelcomeFragment : BaseFragment<FragmentWelcomeBinding>(FragmentWelcomeBind
     override fun initView() {
         lifecycleScope.launch {
             initObserver()
-            viewModel.findUser()
+            viewModel.loginUser()
             delay(3000)
         }
 

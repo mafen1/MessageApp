@@ -10,6 +10,8 @@ import com.example.messageapp.data.network.model.User
 import com.example.messageapp.domain.useCase.ApiServiceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,22 +21,22 @@ class NewsViewModel @Inject constructor(
    private val apiServiceUseCase: ApiServiceUseCase
 ) : ViewModel() {
 
-    private var _newsList = MutableLiveData<MutableList<NewsResponse>>()
-    var newsList: LiveData<MutableList<NewsResponse>> = _newsList
+    private var _newsList = MutableStateFlow<MutableList<NewsResponse>>(mutableListOf())
+    var newsList: StateFlow<MutableList<NewsResponse>> = _newsList
 
-    private var _user = MutableLiveData<User>()
-    var user: LiveData<User> = _user
+    private var _user = MutableStateFlow<User?>(null)
+    var user: StateFlow<User?> = _user
 
 
     fun allNews(){
         viewModelScope.launch(Dispatchers.IO) {
-            _newsList.postValue(apiServiceUseCase.allNews().toMutableList())
+            _newsList.value = (apiServiceUseCase.allNews().toMutableList())
         }
     }
 
     fun saveUser(user: User){
         viewModelScope.launch(Dispatchers.IO) {
-            _user.postValue(user)
+            _user.value = (user)
         }
     }
 

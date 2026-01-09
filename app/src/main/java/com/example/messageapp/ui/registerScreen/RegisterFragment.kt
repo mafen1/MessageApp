@@ -1,14 +1,15 @@
 package com.example.messageapp.ui.registerScreen
 
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.example.messageapp.core.logD
 import com.example.messageapp.core.snackBar
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.User
 import com.example.messageapp.databinding.FragmentRegisterBinding
 import com.example.messageapp.ui.BaseFragment
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.random.Random
 
@@ -25,8 +26,7 @@ class RegisterFragment @Inject constructor() : BaseFragment<FragmentRegisterBind
         binding.btnLogin.setOnClickListener {
             changeTextView()
         }
-
-        initObserver()
+        initObservers()
     }
 
     private fun registrationAccount() {
@@ -69,33 +69,48 @@ class RegisterFragment @Inject constructor() : BaseFragment<FragmentRegisterBind
         viewModel.loginAccount(loginRequest)
     }
 
-    private fun initObserver() {
-        // Обработка успешной регистрации
-        viewModel.registrationSuccess.observe(viewLifecycleOwner) { user ->
-            user?.let {
-                val action = RegisterFragmentDirections.actionRegisterFragmentToListUserFragment(it)
-                findNavController().navigate(action)
-                viewModel.resetRegistrationState()
-            }
-        }
+    private fun initObservers() {
+        observeErrors()
+        observeRegistrationSuccess()
+        observeUser()
+    }
 
-        // Обработка успешного входа
-        viewModel.currentUser.observe(viewLifecycleOwner) { user ->
-            user?.let {
-                val action = RegisterFragmentDirections.actionRegisterFragmentToListUserFragment(it)
-                findNavController().navigate(action)
-            }
-        }
-
-        // Обработка ошибок
-        viewModel.error.observe(viewLifecycleOwner) { errorMsg ->
-            errorMsg?.let {
-                snackBar(binding.root, it)
-                logD(it)
-                viewModel.resetError()
+    private fun observeRegistrationSuccess(){
+        lifecycleScope.launch {
+            viewModel.registrationSuccess.collect { user ->
+                user?.let {
+                    val action =
+                        RegisterFragmentDirections.actionRegisterFragmentToListUserFragment(it)
+                    findNavController().navigate(action)
+                    viewModel.resetRegistrationState()
+                }
             }
         }
     }
+
+    private fun observeUser(){
+        lifecycleScope.launch {
+            viewModel.currentUser.collect { user ->
+                user?.let {
+                    val action =
+                        RegisterFragmentDirections.actionRegisterFragmentToListUserFragment(it)
+                    findNavController().navigate(action)
+                }
+            }
+        }
+    }
+
+    private fun observeErrors(){
+        lifecycleScope.launch {
+            viewModel.error.collect { errorMsg ->
+                errorMsg?.let {
+                    snackBar(binding.root, it)
+                    viewModel.resetError()
+                }
+            }
+        }
+    }
+
 
 
     private fun changeTextView() {

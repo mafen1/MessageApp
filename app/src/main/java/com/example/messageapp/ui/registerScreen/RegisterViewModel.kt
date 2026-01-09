@@ -33,42 +33,41 @@ class RegisterViewModel @Inject constructor(
     private val apiServiceUseCase: ApiServiceUseCase
 ) : ViewModel() {
 
-    private val _currentUser = MutableLiveData<User>()
-    val currentUser: LiveData<User> = _currentUser
+    private val _currentUser = MutableStateFlow<User?>(null)
+    val currentUser: StateFlow<User?> = _currentUser
 
-    private val _registrationSuccess = MutableLiveData<User?>()
-    val registrationSuccess: LiveData<User?> = _registrationSuccess
+    private val _registrationSuccess = MutableStateFlow<User?>(null)
+    val registrationSuccess: StateFlow<User?> = _registrationSuccess
 
-    private val _error = MutableLiveData<String?>()
-    val error: LiveData<String?> = _error
+    private val _error = MutableStateFlow<String?>("")
+    val error: StateFlow<String?> = _error
 
     fun addAccount(user: User) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                // Получаем Response вместо Result
                 val response = apiServiceUseCase.addUser(user)
 
                 if (response.isSuccess) {
                     val loginResponse = response.getOrNull()
                     if (loginResponse != null) {
-                        appPreference.save(ConstVariables.tokenJWT, loginResponse.token)
+                        appPreference.setString(ConstVariables.tokenJWT, loginResponse.token)
                         withContext(Dispatchers.Main) {
-                            _registrationSuccess.postValue(loginResponse.user)
+                            _registrationSuccess.value = (loginResponse.user)
                         }
                     } else {
                         withContext(Dispatchers.Main) {
-                            _error.postValue("Получен пустой ответ от сервера")
+                            _error.value = ("Получен пустой ответ от сервера")
                         }
                     }
                 } else {
                     val errorBody = response.exceptionOrNull()?.toString() ?: "Неизвестная ошибка"
                     withContext(Dispatchers.Main) {
-                        _error.postValue("Ошибка регистрации: $errorBody")
+                        _error.value = ("Ошибка регистрации: $errorBody")
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    _error.postValue("Ошибка сети: ${e.message}")
+                    _error.value = ("Ошибка сети: ${e.message}")
                 }
             }
         }
@@ -82,13 +81,13 @@ class RegisterViewModel @Inject constructor(
                     val user = response.getOrNull()
                     user?.let {
                         appPreference.save(ConstVariables.tokenJWT, it.token ?: "")
-                        _currentUser.postValue(it)
+                        _currentUser.value = (it)
                     }
                 } else {
-                    _error.postValue("Неверные данные для входа")
+                    _error.value = ("Неверные данные для входа")
                 }
             } catch (e: Exception) {
-                _error.postValue("Ошибка входа: ${e.message}")
+                _error.value = ("Ошибка входа: ${e.message}")
             }
         }
     }

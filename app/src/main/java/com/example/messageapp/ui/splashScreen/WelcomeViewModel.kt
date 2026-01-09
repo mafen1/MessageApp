@@ -12,6 +12,8 @@ import com.example.messageapp.domain.useCase.ApiServiceUseCase
 import com.example.messageapp.domain.useCase.AppPreferencesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,13 +26,18 @@ class WelcomeViewModel @Inject constructor(
     private val _user = MutableLiveData<User?>()
     var user = _user
 
-    fun findUser() {
+    private var _token: MutableStateFlow<String> = MutableStateFlow("")
+    var token = _token
+
+
+    fun loginUser() {
         viewModelScope.launch(Dispatchers.IO) {
-            val token = appPreference.getValueString(ConstVariables.tokenJWT)
-            Log.d("TAG", token.toString())
-            if (token!!.isNotEmpty()) {
+            _token.value = appPreference.getString(ConstVariables.tokenJWT).first()
+//            Log.d("TAG", "${_token.value} dfhgfd")
+
+            if (_token.value.isNotEmpty()) {
                 try {
-                    val user = apiServiceUseCase.findUser(Token(token))
+                    val user = apiServiceUseCase.findUser(Token(_token.value))
 
                     logD("Received user: $user")
 
@@ -42,6 +49,7 @@ class WelcomeViewModel @Inject constructor(
                 }
             } else {
                 _user.postValue(null)
+                logD("USER NULL")
             }
         }
     }

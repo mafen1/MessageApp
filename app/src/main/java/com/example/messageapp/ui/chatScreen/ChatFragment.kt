@@ -56,10 +56,10 @@ class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::infl
 
         viewModel.messageList.observe(viewLifecycleOwner) { list ->
             if (list != null) {
-                Log.d("TAG", "Получено сообщений: ${list.size}")
+//                Log.d("TAG", "Получено сообщений: ${list.size}")
                 adapter.updateList(list) // Обновляем адаптер, передавая новый список
             }else{
-                logD("сообщение не получено ${list?.size}")
+//                logD("сообщение не получено ${list?.size}")
             }
         }
     }
@@ -92,7 +92,7 @@ class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::infl
 
     override fun onDestroy() {
         viewModel.disconnect()
-        Log.d("TAG", "destroy")
+//        Log.d("TAG", "destroy")
         super.onDestroy()
     }
 }

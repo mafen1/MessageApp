@@ -5,7 +5,7 @@ import com.example.messageapp.data.network.api.service.ApiService
 import com.example.messageapp.domain.repoImpl.ApiServiceImpl
 import com.example.messageapp.domain.repo.apiRepository.ApiRepository
 import com.example.messageapp.domain.repo.preferences.AppPreference
-import com.example.messageapp.store.SharedPreference
+import com.example.messageapp.store.DataStore
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
@@ -48,7 +48,7 @@ object Module {
 
     @Provides
     @Singleton
-    fun appPreference(sharedPreference: SharedPreference) : AppPreference = sharedPreference
+    fun appPreference(dataStore: DataStore) : AppPreference = dataStore
 
     @Provides
     @Singleton

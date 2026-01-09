@@ -15,6 +15,9 @@ import com.example.messageapp.domain.useCase.ApiServiceUseCase
 import com.example.messageapp.domain.useCase.AppPreferencesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.net.URI
 import javax.inject.Inject
@@ -25,8 +28,8 @@ class ChatViewModel @Inject constructor(
     private val apiUseCase: ApiServiceUseCase
 ) : ViewModel() {
 
-    private val _user: MutableLiveData<User> = MutableLiveData()
-    var user: LiveData<User> = _user
+    private val _user: MutableStateFlow<User?> = MutableStateFlow(null)
+    var user: StateFlow<User?> = _user
 
     private val _messageText: MutableLiveData<String> = MutableLiveData()
     var messageText: LiveData<String> = _messageText
@@ -69,7 +72,7 @@ class ChatViewModel @Inject constructor(
 
 
     fun findUserName(): String {
-        return appPreference.getValueString("username").toString()
+        return appPreference.getString(ConstVariables.userName).toString()
     }
 
     fun updateMessageList(message: Message) {
@@ -83,10 +86,17 @@ class ChatViewModel @Inject constructor(
     fun findUser() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val token = Token(appPreference.getValueString(ConstVariables.tokenJWT).toString())
-                _user.postValue(apiUseCase.findUser(token).getOrNull())
+                val token = Token(appPreference.getString(ConstVariables.tokenJWT).first())
+                logD(token.toString())
+                logD(appPreference.getString(ConstVariables.tokenJWT).first())
+                if (apiUseCase.findUser(token).getOrNull() != null) {
+                    _user.value = (apiUseCase.findUser(token).getOrNull())
+                    logD(_user.value.toString())
+                }else{
+
+                }
             } catch (e: Exception) {
-                Log.d(ConstVariables.LoggerDebugTag, e.toString())
+//                Log.d(ConstVariables.LoggerDebugTag, e.toString())
             }
         }
     }

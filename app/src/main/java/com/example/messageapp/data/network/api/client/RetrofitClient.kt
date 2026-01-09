@@ -24,7 +24,7 @@ object RetrofitClient {
 
     private val loggingInterceptor = HttpLoggingInterceptor(object : HttpLoggingInterceptor.Logger {
         override fun log(message: String) {
-            Log.d("NETWORK_DEBUG", message) // Кастомный тег для удобства
+//            Log.d("NETWORK_DEBUG", message) // Кастомный тег для удобства
         }
     }).apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -40,21 +40,20 @@ object RetrofitClient {
                 buffer.readUtf8()
             }
 
-            Log.d("NETWORK_DEBUG", "=== REQUEST ===")
-            Log.d("NETWORK_DEBUG", "URL: ${request.url}")
-            Log.d("NETWORK_DEBUG", "Method: ${request.method}")
-            Log.d("NETWORK_DEBUG", "Headers: ${request.headers}")
-            Log.d("NETWORK_DEBUG", "Body: $requestBody")
+//            Log.d("NETWORK_DEBUG", "=== REQUEST ===")
+//            Log.d("NETWORK_DEBUG", "URL: ${request.url}")
+//            Log.d("NETWORK_DEBUG", "Method: ${request.method}")
+//            Log.d("NETWORK_DEBUG", "Headers: ${request.headers}")
+//            Log.d("NETWORK_DEBUG", "Body: $requestBody")
 
             val response = chain.proceed(request)
 
             val responseBody = response.body?.string()
-            Log.d("NETWORK_DEBUG", "=== RESPONSE ===")
-            Log.d("NETWORK_DEBUG", "Code: ${response.code}")
-            Log.d("NETWORK_DEBUG", "Headers: ${response.headers}")
-            Log.d("NETWORK_DEBUG", "Body: $responseBody")
+//            Log.d("NETWORK_DEBUG", "=== RESPONSE ===")
+//            Log.d("NETWORK_DEBUG", "Code: ${response.code}")
+//            Log.d("NETWORK_DEBUG", "Headers: ${response.headers}")
+//            Log.d("NETWORK_DEBUG", "Body: $responseBody")
 
-            // Важно: создаем новый response с прочитанным body
             response.newBuilder()
                 .body(ResponseBody.create(response.body?.contentType(), responseBody ?: ""))
                 .build()

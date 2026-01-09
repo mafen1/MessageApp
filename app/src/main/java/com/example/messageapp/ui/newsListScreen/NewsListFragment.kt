@@ -1,6 +1,7 @@
 package com.example.messageapp.ui.newsListScreen
 
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -10,6 +11,7 @@ import com.example.messageapp.core.snackBar
 import com.example.messageapp.databinding.FragmentNewsListBinding
 import com.example.messageapp.ui.BaseFragment
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class NewsListFragment : BaseFragment<FragmentNewsListBinding>(FragmentNewsListBinding::inflate) {
@@ -31,10 +33,12 @@ class NewsListFragment : BaseFragment<FragmentNewsListBinding>(FragmentNewsListB
 
 
     private fun initRecyclerView() {
-       viewModel.newsList.observe(viewLifecycleOwner) { news ->
-           binding.rcNews.layoutManager = LinearLayoutManager(requireContext())
-           binding.rcNews.adapter = NewsAdapter(news)
-       }
+        lifecycleScope.launch {
+            viewModel.newsList.collect { news ->
+                binding.rcNews.layoutManager = LinearLayoutManager(requireContext())
+                binding.rcNews.adapter = NewsAdapter(news)
+            }
+        }
     }
 
     private fun initBottomNavigationView() {
@@ -59,7 +63,7 @@ class NewsListFragment : BaseFragment<FragmentNewsListBinding>(FragmentNewsListB
                 }
 
                 else -> {
-                    logD("Ошибка")
+//                    logD("Ошибка")
                     true
                 }
             }

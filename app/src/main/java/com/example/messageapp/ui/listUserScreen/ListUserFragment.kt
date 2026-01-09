@@ -9,6 +9,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.SearchView
 import androidx.core.app.NotificationCompat
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.navigation.ui.setupWithNavController
@@ -19,6 +20,7 @@ import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.databinding.FragmentListUserBinding
 import com.example.messageapp.ui.BaseFragment
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class ListUserFragment : BaseFragment<FragmentListUserBinding>(FragmentListUserBinding::inflate) {
@@ -125,20 +127,23 @@ class ListUserFragment : BaseFragment<FragmentListUserBinding>(FragmentListUserB
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun initRecyclerView() {
-
-        viewModel.foundUser.observe(viewLifecycleOwner) { user ->
-            binding.recyclerView2.adapter = ListUserAdapter(user) { currentUser ->
-                val message = "Заявка в друзья для пользователя ${currentUser.username}"
-                viewModel.sendMessage("${userArgs.User.userName}:${currentUser.username}:$message")
+        lifecycleScope.launch {
+            viewModel.foundUser.collect { user ->
+                binding.recyclerView2.adapter = ListUserAdapter(user) { currentUser ->
+                    val message = "Заявка в друзья для пользователя ${currentUser.username}"
+                    viewModel.sendMessage("${userArgs.User.userName}:${currentUser.username}:$message")
+                }
+                binding.recyclerView2.layoutManager = LinearLayoutManager(requireContext())
             }
-            binding.recyclerView2.layoutManager = LinearLayoutManager(requireContext())
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun initObserver() {
-        viewModel.messageNotification.observe(viewLifecycleOwner) { _ ->
-            initNotification()
+        lifecycleScope.launch {
+            viewModel.messageNotification.collect { _ ->
+                initNotification()
+            }
         }
     }
 

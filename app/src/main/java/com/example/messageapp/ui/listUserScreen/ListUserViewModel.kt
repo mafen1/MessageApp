@@ -13,6 +13,8 @@ import com.example.messageapp.domain.useCase.ApiServiceUseCase
 import com.example.messageapp.domain.useCase.AppPreferencesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.net.URI
 import javax.inject.Inject
@@ -23,11 +25,11 @@ class ListUserViewModel @Inject constructor(
     private val apiServiceUseCase: ApiServiceUseCase
 ) : ViewModel() {
 
-    private var _foundUser = MutableLiveData<MutableList<UserResponse>>()
-    var foundUser: LiveData<MutableList<UserResponse>> = _foundUser
+    private var _foundUser = MutableStateFlow<MutableList<UserResponse>>(mutableListOf())
+    var foundUser: StateFlow<MutableList<UserResponse>> = _foundUser
 
-    private val _messageNotification = MutableLiveData<String>()
-    var messageNotification: LiveData<String> = _messageNotification
+    private val _messageNotification = MutableStateFlow<String>("")
+    var messageNotification: StateFlow<String> = _messageNotification
 
     private var _webSocketClient: ChatWebSocketClient? = null
 
@@ -36,10 +38,10 @@ class ListUserViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val user = apiServiceUseCase.findUserByName(userName)
-                _foundUser.postValue(mutableListOf(user.getOrThrow()))
-                Log.d("TAG", user.toString())
+                _foundUser.value = (mutableListOf(user.getOrThrow()))
+//                Log.d("TAG", user.toString())
             } catch (e: Exception) {
-                Log.d("TAG", e.message.toString())
+//                Log.d("TAG", e.message.toString())
             }
         }
     }
@@ -51,7 +53,7 @@ class ListUserViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _webSocketClient = ChatWebSocketClient(serverUri) { message ->
-                    _messageNotification.postValue(message)
+                    _messageNotification.value = (message)
                 }
                 _webSocketClient!!.connect()
             } catch (e: Exception) {
@@ -66,17 +68,16 @@ class ListUserViewModel @Inject constructor(
 
     fun saveUserName( userName: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            appPreference.save("username", userName)
+            appPreference.setString(ConstVariables.userName,userName)
         }
     }
 
     fun findUserByStr(userName: String){
         viewModelScope.launch(Dispatchers.IO) {
             val users = apiServiceUseCase.findUserByStr(UserRequest(userName))
-            _foundUser.postValue(users.getOrThrow().toMutableList())
+            _foundUser.value = (users.getOrThrow().toMutableList())
         }
     }
-    // todo onDestroy
 
     fun disconnect() {
         viewModelScope.launch(Dispatchers.IO) {

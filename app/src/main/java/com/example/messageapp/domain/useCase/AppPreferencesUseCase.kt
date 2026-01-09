@@ -1,15 +1,25 @@
 package com.example.messageapp.domain.useCase
 
-import com.example.messageapp.store.SharedPreference
+import androidx.datastore.preferences.core.Preferences
+import com.example.messageapp.store.DataStore
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class AppPreferencesUseCase @Inject constructor(private val sharedPreference: SharedPreference) {
+class AppPreferencesUseCase @Inject constructor(private val dataStore: DataStore) {
 
-    fun save(keyName: String, value: String) {
-        sharedPreference.save(keyName, value)
+    suspend fun <T> save(key: String, value: T) {
+        dataStore.save(key, value)
     }
-    fun getValueString(keyName: String): String? {
-        return sharedPreference.getValueString(keyName)
+    fun <T> readValue(key: Preferences.Key<T>): Flow<T> {
+        return dataStore.readValue(key, defaultValue = "" as T)
+    }
+
+    fun getString(key: String): Flow<String>{
+        return dataStore.getStringValue(key)
+    }
+
+    suspend fun setString(key: String, value: String) {
+        dataStore.setStringValue(key, value)
     }
 
 }
