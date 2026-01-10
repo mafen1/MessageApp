@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.net.URI
 import javax.inject.Inject
 
@@ -31,17 +32,14 @@ class ChatViewModel @Inject constructor(
     private val _user: MutableStateFlow<User?> = MutableStateFlow(null)
     var user: StateFlow<User?> = _user
 
-    private val _messageText: MutableLiveData<String> = MutableLiveData()
-    var messageText: LiveData<String> = _messageText
+    private val _messageText: MutableStateFlow<String> = MutableStateFlow("")
+    var messageText: StateFlow<String> = _messageText
 
+    // todo .
     var webSocketClient: ChatWebSocketClient? = null
 
-
-//    private var _webSocketClient: MutableLiveData<ChatWebSocketClient?> = MutableLiveData()
-//    var webSocketClient: LiveData<ChatWebSocketClient?> = _webSocketClient
-
-    private var _messageList: MutableLiveData<MutableList<Message>> = MutableLiveData()
-    var messageList: LiveData<MutableList<Message>> = _messageList
+    private var _messageList: MutableStateFlow<MutableList<Message>?> = MutableStateFlow(null)
+    var messageList: StateFlow<MutableList<Message>?> = _messageList
 
 
     fun disconnect() {
@@ -53,8 +51,8 @@ class ChatViewModel @Inject constructor(
     fun connect(userName: String) {
         try {
             val serverUri = URI("${ConstVariables.wsUrl}/chat/$userName")
-            // для закрытия старого соединения
-//        webSocketClient?.disconnect()
+
+            logD("web socket username: ${userName}")
 
             webSocketClient = ChatWebSocketClient(serverUri) { message ->
                 viewModelScope.launch(Dispatchers.Main) {
@@ -65,14 +63,17 @@ class ChatViewModel @Inject constructor(
             webSocketClient?.connect()
             logD("connect web socket")
         } catch (e: Exception) {
-            logD(e.toString())
+            logD("log web socket: ${e.toString()}")
+
         }
 
     }
 
 
-    fun findUserName(): String {
-        return appPreference.getString(ConstVariables.userName).toString()
+    suspend fun findUserName(): String {
+        return withContext(Dispatchers.IO) {
+            appPreference.getString(ConstVariables.userName).first()
+        }
     }
 
     fun updateMessageList(message: Message) {

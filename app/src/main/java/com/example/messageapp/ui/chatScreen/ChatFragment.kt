@@ -1,13 +1,8 @@
 package com.example.messageapp.ui.chatScreen
 
-import android.os.Bundle
-import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,6 +12,7 @@ import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.databinding.FragmentChatBinding
 import com.example.messageapp.ui.BaseFragment
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::inflate) {
@@ -27,11 +23,16 @@ class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::infl
 
     override fun initView() {
         viewModel.findUser()
-        viewModel.connect(viewModel.findUserName())
-        initObserver()
+
+        lifecycleScope.launch {
+            viewModel.connect(viewModel.findUserName())
+        }
+
+        initRecyclerView()
+        initObservers()
 
         val user = userFragmentArgs.UserResponse
-        initRecyclerView()
+
 
         binding.sendButton.setOnClickListener {
             sendMessage(user)
@@ -47,19 +48,25 @@ class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::infl
 
     }
 
-    private fun initObserver() {
+    private fun initObservers() {
+        observeMessageList()
+        updateRecyclerViewMessageList()
+    }
 
-        viewModel.messageText.observe(viewLifecycleOwner) { message ->
-            viewModel.updateMessageList(Message(message, false))
+    private fun observeMessageList() {
+        lifecycleScope.launch {
+            viewModel.messageText.collect { message ->
+                viewModel.updateMessageList(Message(message, false))
+            }
         }
+    }
 
-
-        viewModel.messageList.observe(viewLifecycleOwner) { list ->
-            if (list != null) {
-//                Log.d("TAG", "Получено сообщений: ${list.size}")
-                adapter.updateList(list) // Обновляем адаптер, передавая новый список
-            }else{
-//                logD("сообщение не получено ${list?.size}")
+    private fun updateRecyclerViewMessageList() {
+        lifecycleScope.launch {
+            viewModel.messageList.collect { list ->
+                if (list != null) {
+                    adapter.updateList(list) // Обновляем адаптер, передавая новый список
+                }
             }
         }
     }
@@ -73,7 +80,7 @@ class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::infl
 
     private fun sendMessage(user: UserResponse) {
         try {
-            // получаем юзер нейм
+            // получаем username
             val targetUsername = user.username
             val messageContent = binding.editTextText.text.toString()
             // сообщение
@@ -84,7 +91,11 @@ class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::infl
 
 
         } catch (e: Exception) {
-            Toast.makeText(requireContext(), "Соединение не установлено ${e.toString()}", Toast.LENGTH_SHORT)
+            Toast.makeText(
+                requireContext(),
+                "Соединение не установлено ${e.toString()}",
+                Toast.LENGTH_SHORT
+            )
                 .show()
             logD(e.toString())
         }
@@ -92,7 +103,6 @@ class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::infl
 
     override fun onDestroy() {
         viewModel.disconnect()
-//        Log.d("TAG", "destroy")
         super.onDestroy()
     }
 }

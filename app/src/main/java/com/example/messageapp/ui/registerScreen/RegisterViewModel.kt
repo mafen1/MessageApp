@@ -1,6 +1,7 @@
 package com.example.messageapp.ui.registerScreen
 
 import android.util.Log
+import android.util.Log.e
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -51,24 +52,15 @@ class RegisterViewModel @Inject constructor(
                     val loginResponse = response.getOrNull()
                     if (loginResponse != null) {
                         appPreference.setString(ConstVariables.tokenJWT, loginResponse.token)
-                        withContext(Dispatchers.Main) {
-                            _registrationSuccess.value = (loginResponse.user)
-                        }
+                        _registrationSuccess.value = (loginResponse.user)
                     } else {
-                        withContext(Dispatchers.Main) {
-                            _error.value = ("Получен пустой ответ от сервера")
-                        }
+                        _error.value = ("Получен пустой ответ от сервера")
                     }
                 } else {
-                    val errorBody = response.exceptionOrNull()?.toString() ?: "Неизвестная ошибка"
-                    withContext(Dispatchers.Main) {
-                        _error.value = ("Ошибка регистрации: $errorBody")
-                    }
+                    _error.value = ("Ошибка регистрации: ${response.exceptionOrNull()}")
                 }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    _error.value = ("Ошибка сети: ${e.message}")
-                }
+                _error.value = ("Ошибка сети: ${e.message}")
             }
         }
     }

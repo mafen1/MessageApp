@@ -14,7 +14,8 @@ import javax.inject.Inject
 import kotlin.random.Random
 
 @AndroidEntryPoint
-class RegisterFragment @Inject constructor() : BaseFragment<FragmentRegisterBinding>(FragmentRegisterBinding::inflate) {
+class RegisterFragment @Inject constructor() :
+    BaseFragment<FragmentRegisterBinding>(FragmentRegisterBinding::inflate) {
 
     private val viewModel: RegisterViewModel by viewModels()
 
@@ -75,7 +76,7 @@ class RegisterFragment @Inject constructor() : BaseFragment<FragmentRegisterBind
         observeUser()
     }
 
-    private fun observeRegistrationSuccess(){
+    private fun observeRegistrationSuccess() {
         lifecycleScope.launch {
             viewModel.registrationSuccess.collect { user ->
                 user?.let {
@@ -88,7 +89,7 @@ class RegisterFragment @Inject constructor() : BaseFragment<FragmentRegisterBind
         }
     }
 
-    private fun observeUser(){
+    private fun observeUser() {
         lifecycleScope.launch {
             viewModel.currentUser.collect { user ->
                 user?.let {
@@ -100,7 +101,7 @@ class RegisterFragment @Inject constructor() : BaseFragment<FragmentRegisterBind
         }
     }
 
-    private fun observeErrors(){
+    private fun observeErrors() {
         lifecycleScope.launch {
             viewModel.error.collect { errorMsg ->
                 errorMsg?.let {
@@ -110,7 +111,6 @@ class RegisterFragment @Inject constructor() : BaseFragment<FragmentRegisterBind
             }
         }
     }
-
 
 
     private fun changeTextView() {

@@ -33,7 +33,6 @@ class WelcomeViewModel @Inject constructor(
     fun loginUser() {
         viewModelScope.launch(Dispatchers.IO) {
             _token.value = appPreference.getString(ConstVariables.tokenJWT).first()
-//            Log.d("TAG", "${_token.value} dfhgfd")
 
             if (_token.value.isNotEmpty()) {
                 try {
@@ -42,7 +41,7 @@ class WelcomeViewModel @Inject constructor(
                     logD("Received user: $user")
 
                     _user.postValue(user.getOrThrow())
-                    appPreference.save(ConstVariables.userName, user.getOrThrow().userName)
+                    appPreference.save(ConstVariables.userName, user.getOrNull()?.userName)
 
                 } catch (e: Exception) {
                     Log.e("TAGG", "Error fetching user: ${e.message}")
