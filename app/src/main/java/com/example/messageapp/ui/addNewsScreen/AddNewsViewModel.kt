@@ -51,9 +51,9 @@ class AddNewsViewModel @Inject constructor(
             try {
                 if (_image.value != null ) {
                     apiServiceUseCase.uploadNews(part, nameNews, userName)
-//                    logD("Новость успешна отправлена")
+                    logD("Новость успешна отправлена")
                 }else{
-//                    logD("imagePart Не получен ")
+                    logD("imagePart Не получен ")
                 }
             } catch (e: Exception) {
                 Log.e("ERROR", e.toString())

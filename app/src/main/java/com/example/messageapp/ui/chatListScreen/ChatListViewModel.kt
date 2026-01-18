@@ -1,8 +1,5 @@
 package com.example.messageapp.ui.chatListScreen
 
-//import androidx.lifecycle.map
-
-
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel

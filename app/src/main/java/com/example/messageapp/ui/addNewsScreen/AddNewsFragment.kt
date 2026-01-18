@@ -10,6 +10,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.messageapp.R
+import com.example.messageapp.core.snackBar
 import com.example.messageapp.databinding.FragmentAddNewsBinding
 import com.example.messageapp.ui.BaseFragment
 import dagger.hilt.android.AndroidEntryPoint
@@ -66,27 +67,23 @@ class AddNewsFragment : BaseFragment<FragmentAddNewsBinding>(FragmentAddNewsBind
         if (viewModel.image.value != null) {
 
             val nameNews = binding.textInputLayout.editText?.text.toString().toRequestBody()
-            val userName = viewModel.userName.value?.toRequestBody()
+            val userName = viewModel.userName.value.toRequestBody()
 
-            if (userName != null) {
-                viewModel.uploadNewsWithImage(viewModel.image.value!!, nameNews, userName)
-            }
+            viewModel.uploadNewsWithImage(viewModel.image.value!!, nameNews, userName)
             navigateToNewsList()
         } else {
-
+            snackBar(binding.root, "Загрузите картинку")
         }
     }
 
     private fun navigateToNewsList() {
-        // Безопасная навигация с проверкой
         try {
             val action = AddNewsFragmentDirections.actionAddNewsFragmentToNewsListFragment(navFragmentArgs.Userr)
             findNavController().navigate(action)
-        } catch (e: Exception) {
-            // Если действие не найдено, пытаемся использовать базовый ID
+        } catch (_: Exception) {
             try {
                 findNavController().navigate(R.id.newsListFragment)
-            } catch (ex: Exception) {
+            } catch (_: Exception) {
                 findNavController().popBackStack()
             }
         }

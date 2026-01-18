@@ -29,20 +29,16 @@ class DataStore @Inject constructor(@ApplicationContext private val context: Con
         key: Preferences.Key<T>,
         defaultValue: T
     ): Flow<T> = context.dataStore.data.map { settings ->
-        (settings[key] ?: defaultValue) as T
+        (settings[key] ?: defaultValue)
     }
 
     override suspend fun setStringValue(key: String, value: String) {
         save(key, value)
-//        logD(value)
     }
 
 
     override fun getStringValue(key: String): Flow<String> {
-//        logD(key)
         return readValue(stringPreferencesKey(key), "")
     }
-
-
 
 }
