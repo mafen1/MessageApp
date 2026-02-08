@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.messageapp.core.ConstVariables
 import com.example.messageapp.core.logD
+import com.example.messageapp.core.snackBar
 import com.example.messageapp.data.network.api.client.RetrofitClient.apiService
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.LoginResponse
@@ -50,15 +51,18 @@ class RegisterViewModel @Inject constructor(
 
                 if (response.isSuccess) {
                     val loginResponse = response.getOrNull()
+
                     if (loginResponse != null) {
                         appPreference.setString(ConstVariables.tokenJWT, loginResponse.token)
                         _registrationSuccess.value = (loginResponse.user)
                     } else {
                         _error.value = ("Получен пустой ответ от сервера")
                     }
+
                 } else {
                     _error.value = ("Ошибка регистрации: ${response.exceptionOrNull()}")
                 }
+
             } catch (e: Exception) {
                 _error.value = ("Ошибка сети: ${e.message}")
             }
@@ -71,9 +75,15 @@ class RegisterViewModel @Inject constructor(
                 val response = apiServiceUseCase.loginUser(loginRequest)
                 if (response.isSuccess) {
                     val user = response.getOrNull()
-                    user?.let {
-                        appPreference.save(ConstVariables.tokenJWT, it.token ?: "")
-                        _currentUser.value = (it)
+                    if (user != null) {
+
+                        user.let {
+                            appPreference.save(ConstVariables.tokenJWT, it.token ?: "")
+                            _currentUser.value = (it)
+                        }
+
+                    }else{
+                        _error.value = "Пустой ответ сервера"
                     }
                 } else {
                     _error.value = ("Неверные данные для входа")

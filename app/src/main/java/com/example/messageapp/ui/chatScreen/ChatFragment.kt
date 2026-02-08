@@ -19,16 +19,17 @@ class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::infl
 
     private val viewModel by viewModels<ChatViewModel>()
     private val userFragmentArgs: ChatFragmentArgs by navArgs()
-    private lateinit var adapter: ChatAdapter
+    private var adapter: ChatAdapter? = null
 
     override fun initView() {
         viewModel.findUser()
+        initRecyclerView()
 
         lifecycleScope.launch {
             viewModel.connect(viewModel.findUserName())
         }
 
-        initRecyclerView()
+
         initObservers()
 
         val user = userFragmentArgs.UserResponse
@@ -65,7 +66,7 @@ class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::infl
         lifecycleScope.launch {
             viewModel.messageList.collect { list ->
                 if (list != null) {
-                    adapter.updateList(list) // Обновляем адаптер, передавая новый список
+                    adapter?.updateList(list) // Обновляем адаптер, передавая новый список
                 }
             }
         }
@@ -103,6 +104,10 @@ class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::infl
 
     override fun onDestroy() {
         viewModel.disconnect()
+
+        binding.recyclerView.adapter = null
+        adapter = null
+
         super.onDestroy()
     }
 }

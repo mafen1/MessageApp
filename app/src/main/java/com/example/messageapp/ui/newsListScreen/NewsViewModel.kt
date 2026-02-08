@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.messageapp.core.logD
 import com.example.messageapp.data.network.model.NewsRequest
 import com.example.messageapp.data.network.model.NewsResponse
 import com.example.messageapp.data.network.model.User
@@ -30,7 +31,8 @@ class NewsViewModel @Inject constructor(
 
     fun allNews(){
         viewModelScope.launch(Dispatchers.IO) {
-            _newsList.value = (apiServiceUseCase.allNews().toMutableList())
+            _newsList.value = apiServiceUseCase.allNews().toMutableList()
+            logD(newsList.value.toString())
         }
     }
 

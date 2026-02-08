@@ -1,10 +1,12 @@
 package com.example.messageapp.domain.useCase
 
+import com.example.messageapp.core.ConstVariables.userName
 import com.example.messageapp.core.logD
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.LoginResponse
 import com.example.messageapp.data.network.model.NewsRequest
 import com.example.messageapp.data.network.model.NewsResponse
+import com.example.messageapp.data.network.model.NewsUploadWithOutImage
 import com.example.messageapp.data.network.model.Token
 import com.example.messageapp.data.network.model.User
 import com.example.messageapp.data.network.model.UserRequest
@@ -21,10 +23,10 @@ class ApiServiceUseCase @Inject constructor(private val apiServiceImpl: ApiServi
         logD(user.toString())
     }
 
-    suspend fun findUser(
+    suspend fun fetchUser(
         token: Token
     ): Result<User> {
-        return apiServiceImpl.findUser(token)
+        return apiServiceImpl.fetchUser(token)
     }
 
     suspend fun findUserByName(
@@ -47,14 +49,17 @@ class ApiServiceUseCase @Inject constructor(private val apiServiceImpl: ApiServi
 
     suspend fun uploadNews(
         part: MultipartBody.Part,
-        nameNews: RequestBody,
-        userName: RequestBody
+        newsRequestBody: RequestBody
     ) {
-        apiServiceImpl.uploadNews(part, nameNews, userName)
+        apiServiceImpl.uploadNews(part, newsRequestBody)
     }
 
-    suspend fun allNews(): List<NewsResponse>{
+    suspend fun allNews(): List<NewsResponse> {
         return apiServiceImpl.allNews()
     }
+
+    suspend fun uploadNewsWithOutImage(newsUploadWithOutImage: NewsUploadWithOutImage) =
+        apiServiceImpl.uploadNewsWithOutImage(newsUploadWithOutImage)
+
 
 }

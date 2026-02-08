@@ -8,18 +8,18 @@ import androidx.fragment.app.Fragment
 import androidx.viewbinding.ViewBinding
 
 
-//@AndroidEntryPoint
 abstract class BaseFragment<T : ViewBinding>(private val bindingInflater: (LayoutInflater, ViewGroup?, Boolean) -> T) :
     Fragment() {
 
-    protected lateinit var binding: T
+    private var _binding: T? = null
+    protected val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = bindingInflater(inflater, container, false)
+        _binding = bindingInflater(inflater, container, false)
         return binding.root
 
     }
@@ -31,5 +31,11 @@ abstract class BaseFragment<T : ViewBinding>(private val bindingInflater: (Layou
 
 
     abstract fun initView()
+
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 
 }

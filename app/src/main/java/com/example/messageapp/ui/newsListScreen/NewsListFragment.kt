@@ -2,16 +2,18 @@ package com.example.messageapp.ui.newsListScreen
 
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavDirections
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.messageapp.R
-import com.example.messageapp.core.logD
-import com.example.messageapp.core.snackBar
 import com.example.messageapp.databinding.FragmentNewsListBinding
+import com.example.messageapp.setupBottomNavigation
 import com.example.messageapp.ui.BaseFragment
+import com.example.messageapp.ui.listUserScreen.ListUserFragmentDirections
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 
 @AndroidEntryPoint
 class NewsListFragment : BaseFragment<FragmentNewsListBinding>(FragmentNewsListBinding::inflate) {
@@ -21,6 +23,7 @@ class NewsListFragment : BaseFragment<FragmentNewsListBinding>(FragmentNewsListB
 
     override fun initView() {
         initBottomNavigationView()
+
         binding.fabCreatePost.setOnClickListener {
             val action = NewsListFragmentDirections.actionNewsListFragmentToAddNewsFragment(userArgs.user)
             findNavController().navigate(action)
@@ -28,6 +31,7 @@ class NewsListFragment : BaseFragment<FragmentNewsListBinding>(FragmentNewsListB
 
         viewModel.allNews()
         viewModel.saveUser(userArgs.user)
+
         initRecyclerView()
     }
 
@@ -42,31 +46,20 @@ class NewsListFragment : BaseFragment<FragmentNewsListBinding>(FragmentNewsListB
     }
 
     private fun initBottomNavigationView() {
-        binding.bottomNavigationView.setOnItemSelectedListener { item ->
 
-            when (item.itemId) {
-                R.id.navSearch -> {
-                    val action =
-                        NewsListFragmentDirections.actionNewsListFragmentToNavSearch(userArgs.user)
-                    findNavController().navigate(action)
-                    true
-                }
-                R.id.navChat -> {
-                    val action = NewsListFragmentDirections.actionNewsListFragmentToNavChat(userArgs.user)
-                    findNavController().navigate(action)
-                    true
-                }
-
-                R.id.navNews -> {
-                    snackBar(binding.root, "Вы уже на данном экране")
-                    true
-                }
-
-                else -> {
-//                    logD("Ошибка")
-                    true
-                }
+        requireView().setupBottomNavigation(
+            bottomNavigationView = binding.bottomNavigationView,
+            currentDestinationId = R.id.navNews
+        ){
+            navigateWithDirections(R.id.navSearch) {
+                NewsListFragmentDirections.actionNewsListFragmentToNavSearch(userArgs.user)
             }
+
+            navigateWithDirections(R.id.navChat){
+                NewsListFragmentDirections.actionNewsListFragmentToNavChat(userArgs.user)
+            }
+
+            navigateById(R.id.navAccount, R.id.action_newsListFragment_to_accountFragment)
 
         }
     }

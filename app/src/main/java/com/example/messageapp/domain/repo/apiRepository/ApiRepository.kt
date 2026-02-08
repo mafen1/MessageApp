@@ -4,6 +4,7 @@ import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.LoginResponse
 import com.example.messageapp.data.network.model.NewsRequest
 import com.example.messageapp.data.network.model.NewsResponse
+import com.example.messageapp.data.network.model.NewsUploadWithOutImage
 import com.example.messageapp.data.network.model.Token
 import com.example.messageapp.data.network.model.User
 import com.example.messageapp.data.network.model.UserRequest
@@ -17,7 +18,7 @@ interface ApiRepository {
         user: User
     ): Result<LoginResponse>
 
-    suspend fun findUser(
+    suspend fun fetchUser(
         token: Token
     ): Result<User>
 
@@ -33,11 +34,12 @@ interface ApiRepository {
 
     suspend fun uploadNews(
         part: MultipartBody.Part,
-        nameNews: RequestBody,
-        userName: RequestBody
+        newsRequest: RequestBody
     )
 
     suspend fun allNews(): List<NewsResponse>
 
     suspend fun <T> safeApiCall(apiCall: suspend () -> T): Result<T>
+
+    suspend fun uploadNewsWithOutImage(newsUploadWithOutImage: NewsUploadWithOutImage)
 }

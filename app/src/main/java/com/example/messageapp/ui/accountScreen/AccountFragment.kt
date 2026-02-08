@@ -5,20 +5,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.example.messageapp.core.ConstVariables
 import com.example.messageapp.databinding.FragmentAccountBinding
+import com.example.messageapp.domain.useCase.AppPreferencesUseCase
+import com.example.messageapp.ui.BaseFragment
 import dagger.hilt.android.AndroidEntryPoint
 
+
+// todo переделать
 @AndroidEntryPoint
-class AccountFragment : Fragment() {
+class AccountFragment() : BaseFragment<FragmentAccountBinding>(FragmentAccountBinding::inflate) {
 
-    private lateinit var binding: FragmentAccountBinding
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = FragmentAccountBinding.inflate(layoutInflater, container, false)
-        return binding.root
+    override fun initView() {
+//        binding.textView4.text = appPreferencesUseCase.getString(ConstVariables.userName).toString()
     }
 
 

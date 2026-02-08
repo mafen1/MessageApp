@@ -2,13 +2,16 @@ package com.example.messageapp.data.network.api.service
 
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.LoginResponse
+import com.example.messageapp.data.network.model.NewsRequest
 import com.example.messageapp.data.network.model.NewsResponse
+import com.example.messageapp.data.network.model.NewsUploadWithOutImage
 import com.example.messageapp.data.network.model.Token
 import com.example.messageapp.data.network.model.User
 import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.data.network.model.UserResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Headers
@@ -23,8 +26,8 @@ interface ApiService {
     suspend fun addUser(@Body user: User): LoginResponse
 
 
-    @POST("/findUserToken")
-    suspend fun findUser(
+    @POST("/getUserToken")
+    suspend fun fetchUser(
         @Body token: Token
     ): User
 
@@ -48,18 +51,17 @@ interface ApiService {
     suspend fun uploadNews(
         @Part
         part: MultipartBody.Part,
-        @Part ("nameNews")
-        nameNews : RequestBody,
-        @Part ("userName")
-        userName: RequestBody
+        @Part("NewsRequest")
+        newsRequest: RequestBody
     )
 
+    // todo News RESPONSE
     @GET("/allNews")
     suspend fun allNews(): List<NewsResponse>
 
-    @POST
+    @POST("/uploadNewsWithOutImage")
     suspend fun uploadNewsWithOutImage(
-
+        @Body newsUploadWithOutImage: NewsUploadWithOutImage
     )
 
 }

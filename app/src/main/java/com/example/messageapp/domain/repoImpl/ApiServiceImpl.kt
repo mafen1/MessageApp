@@ -2,11 +2,13 @@ package com.example.messageapp.domain.repoImpl
 
 import android.util.Log
 import android.util.MalformedJsonException
-import com.example.messageapp.core.logD
+import com.example.messageapp.core.ConstVariables.userName
 import com.example.messageapp.data.network.api.service.ApiService
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.LoginResponse
+import com.example.messageapp.data.network.model.NewsRequest
 import com.example.messageapp.data.network.model.NewsResponse
+import com.example.messageapp.data.network.model.NewsUploadWithOutImage
 import com.example.messageapp.data.network.model.Token
 import com.example.messageapp.data.network.model.User
 import com.example.messageapp.data.network.model.UserRequest
@@ -16,7 +18,6 @@ import com.google.gson.Gson
 import com.google.gson.JsonParseException
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import okhttp3.Response
 import javax.inject.Inject
 
 class ApiServiceImpl @Inject constructor(
@@ -27,9 +28,9 @@ class ApiServiceImpl @Inject constructor(
         return safeApiCall {  apiService.addUser(user) }
     }
 
-    override suspend fun findUser(token: Token): Result<User> {
+    override suspend fun fetchUser(token: Token): Result<User> {
 //        logD("${apiService.findUser(token)} hfdhjfhjdfjdhf")
-        return safeApiCall { apiService.findUser(token) }
+        return safeApiCall { apiService.fetchUser(token) }
     }
 
 
@@ -50,14 +51,13 @@ class ApiServiceImpl @Inject constructor(
         return safeApiCall { apiService.loginUser(loginRequest) }
     }
 
-
     override suspend fun uploadNews(
         part: MultipartBody.Part,
-        nameNews: RequestBody,
-        userName: RequestBody
+        newsRequest: RequestBody
     ) {
-        safeApiCall { apiService.uploadNews(part, nameNews, userName) }
+        safeApiCall { apiService.uploadNews(part, newsRequest) }
     }
+
 
     override suspend fun allNews(): List<NewsResponse> = apiService.allNews()
 
@@ -76,6 +76,10 @@ class ApiServiceImpl @Inject constructor(
             Log.e("API_ERROR", "API call failed: ${e.message}", e)
             Result.failure(e)
         }
+    }
+
+    override suspend fun uploadNewsWithOutImage(newsUploadWithOutImage: NewsUploadWithOutImage) {
+        apiService.uploadNewsWithOutImage(newsUploadWithOutImage)
     }
 
 }

@@ -68,6 +68,9 @@
         <action
             android:id="@+id/action_navSearch_to_newsListFragment"
             app:destination="@id/newsListFragment" />
+        <action
+            android:id="@+id/action_navSearch_to_accountFragment"
+            app:destination="@id/accountFragment" />
     </fragment>
     <fragment
         android:id="@+id/navChat"
@@ -89,6 +92,9 @@
         <argument
             android:name="User"
             app:argType="com.example.messageapp.data.network.model.User" />
+        <action
+            android:id="@+id/action_navChat_to_accountFragment"
+            app:destination="@id/accountFragment" />
     </fragment>
     <fragment
         android:id="@+id/newsListFragment"
@@ -107,6 +113,9 @@
         <argument
             android:name="user"
             app:argType="com.example.messageapp.data.network.model.User" />
+        <action
+            android:id="@+id/action_newsListFragment_to_accountFragment"
+            app:destination="@id/accountFragment" />
     </fragment>
     <fragment
         android:id="@+id/addNewsFragment"
@@ -120,4 +129,9 @@
             android:name="Userr"
             app:argType="com.example.messageapp.data.network.model.User" />
     </fragment>
+    <fragment
+        android:id="@+id/accountFragment"
+        android:name="com.example.messageapp.ui.accountScreen.AccountFragment"
+        android:label="fragment_account"
+        tools:layout="@layout/fragment_account" />
 </navigation>

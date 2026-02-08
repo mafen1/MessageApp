@@ -10,38 +10,46 @@ import com.example.messageapp.domain.useCase.ApiServiceUseCase
 import com.example.messageapp.domain.useCase.AppPreferencesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ChatListViewModel @Inject constructor(
-    private val appPreference: AppPreferencesUseCase,
     private val apiServiceUseCase: ApiServiceUseCase
 ) : ViewModel() {
 
-    private var _listUsers = MutableLiveData<MutableList<UserResponse>>()
-    var listUsers: LiveData<MutableList<UserResponse>> = _listUsers
-
-//    private var _userResponse = MutableLiveData<User>()
-//    var userResponse: LiveData<User> = _userResponse
+    private var _listUsers = MutableStateFlow<MutableList<UserResponse>>(mutableListOf())
+    var listUsers: StateFlow<MutableList<UserResponse>> = _listUsers
 
 
     fun allUser() {
         viewModelScope.launch(Dispatchers.IO) {
-            _listUsers.postValue(apiServiceUseCase.allUser().getOrThrow())
+            _listUsers.value = (apiServiceUseCase.allUser().getOrThrow())
+
         }
     }
 
     fun filteredUsers(
         currentUserName: String,
         currentUserFullName: String
-    ): LiveData<List<UserResponse>> {
-        return _listUsers.map { users ->
-            users.filterNot { user ->
-                user.username == currentUserName && user.name == currentUserFullName
+    ) {
+            for (user in _listUsers.value) {
+                if (currentUserName == user.username && currentUserFullName == user.name){
+                    _listUsers.value.remove(UserResponse(user.username,user.name))
+                }
             }
-        }
+
     }
+
+//    return _listUsers.map { users ->
+//        users.filterNot { user ->
+//            user.username == currentUserName && user.name == currentUserFullName
+//        }
+//    }
 
 //    fun deleteCurrentUser(currentUserName: String, currentName: String){
 //        _listUsers.value = _listUsers.value?.filterNot {

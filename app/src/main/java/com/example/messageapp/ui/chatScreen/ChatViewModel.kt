@@ -1,8 +1,5 @@
 package com.example.messageapp.ui.chatScreen
 
-import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.messageapp.core.ConstVariables
@@ -90,8 +87,8 @@ class ChatViewModel @Inject constructor(
                 val token = Token(appPreference.getString(ConstVariables.tokenJWT).first())
                 logD(token.toString())
                 logD(appPreference.getString(ConstVariables.tokenJWT).first())
-                if (apiUseCase.findUser(token).getOrNull() != null) {
-                    _user.value = (apiUseCase.findUser(token).getOrNull())
+                if (apiUseCase.fetchUser(token).getOrNull() != null) {
+                    _user.value = (apiUseCase.fetchUser(token).getOrNull())
                     logD(_user.value.toString())
                 }else{
 

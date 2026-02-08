@@ -1,8 +1,11 @@
 package com.example.messageapp.ui.registerScreen
 
+import android.R.attr.password
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.example.messageapp.R
+import com.example.messageapp.core.ConstVariables.userName
 import com.example.messageapp.core.snackBar
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.User
@@ -50,15 +53,19 @@ class RegisterFragment @Inject constructor() :
 
     // todo id
     private fun handleRegistration() {
-        val user = User(
-            id = Random.nextInt(),
-            name = binding.edName.text.toString(),
-            userName = binding.edUserName.text.toString(),
-            friend = emptyList(),
-            token = "",
-            password = binding.edPassword.text.toString()
-        )
-        viewModel.addAccount(user)
+        with(binding) {
+
+            val user = User(
+                id = Random.nextInt(),
+                name = edName.text.toString(),
+                userName = edUserName.text.toString(),
+                friend = emptyList(),
+                token = "",
+                password = edPassword.text.toString()
+            )
+
+            viewModel.addAccount(user)
+        }
     }
 
     private fun handleLogin() {
@@ -114,12 +121,12 @@ class RegisterFragment @Inject constructor() :
 
 
     private fun changeTextView() {
-        if (binding.tvRegistration.text == "Регистрация") {
-            binding.tvRegistration.text = "Вход"
-            binding.btnLogin.text = "Нет аккаунта? Создайте его"
+        if (binding.tvRegistration.text == getString(R.string.RegistrationTV)) {
+            binding.tvRegistration.text = getString(R.string.LoginTV)
+            binding.btnLogin.text = getString(R.string.CreateAccountTv)
         } else {
-            binding.tvRegistration.text = "Регистрация"
-            binding.btnLogin.text = "Уже есть аккаунт? Войдите"
+            binding.tvRegistration.text = getString(R.string.RegistrationTV)
+            binding.btnLogin.text = getString(R.string.LoginAccountTV)
         }
     }
 }

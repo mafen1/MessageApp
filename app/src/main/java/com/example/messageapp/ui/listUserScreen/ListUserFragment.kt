@@ -1,6 +1,7 @@
 package com.example.messageapp.ui.listUserScreen
 
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
@@ -8,17 +9,24 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.SearchView
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.messageapp.R
+import com.example.messageapp.core.ConstVariables
+import com.example.messageapp.core.logD
 import com.example.messageapp.core.snackBar
 import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.databinding.FragmentListUserBinding
+import com.example.messageapp.setupBottomNavigation
 import com.example.messageapp.ui.BaseFragment
+import com.example.messageapp.ui.newsListScreen.NewsListFragmentDirections
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -29,13 +37,14 @@ class ListUserFragment : BaseFragment<FragmentListUserBinding>(FragmentListUserB
     private val userArgs: ListUserFragmentArgs by navArgs()
 
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun initView() {
         initSearchView()
         initBottomNavigation()
 
         viewModel.saveUserName(userArgs.User.userName)
         viewModel.connectWebSocket(userArgs.User.userName)
+
+        logD("${ userArgs.User.userName } fjdkhsgafkjdhlg23432")
 
         initRecyclerView()
         initObserver()
@@ -53,7 +62,7 @@ class ListUserFragment : BaseFragment<FragmentListUserBinding>(FragmentListUserB
                         username = query!!
                     )
                     viewModel.searchUser(userName)
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     Toast.makeText(requireContext(), "Данного пользователя нет", Toast.LENGTH_LONG)
                         .show()
                 }
@@ -74,71 +83,70 @@ class ListUserFragment : BaseFragment<FragmentListUserBinding>(FragmentListUserB
     }
 
     private fun initBottomNavigation() {
-        binding.bottomNavigationView.setupWithNavController(findNavController())
-        binding.bottomNavigationView.setOnItemSelectedListener { item ->
 
-            when (item.itemId) {
-
-                R.id.navSearch -> {
-                    snackBar(binding.root, "Вы уже находитесь на данном экране")
-                    true
-                }
-
-                R.id.navChat -> {
-                    val action =
-                        ListUserFragmentDirections.actionListUserFragmentToChatListFragment(userArgs.User)
-                    findNavController().navigate(action)
-                    true
-                }
-
-                R.id.navNews -> {
-                    val action =
-                        ListUserFragmentDirections.actionNavSearchToNewsListFragment(userArgs.User)
-                    findNavController().navigate(action)
-                    true
-                }
-
-                else -> true
+        requireView().setupBottomNavigation(
+            bottomNavigationView = binding.bottomNavigationView,
+            currentDestinationId = R.id.navSearch
+        ){
+            navigateWithDirections(R.id.navChat) {
+                ListUserFragmentDirections.actionListUserFragmentToChatListFragment(userArgs.User)
             }
 
-            return@setOnItemSelectedListener true
+            navigateWithDirections(R.id.navNews){
+                ListUserFragmentDirections.actionNavSearchToNewsListFragment(userArgs.User)
+            }
+
+            navigateById(R.id.navAccount, R.id.action_newsListFragment_to_accountFragment)
+
+        }
+
+    }
+
+
+    @SuppressLint("MissingPermission")
+    private fun initNotification(){
+        initNotificationChanel()
+
+        val titleNotification = getString(R.string.titleNotification)
+        val notification = NotificationCompat.Builder(requireContext(), ConstVariables.channelFriendNotification)
+            .setSmallIcon(R.drawable.notification_24)
+            .setContentTitle(titleNotification)
+            .setContentText("")
+            .setPriority(NotificationManager.IMPORTANCE_DEFAULT)
+            .build()
+
+        with(NotificationManagerCompat.from(requireContext())){
+            notify(0,notification)
+        }
+
+    }
+
+    private fun initNotificationChanel(){
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
+            val chanel = NotificationChannel(
+                ConstVariables.channelFriendNotification,
+                ConstVariables.channelNameNotification,
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                enableVibration(true)
+            }
+            NotificationManagerCompat.from(requireContext()).createNotificationChannel(chanel)
         }
     }
-
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun initNotification() {
-        val chanel = NotificationChannel(
-            "friend_request",
-            "khdsgf",
-            NotificationManager.IMPORTANCE_DEFAULT
-        )
-        val notificationManager =
-            requireContext().getSystemService(NotificationManager::class.java)
-
-        notificationManager.createNotificationChannel(chanel)
-
-        val notification = NotificationCompat.Builder(requireContext(), "friend_request")
-            .setContentTitle("Новая заявка в друзья")
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .build()
-        notificationManager.notify(1, notification)
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun initRecyclerView() {
         lifecycleScope.launch {
             viewModel.foundUser.collect { user ->
+                logD(user.toString())
                 binding.recyclerView2.adapter = ListUserAdapter(user) { currentUser ->
                     val message = "Заявка в друзья для пользователя ${currentUser.username}"
-                    viewModel.sendMessage("${userArgs.User.userName}:${currentUser.username}:$message")
+
+                    viewModel.sendMessage("${userArgs.User.userName}:${currentUser.username}:$message", currentUser.username)
                 }
                 binding.recyclerView2.layoutManager = LinearLayoutManager(requireContext())
             }
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun initObserver() {
         lifecycleScope.launch {
             viewModel.messageNotification.collect { _ ->
@@ -147,9 +155,10 @@ class ListUserFragment : BaseFragment<FragmentListUserBinding>(FragmentListUserB
         }
     }
 
+
+
     private fun hiddenRecyclerView() {
-        val searchView = binding.searchView as androidx.appcompat.widget.SearchView
-        searchView.setOnCloseListener {
+        binding.searchView.setOnCloseListener {
             binding.recyclerView2.adapter = ListUserAdapter(mutableListOf()) {}
             return@setOnCloseListener true
         }

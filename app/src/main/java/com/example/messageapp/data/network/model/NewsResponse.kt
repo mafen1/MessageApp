@@ -6,9 +6,14 @@ import okhttp3.MultipartBody
 
 @Serializable
 data class NewsResponse(
-    var id: Int,
-    var userName: String,
-    var image: String,
-    var text: String
+    var userNameAuthor: String,
+    var nameAuthor: String,
+    var date: String,
+    val countLike: Int,
+    val countComment: Int,
+    var avatarAuthor: String?,
+    val description: String,
+    val comment: List<String>,
+    val newsImage: String
 )
 

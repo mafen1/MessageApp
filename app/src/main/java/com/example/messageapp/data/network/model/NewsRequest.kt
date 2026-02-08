@@ -4,7 +4,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class NewsRequest(
-    var id: Int,
-    var userName: String,
-    var text: String
+    var userNameAuthor: String,
+    var nameAuthor: String,
+    var date: String,
+    val countLike: Int,
+    val countComment: Int,
+    var avatarAuthor: String?,
+    val description: String,
+    val comment: List<String>
 )
