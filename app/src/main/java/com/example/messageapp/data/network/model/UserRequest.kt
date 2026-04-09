@@ -1,8 +1,7 @@
 package com.example.messageapp.data.network.model
 
-import kotlinx.serialization.Serializable
+import com.google.gson.annotations.SerializedName
 
-@Serializable
 data class UserRequest(
-    val username: String
+    @SerializedName("userName") val username: String
 )

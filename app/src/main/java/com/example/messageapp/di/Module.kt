@@ -1,5 +1,6 @@
 package com.example.messageapp.di
 
+import android.util.Log
 import com.example.messageapp.core.ConstVariables
 import com.example.messageapp.data.network.api.service.ApiService
 import com.example.messageapp.domain.repoImpl.ApiServiceImpl
@@ -13,8 +14,10 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -28,19 +31,29 @@ object Module {
         .create()
 
     @Provides
-    fun provideOkHttpClient(
-    ): OkHttpClient {
+    fun provideOkHttpClient(): OkHttpClient {
+        val loggingInterceptor = HttpLoggingInterceptor { message ->
+            Log.d("NETWORK_DEBUG", message)
+        }.apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+
         return OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
             .build()
     }
 
     @Provides
     fun provideApiService(
-        okHttpClient: OkHttpClient
+        okHttpClient: OkHttpClient,
+        gson: Gson
     ): ApiService{
         return Retrofit.Builder()
             .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .baseUrl(ConstVariables.url)
             .build()
             .create(ApiService::class.java)

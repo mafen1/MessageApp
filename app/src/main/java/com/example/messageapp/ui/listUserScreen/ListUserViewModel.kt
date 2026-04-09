@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.messageapp.core.ConstVariables
 import com.example.messageapp.core.logD
+import com.example.messageapp.data.network.model.AcceptFriendRequest
+import com.example.messageapp.data.network.model.FriendRequest
 import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.data.network.webSocket.client.ChatWebSocketClient
@@ -12,6 +14,8 @@ import com.example.messageapp.domain.useCase.ApiServiceUseCase
 import com.example.messageapp.domain.useCase.AppPreferencesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -30,13 +34,72 @@ class ListUserViewModel @Inject constructor(
     private val _messageNotification = MutableStateFlow("")
     var messageNotification: StateFlow<String> = _messageNotification
 
+    private val _pendingRequests = MutableStateFlow<Set<String>>(emptySet())
+    val pendingRequests: StateFlow<Set<String>> = _pendingRequests
+
+    private val _friendRequestResult = MutableStateFlow<String?>(null)
+    val friendRequestResult: StateFlow<String?> = _friendRequestResult
+
     private var _webSocketClient: ChatWebSocketClient? = null
 
-    fun searchUser(userName: UserRequest) {
+    private var _pollingJob: Job? = null
+    private var _currentUserName = ""
+    private var _isPollingStarted = false
+
+    fun startPolling(userName: String) {
+        if (userName.isBlank()) return
+        if (_isPollingStarted && _currentUserName == userName) return
+        stopPolling()
+        _isPollingStarted = true
+        _currentUserName = userName
+        _pollingJob = viewModelScope.launch(Dispatchers.IO) {
+            while (_pollingJob!!.isActive) {
+                try {
+                    val result = apiServiceUseCase.getFriendRequests(userName)
+                    if (result.isSuccess) {
+                        val requests = result.getOrNull()?.requests ?: emptyList()
+                        if (requests.isNotEmpty()) {
+                            val sender = requests.last().senderUserName
+                            logD("Polling: found friend request from $sender")
+                            _messageNotification.value = "Заявка от $sender"
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("ListUserVM", "Polling error: ${e.message}")
+                }
+                delay(3000)
+            }
+        }
+    }
+
+    fun stopPolling() {
+        _pollingJob?.cancel()
+        _pollingJob = null
+        _isPollingStarted = false
+    }
+
+    fun findUserByStr(userName: String, currentUserName: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val users = apiServiceUseCase.findUserByStr(UserRequest(userName))
+                val filtered = users.getOrThrow().filter { it.username != currentUserName }.toMutableList()
+                _foundUsers.value = filtered
+            } catch (e: Exception) {
+                Log.e("ListUserViewModel", "Error finding user by string", e)
+            }
+        }
+    }
+
+    fun searchUser(userName: UserRequest, currentUserName: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val user = apiServiceUseCase.findUserByName(userName)
-                _foundUsers.value = (mutableListOf(user.getOrThrow()))
+                val u = user.getOrThrow()
+                if (u.username != currentUserName) {
+                    _foundUsers.value = mutableListOf(u)
+                } else {
+                    _foundUsers.value = mutableListOf()
+                }
             } catch (e: Exception) {
                 Log.e("ListUserViewModel", "Error searching user", e)
             }
@@ -44,15 +107,19 @@ class ListUserViewModel @Inject constructor(
     }
 
     fun connectWebSocket(userName: String) {
+        logD("Connecting WebSocket for: $userName")
         val serverUri = URI("${ConstVariables.wsUrl}/friendMessage/$userName")
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _webSocketClient = ChatWebSocketClient(serverUri) { message ->
+                    logD("WebSocket received message: '$message'")
                     _messageNotification.value = message
+                    logD("messageNotification updated to: '$message'")
                 }
                 _webSocketClient!!.connect()
+                logD("WebSocket connected successfully")
             } catch (e: Exception) {
-                Log.d("TAG", "WebSocket connection error: ${e.message}", e)
+                Log.e("TAG", "WebSocket connection error: ${e.message}", e)
             }
         }
     }
@@ -61,7 +128,6 @@ class ListUserViewModel @Inject constructor(
         _webSocketClient?.send(message)
         logD(message)
 
-        // todo ?
         viewModelScope.launch(Dispatchers.IO) {
             _messageNotification.value = user
 
@@ -76,13 +142,65 @@ class ListUserViewModel @Inject constructor(
         }
     }
 
-    fun findUserByStr(userName: String) {
+    fun sendFriendRequest(senderUsername: String, receiverUsername: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val users = apiServiceUseCase.findUserByStr(UserRequest(userName))
-                _foundUsers.value = users.getOrThrow().toMutableList()
+                val request = FriendRequest(
+                    senderUserName = senderUsername,
+                    receiverUserName = receiverUsername,
+                    status = "pending"
+                )
+                val result = apiServiceUseCase.sendFriendRequest(request)
+                if (result.isSuccess) {
+                    val response = result.getOrNull()
+                    _friendRequestResult.value = response?.message ?: "Заявка отправлена"
+                    _pendingRequests.value = _pendingRequests.value + receiverUsername
+                } else {
+                    _friendRequestResult.value = "Ошибка: ${result.exceptionOrNull()?.message}"
+                }
             } catch (e: Exception) {
-                Log.e("ListUserViewModel", "Error finding user by string", e)
+                Log.e("ListUserViewModel", "Error sending friend request", e)
+                _friendRequestResult.value = "Ошибка сети: ${e.message}"
+            }
+        }
+    }
+
+    fun resetFriendRequestResult() {
+        _friendRequestResult.value = null
+    }
+
+    fun acceptFriend(senderUsername: String, receiverUsername: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val request = AcceptFriendRequest(senderUsername, receiverUsername)
+                val result = apiServiceUseCase.acceptFriend(request)
+                if (result.isSuccess) {
+                    _friendRequestResult.value = "Заявка принята"
+                    _pendingRequests.value = _pendingRequests.value - senderUsername
+                } else {
+                    _friendRequestResult.value = "Ошибка: ${result.exceptionOrNull()?.message}"
+                }
+            } catch (e: Exception) {
+                Log.e("ListUserViewModel", "Error accepting friend", e)
+                _friendRequestResult.value = "Ошибка сети: ${e.message}"
+            }
+        }
+    }
+
+    fun rejectFriend(senderUsername: String, receiverUsername: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val request = AcceptFriendRequest(senderUsername, receiverUsername)
+                val result = apiServiceUseCase.rejectFriend(request)
+                if (result.isSuccess) {
+                    _friendRequestResult.value = "Заявка отклонена"
+                    _pendingRequests.value = _pendingRequests.value - senderUsername
+                } else {
+                    _friendRequestResult.value = "Ошибка: ${result.exceptionOrNull()?.message}"
+                }
+            } catch (e: Exception) {
+                Log.e("ListUserViewModel", "Error rejecting friend", e)
+                _friendRequestResult.value = "Ошибка сети: ${e.message}"
             }
         }
     }
@@ -96,5 +214,6 @@ class ListUserViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         disconnect()
+        stopPolling()
     }
 }

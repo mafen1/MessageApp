@@ -1,12 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">MessageApp</string>
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="connect_easily_with_nyour_family_and_friends_n_over_countries">Connect easily with \nyour family and friends\n over countries</string>
-    <string name="start_messaging">Start Messaging</string>
-    <string name="terms_amp_privacy_policy"><![CDATA[Terms & Privacy Policy]]></string>
-    <string name="titleNotification">Новая заявка в друзья</string>
+
+    <!-- Splash / Welcome -->
+    <string name="welcome_tagline">Общайтесь легко с\nблизкими и друзьями\nпо всему миру</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title_1">Быстрые сообщения</string>
+    <string name="onboarding_desc_1">Мгновенная отправка сообщений через WebSocket — никаких задержек</string>
+    <string name="onboarding_title_2">Лента новостей</string>
+    <string name="onboarding_desc_2">Делитесь моментами с друзьями — текст и фотографии</string>
+    <string name="onboarding_title_3">Найдите друзей</string>
+    <string name="onboarding_desc_3">Поиск пользователей по имени и отправка заявок в друзья</string>
+    <string name="onboarding_start">Начать общение</string>
+    <string name="onboarding_skip">Пропустить</string>
+    <string name="terms_amp_privacy_policy">Условия и конфиденциальность</string>
+
+    <!-- Registration -->
+    <string name="registration_title">Создайте аккаунт</string>
+    <string name="registration_subtitle">Начните общаться с друзьями по всему миру</string>
+    <string name="hint_display_name">Отображаемое имя</string>
+    <string name="hint_username">Имя пользователя (@username)</string>
+    <string name="hint_password">Пароль</string>
+    <string name="btn_register">Зарегистрироваться</string>
+    <string name="btn_login">Войти</string>
+    <string name="divider_or">или</string>
+    <string name="has_account">Уже есть аккаунт? Войти</string>
+    <string name="no_account">Нет аккаунта? Зарегистрируйтесь</string>
     <string name="RegistrationTV">Регистрация</string>
     <string name="LoginTV">Вход</string>
     <string name="CreateAccountTv">Нет аккаунта? Создайте его</string>
     <string name="LoginAccountTV">Уже есть аккаунт? Войдите</string>
+
+    <!-- Validation -->
+    <string name="error_fill_all_fields">Заполните все поля</string>
+    <string name="error_username_at">Первый символ в имени пользователя должен быть @</string>
+    <string name="error_user_not_found">Пользователь не найден</string>
+
+    <!-- Search -->
+    <string name="search_title">Поиск</string>
+    <string name="search_hint">Найти друзей…</string>
+    <string name="search_empty_title">Нет результатов</string>
+    <string name="search_empty_desc">Попробуйте изменить запрос или добавить новых друзей</string>
+    <string name="btn_add_friend">Добавить</string>
+    <string name="btn_request_sent">Заявка отправлена</string>
+
+    <!-- Chat list -->
+    <string name="chats_title">Чаты</string>
+    <string name="last_message_placeholder">Нет сообщений</string>
+
+    <!-- Chat -->
+    <string name="chat_hint">Напишите сообщение…</string>
+    <string name="chat_connection_error">Соединение не установлено</string>
+    <string name="chat_status_online">в сети</string>
+
+    <!-- News -->
+    <string name="news_title">Новости</string>
+    <string name="news_empty_title">Нет новостей</string>
+    <string name="news_empty_desc">Подпишитесь на друзей, чтобы видеть их новости</string>
+    <string name="new_post_title">Новый пост</string>
+    <string name="post_hint">Что у вас нового?</string>
+
+    <!-- Account -->
+    <string name="account_title">Аккаунт</string>
+    <string name="account_friends">Друзей</string>
+    <string name="account_posts">Постов</string>
+    <string name="btn_logout">Выйти из аккаунта</string>
+
+    <!-- Bottom nav -->
+    <string name="nav_search">Поиск</string>
+    <string name="nav_chats">Чаты</string>
+    <string name="nav_news">Новости</string>
+    <string name="nav_account">Аккаунт</string>
+
+    <!-- Notifications -->
+    <string name="titleNotification">Новая заявка в друзья</string>
+    <string name="channel_name_notifications">Уведомления</string>
+
+    <!-- Snackbars -->
+    <string name="snackbar_already_here">Вы уже находитесь на данном экране</string>
+    <string name="snackbar_no_internet">Нет соединения с интернетом</string>
+    <string name="btn_retry">Повторить</string>
 </resources>

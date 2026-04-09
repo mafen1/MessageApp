@@ -4,8 +4,12 @@ import android.util.Log
 import android.util.MalformedJsonException
 import com.example.messageapp.core.ConstVariables.userName
 import com.example.messageapp.data.network.api.service.ApiService
+import com.example.messageapp.data.network.model.AcceptFriendRequest
+import com.example.messageapp.data.network.model.FriendRequest
+import com.example.messageapp.data.network.model.FriendResponse
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.LoginResponse
+import com.example.messageapp.data.network.model.MessageResponse
 import com.example.messageapp.data.network.model.NewsRequest
 import com.example.messageapp.data.network.model.NewsResponse
 import com.example.messageapp.data.network.model.NewsUploadWithOutImage
@@ -29,7 +33,6 @@ class ApiServiceImpl @Inject constructor(
     }
 
     override suspend fun fetchUser(token: Token): Result<User> {
-//        logD("${apiService.findUser(token)} hfdhjfhjdfjdhf")
         return safeApiCall { apiService.fetchUser(token) }
     }
 
@@ -68,10 +71,8 @@ class ApiServiceImpl @Inject constructor(
             Log.d("API_SUCCESS", "Response: ${Gson().toJson(result)}")
             Result.success(result)
         } catch (e: Exception) {
-            // Пытаемся получить raw response при ошибке
             if (e is JsonParseException || e is MalformedJsonException) {
                 Log.e("JSON_ERROR", "Malformed JSON received. Check network logs for raw response", e)
-                // Здесь можно попытаться получить raw response из стека
             }
             Log.e("API_ERROR", "API call failed: ${e.message}", e)
             Result.failure(e)
@@ -80,6 +81,30 @@ class ApiServiceImpl @Inject constructor(
 
     override suspend fun uploadNewsWithOutImage(newsUploadWithOutImage: NewsUploadWithOutImage) {
         apiService.uploadNewsWithOutImage(newsUploadWithOutImage)
+    }
+
+    override suspend fun sendFriendRequest(friendRequest: FriendRequest): Result<FriendResponse> {
+        return safeApiCall { apiService.sendFriendRequest(friendRequest) }
+    }
+
+    override suspend fun acceptFriend(request: AcceptFriendRequest): Result<FriendResponse> {
+        return safeApiCall { apiService.acceptFriend(request) }
+    }
+
+    override suspend fun rejectFriend(request: AcceptFriendRequest): Result<FriendResponse> {
+        return safeApiCall { apiService.rejectFriend(request) }
+    }
+
+    override suspend fun getFriends(username: String): Result<FriendResponse> {
+        return safeApiCall { apiService.getFriends(username) }
+    }
+
+    override suspend fun getFriendRequests(username: String): Result<FriendResponse> {
+        return safeApiCall { apiService.getFriendRequests(username) }
+    }
+
+    override suspend fun getMessages(user1: String, user2: String): Result<List<MessageResponse>> {
+        return safeApiCall { apiService.getMessages(user1, user2) }
     }
 
 }

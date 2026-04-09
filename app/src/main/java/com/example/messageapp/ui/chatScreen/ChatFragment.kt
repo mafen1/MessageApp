@@ -6,6 +6,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.messageapp.R
 import com.example.messageapp.core.logD
 import com.example.messageapp.data.network.model.Message
 import com.example.messageapp.data.network.model.UserResponse
@@ -20,95 +21,89 @@ class ChatFragment : BaseFragment<FragmentChatBinding>(FragmentChatBinding::infl
     private val viewModel by viewModels<ChatViewModel>()
     private val userFragmentArgs: ChatFragmentArgs by navArgs()
     private var adapter: ChatAdapter? = null
+    private var currentUserName: String = ""
 
     override fun initView() {
         viewModel.findUser()
         initRecyclerView()
+        initToolbar()
 
         lifecycleScope.launch {
-            viewModel.connect(viewModel.findUserName())
+            currentUserName = viewModel.findUserName()
+            val otherUser = userFragmentArgs.UserResponse
+            viewModel.connect(currentUserName)
+            viewModel.loadMessageHistory(currentUserName, otherUser.username)
         }
-
 
         initObservers()
 
         val user = userFragmentArgs.UserResponse
 
-
         binding.sendButton.setOnClickListener {
             sendMessage(user)
         }
 
-        binding.imageView8.setOnClickListener {
+        binding.toolbarName.text = user.name
+    }
+
+    private fun initToolbar() {
+        binding.toolbar.setNavigationOnClickListener {
             val action =
                 ChatFragmentDirections.actionChatFragmentToChatListFragment(viewModel.user.value!!)
             findNavController().navigate(action)
         }
-
-        binding.textView6.text = user.name
-
     }
 
     private fun initObservers() {
-        observeMessageList()
         updateRecyclerViewMessageList()
-    }
-
-    private fun observeMessageList() {
-        lifecycleScope.launch {
-            viewModel.messageText.collect { message ->
-                viewModel.updateMessageList(Message(message, false))
-            }
-        }
     }
 
     private fun updateRecyclerViewMessageList() {
         lifecycleScope.launch {
             viewModel.messageList.collect { list ->
                 if (list != null) {
-                    adapter?.updateList(list) // Обновляем адаптер, передавая новый список
+                    adapter?.updateList(list)
+                    // Прокрутка к последнему сообщению
+                    binding.recyclerView.scrollToPosition(list.size - 1)
                 }
             }
         }
     }
 
-
     private fun initRecyclerView() {
-        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext()).apply {
+            stackFromEnd = true
+        }
         adapter = ChatAdapter(mutableListOf())
         binding.recyclerView.adapter = adapter
     }
 
     private fun sendMessage(user: UserResponse) {
         try {
-            // получаем username
             val targetUsername = user.username
             val messageContent = binding.editTextText.text.toString()
-            // сообщение
+            if (messageContent.isBlank()) return
+
             val messageToSend = "to:$targetUsername:$messageContent"
 
-            viewModel.updateMessageList(Message(binding.editTextText.text.toString(), true))
+            viewModel.updateMessageList(Message(messageContent, true))
             viewModel.webSocketClient?.sendMessage(messageToSend)
 
-
+            binding.editTextText.text?.clear()
         } catch (e: Exception) {
             Toast.makeText(
                 requireContext(),
-                "Соединение не установлено ${e.toString()}",
+                getString(R.string.chat_connection_error),
                 Toast.LENGTH_SHORT
-            )
-                .show()
+            ).show()
             logD(e.toString())
         }
     }
 
     override fun onDestroy() {
         viewModel.disconnect()
-
         binding.recyclerView.adapter = null
         adapter = null
-
         super.onDestroy()
     }
 }
-

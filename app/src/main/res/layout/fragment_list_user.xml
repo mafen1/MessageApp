@@ -5,34 +5,34 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="?attr/colorSurface">
 
-    <!-- Заголовок с поиском -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
         app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:title="Поиск"
-            app:titleTextColor="@color/text_primary"
+            app:title="@string/search_title"
+            app:titleTextColor="?attr/colorOnSurface"
             app:navigationIcon="@drawable/baseline_arrow_back_24"
+            app:navigationIconTint="?attr/colorOnSurface"
             app:menu="@menu/search_menu">
 
             <androidx.appcompat.widget.SearchView
                 android:id="@+id/searchView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Найти друзей..."
-                app:iconifiedByDefault="false"/>
+                android:hint="@string/search_hint"
+                app:iconifiedByDefault="false" />
         </com.google.android.material.appbar.MaterialToolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Индикатор загрузки -->
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
@@ -41,9 +41,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Пустое состояние -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/emptyState"
         android:layout_width="match_parent"
@@ -60,19 +59,17 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/text_secondary"/>
+            app:tint="?attr/colorOnSurfaceVariant" />
 
         <TextView
             android:id="@+id/emptyText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Нет результатов"
-            android:textColor="@color/text_primary"
-            android:textSize="18sp"
-            android:textStyle="bold"
+            android:text="@string/search_empty_title"
+            android:textAppearance="@style/TextAppearance.App.TitleLarge"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/emptyImage"/>
+            app:layout_constraintTop_toBottomOf="@id/emptyImage" />
 
         <TextView
             android:id="@+id/emptySubtext"
@@ -81,36 +78,35 @@
             android:layout_marginStart="48dp"
             android:layout_marginEnd="48dp"
             android:gravity="center"
-            android:text="Попробуйте изменить запрос или добавить новых друзей"
-            android:textColor="@color/text_secondary"
+            android:text="@string/search_empty_desc"
+            android:textAppearance="@style/TextAppearance.App.BodyMedium"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/emptyText"/>
+            app:layout_constraintTop_toBottomOf="@id/emptyText" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Основной список -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView2"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:clipToPadding="false"
-        android:padding="8dp"
+        android:padding="4dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
         app:layout_constraintTop_toBottomOf="@id/appBarLayout"
-        tools:listitem="@layout/list_user_holder"/>
+        tools:listitem="@layout/list_user_holder" />
 
-    <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/card_background"
-        app:itemIconTint="@color/primary"
-        app:itemTextColor="@color/primary"
+        android:background="@color/nav_bar"
+        app:itemIconTint="@color/md_theme_primary"
+        app:itemTextColor="@color/md_theme_primary"
+        app:labelVisibilityMode="labeled"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/bottom_nav_menu"/>
+        app:menu="@menu/bottom_nav_menu" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

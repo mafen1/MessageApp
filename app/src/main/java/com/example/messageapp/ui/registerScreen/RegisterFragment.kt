@@ -1,11 +1,9 @@
 package com.example.messageapp.ui.registerScreen
 
-import android.R.attr.password
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.messageapp.R
-import com.example.messageapp.core.ConstVariables.userName
 import com.example.messageapp.core.snackBar
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.User
@@ -36,25 +34,23 @@ class RegisterFragment @Inject constructor() :
     private fun registrationAccount() {
         with(binding) {
             if (edName.text.isNullOrEmpty() || edUserName.text.isNullOrEmpty() || edPassword.text.isNullOrEmpty()) {
-                snackBar(binding.root, "Заполните все поля")
+                snackBar(binding.root, getString(R.string.error_fill_all_fields))
                 return
             }
             if (edUserName.text?.first() != '@') {
-                snackBar(binding.root, "Первый символ в UserName должен быть @")
+                snackBar(binding.root, getString(R.string.error_username_at))
                 return
             }
 
             when (tvRegistration.text) {
-                "Вход" -> handleLogin()
+                getString(R.string.LoginTV) -> handleLogin()
                 else -> handleRegistration()
             }
         }
     }
 
-    // todo id
     private fun handleRegistration() {
         with(binding) {
-
             val user = User(
                 id = Random.nextInt(),
                 name = edName.text.toString(),
@@ -63,7 +59,6 @@ class RegisterFragment @Inject constructor() :
                 token = "",
                 password = edPassword.text.toString()
             )
-
             viewModel.addAccount(user)
         }
     }
@@ -119,14 +114,17 @@ class RegisterFragment @Inject constructor() :
         }
     }
 
-
     private fun changeTextView() {
         if (binding.tvRegistration.text == getString(R.string.RegistrationTV)) {
             binding.tvRegistration.text = getString(R.string.LoginTV)
+            binding.btnSave.text = getString(R.string.btn_login)
             binding.btnLogin.text = getString(R.string.CreateAccountTv)
+            binding.textInputName.visibility = android.view.View.GONE
         } else {
             binding.tvRegistration.text = getString(R.string.RegistrationTV)
-            binding.btnLogin.text = getString(R.string.LoginAccountTV)
+            binding.btnSave.text = getString(R.string.btn_register)
+            binding.btnLogin.text = getString(R.string.has_account)
+            binding.textInputName.visibility = android.view.View.VISIBLE
         }
     }
 }

@@ -5,63 +5,36 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background">
+    android:background="?attr/colorSurface">
 
-    <!-- Заголовок с возможностью создания поста -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
         app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:title="Новости"
+            app:title="@string/news_title"
             app:titleCentered="true"
-            app:titleTextColor="@color/text_primary"
-            app:menu="@menu/news_menu">
-
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/fabCreatePost"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end|center_vertical"
-                android:layout_marginEnd="16dp"
-                android:src="@drawable/outline_add_24"
-                app:backgroundTint="@color/primary"
-                app:tint="@color/white"/>
-        </com.google.android.material.appbar.MaterialToolbar>
+            app:titleTextColor="?attr/colorOnSurface"
+            app:titleTextAppearance="@style/TextAppearance.App.TitleLarge" />
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- TabLayout для фильтрации -->
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tabLayout"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        app:layout_constraintTop_toBottomOf="@id/appBarLayout"
-        app:tabIndicatorColor="@color/primary"
-        app:tabSelectedTextColor="@color/primary"
-        app:tabTextAppearance="@style/TextAppearance.Material3.TitleMedium">
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabCreatePost"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:src="@drawable/outline_add_24"
+        app:backgroundTint="@color/md_theme_primary"
+        app:tint="@color/md_theme_onPrimary"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Все"/>
-
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Друзья"/>
-
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Группы"/>
-    </com.google.android.material.tabs.TabLayout>
-
-    <!-- Индикатор загрузки -->
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
@@ -70,16 +43,15 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Пустое состояние -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/emptyState"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
-        app:layout_constraintTop_toBottomOf="@id/tabLayout">
+        app:layout_constraintTop_toBottomOf="@id/appBarLayout">
 
         <ImageView
             android:id="@+id/emptyImage"
@@ -89,19 +61,17 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/text_secondary"/>
+            app:tint="?attr/colorOnSurfaceVariant" />
 
         <TextView
             android:id="@+id/emptyText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Нет новостей"
-            android:textColor="@color/text_primary"
-            android:textSize="18sp"
-            android:textStyle="bold"
+            android:text="@string/news_empty_title"
+            android:textAppearance="@style/TextAppearance.App.TitleLarge"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/emptyImage"/>
+            app:layout_constraintTop_toBottomOf="@id/emptyImage" />
 
         <TextView
             android:id="@+id/emptySubtext"
@@ -110,36 +80,35 @@
             android:layout_marginStart="48dp"
             android:layout_marginEnd="48dp"
             android:gravity="center"
-            android:text="Подпишитесь на друзей и группы, чтобы видеть их новости"
-            android:textColor="@color/text_secondary"
+            android:text="@string/news_empty_desc"
+            android:textAppearance="@style/TextAppearance.App.BodyMedium"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/emptyText"/>
+            app:layout_constraintTop_toBottomOf="@id/emptyText" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Список новостей -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rcNews"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:clipToPadding="false"
-        android:padding="8dp"
+        android:padding="4dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
-        app:layout_constraintTop_toBottomOf="@id/tabLayout"
-        tools:listitem="@layout/news_holder"/>
+        app:layout_constraintTop_toBottomOf="@id/appBarLayout"
+        tools:listitem="@layout/news_holder" />
 
-    <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/card_background"
-        app:itemIconTint="@color/primary"
-        app:itemTextColor="@color/primary"
+        android:background="@color/nav_bar"
+        app:itemIconTint="@color/md_theme_primary"
+        app:itemTextColor="@color/md_theme_primary"
+        app:labelVisibilityMode="labeled"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/bottom_nav_menu"/>
+        app:menu="@menu/bottom_nav_menu" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

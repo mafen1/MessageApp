@@ -1,7 +1,11 @@
 package com.example.messageapp.domain.repo.apiRepository
 
+import com.example.messageapp.data.network.model.AcceptFriendRequest
+import com.example.messageapp.data.network.model.FriendRequest
+import com.example.messageapp.data.network.model.FriendResponse
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.LoginResponse
+import com.example.messageapp.data.network.model.MessageResponse
 import com.example.messageapp.data.network.model.NewsRequest
 import com.example.messageapp.data.network.model.NewsResponse
 import com.example.messageapp.data.network.model.NewsUploadWithOutImage
@@ -42,4 +46,16 @@ interface ApiRepository {
     suspend fun <T> safeApiCall(apiCall: suspend () -> T): Result<T>
 
     suspend fun uploadNewsWithOutImage(newsUploadWithOutImage: NewsUploadWithOutImage)
+
+    suspend fun sendFriendRequest(friendRequest: FriendRequest): Result<FriendResponse>
+
+    suspend fun acceptFriend(request: AcceptFriendRequest): Result<FriendResponse>
+
+    suspend fun rejectFriend(request: AcceptFriendRequest): Result<FriendResponse>
+
+    suspend fun getFriends(username: String): Result<FriendResponse>
+
+    suspend fun getFriendRequests(username: String): Result<FriendResponse>
+
+    suspend fun getMessages(user1: String, user2: String): Result<List<MessageResponse>>
 }

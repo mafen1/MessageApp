@@ -2,15 +2,13 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
-    tools:context=".ui.registerScreen.RegisterFragment">
+    android:background="?attr/colorSurface">
 
     <View
         android:layout_width="match_parent"
-        android:layout_height="240dp"
+        android:layout_height="220dp"
         android:background="@drawable/gradient_bg"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -19,9 +17,10 @@
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_margin="16dp"
+        android:layout_margin="12dp"
+        app:cardBackgroundColor="?attr/colorSurface"
         app:cardCornerRadius="24dp"
-        app:cardElevation="2dp"
+        app:cardElevation="4dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -36,11 +35,10 @@
                 android:id="@+id/tvRegistration"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Создайте аккаунт"
-                android:textColor="@color/text_primary"
-                android:textSize="28sp"
-                android:textStyle="bold"
+                android:layout_marginTop="20dp"
+                android:text="@string/registration_title"
+                android:textAppearance="@style/TextAppearance.App.HeadlineMedium"
+                android:textColor="@color/md_theme_primary"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -49,9 +47,9 @@
                 android:id="@+id/tvSubtitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Начните общаться с друзьями по всему миру"
-                android:textColor="@color/text_secondary"
+                android:layout_marginTop="8dp"
+                android:text="@string/registration_subtitle"
+                android:textAppearance="@style/TextAppearance.App.BodyMedium"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tvRegistration" />
@@ -61,9 +59,11 @@
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:hint="Отображаемое имя"
+                android:layout_marginTop="28dp"
+                android:hint="@string/hint_display_name"
+                app:boxStrokeColor="@color/md_theme_primary"
                 app:endIconMode="clear_text"
+                app:hintTextColor="@color/md_theme_primary"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tvSubtitle">
@@ -81,11 +81,13 @@
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:hint="Имя пользователя (@username)"
-                app:endIconMode="custom"
+                android:layout_marginTop="12dp"
+                android:hint="@string/hint_username"
+                app:boxStrokeColor="@color/md_theme_primary"
                 app:endIconDrawable="@drawable/check_circle"
-                app:endIconTint="@color/green"
+                app:endIconMode="custom"
+                app:endIconTint="@color/md_theme_primary"
+                app:hintTextColor="@color/md_theme_primary"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/textInputName">
@@ -103,9 +105,11 @@
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:hint="Пароль"
+                android:layout_marginTop="12dp"
+                android:hint="@string/hint_password"
+                app:boxStrokeColor="@color/md_theme_primary"
                 app:endIconMode="password_toggle"
+                app:hintTextColor="@color/md_theme_primary"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/textInputUsername">
@@ -118,45 +122,38 @@
                     android:maxLength="50" />
             </com.google.android.material.textfield.TextInputLayout>
 
-
-            <!-- Кнопка регистрации -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSave"
+                style="@style/Widget.App.Button.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:layout_marginTop="24dp"
-                android:text="Зарегистрироваться"
-                android:textStyle="bold"
-                app:cornerRadius="16dp"
+                android:text="@string/btn_register"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/textInputPassword" />
 
-            <!-- Разделитель для существующих пользователей -->
             <TextView
                 android:id="@+id/dividerText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="или"
-                android:textColor="@color/text_secondary"
+                android:layout_marginTop="20dp"
+                android:text="@string/divider_or"
+                android:textAppearance="@style/TextAppearance.App.BodyMedium"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/btnSave" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLogin"
-                style="@style/Widget.Material3.Button.TextButton"
+                style="@style/Widget.App.Button.Text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Уже есть аккаунт? Войти"
-                android:textColor="@color/primary"
+                android:text="@string/has_account"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/dividerText" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.card.MaterialCardView>
-
-
 </androidx.constraintlayout.widget.ConstraintLayout>

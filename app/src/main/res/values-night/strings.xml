@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="connect_easily_with_nyour_family_and_friends_n_over_countries">Connect easily with \nyour family and friends\n over countries</string>
-    <string name="start_messaging">Start Messaging</string>
-    <string name="terms_amp_privacy_policy"><![CDATA[Terms & Privacy Policy]]></string>
-    <string name="titleNotification">Новая заявка в друзья</string>
-    <string name="RegistrationTV">Регистрация</string>
-    <string name="LoginTV">Вход</string>
-    <string name="CreateAccountTv">Нет аккаунта? Создайте его</string>
-    <string name="LoginAccountTV">Уже есть аккаунт? Войдите</string>
+    <string name="welcome_tagline">Общайтесь легко с\nблизкими и друзьями\nпо всему миру</string>
+    <string name="onboarding_title_1">Быстрые сообщения</string>
+    <string name="onboarding_desc_1">Мгновенная отправка сообщений через WebSocket — никаких задержек</string>
+    <string name="onboarding_title_2">Лента новостей</string>
+    <string name="onboarding_desc_2">Делитесь моментами с друзьями — текст и фотографии</string>
+    <string name="onboarding_title_3">Найдите друзей</string>
+    <string name="onboarding_desc_3">Поиск пользователей по имени и отправка заявок в друзья</string>
 </resources>

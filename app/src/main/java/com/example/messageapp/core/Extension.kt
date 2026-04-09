@@ -8,3 +8,9 @@ fun logD(string: String) = Log.d(ConstVariables.LoggerDebugTag, string)
 
 fun snackBar(view: View, message: String) =
     Snackbar.make(view, message, Snackbar.LENGTH_LONG).show()
+
+fun snackBarRetry(view: View, message: String, actionText: String, onRetry: () -> Unit) {
+    Snackbar.make(view, message, Snackbar.LENGTH_LONG)
+        .setAction(actionText) { onRetry() }
+        .show()
+}

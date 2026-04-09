@@ -10,10 +10,17 @@ import javax.inject.Inject
 
 
 class ListUserAdapter @Inject constructor(
-    private val listUser: MutableList<UserResponse>,
-    private val onItemClick: (UserResponse) -> Unit
+    private var listUser: MutableList<UserResponse>,
+    private var pendingRequests: Set<String> = emptySet(),
+    private val onAddFriend: (UserResponse) -> Unit
 ) :
     RecyclerView.Adapter<ListUserAdapter.ListUserViewHolder>() {
+
+    fun updateData(users: List<UserResponse>, pending: Set<String>) {
+        listUser = users.toMutableList()
+        pendingRequests = pending
+        notifyDataSetChanged()
+    }
 
     inner class ListUserViewHolder(val binding: ListUserHolderBinding) : ViewHolder(binding.root) {
         fun bind(user: UserResponse) {
@@ -21,8 +28,18 @@ class ListUserAdapter @Inject constructor(
             binding.tvUserName.text = user.username
             binding.tvName.text = user.name
 
+            val isPending = pendingRequests.contains(user.username)
+            binding.button2.isEnabled = !isPending
+            binding.button2.text = if (isPending) {
+                binding.root.context.getString(com.example.messageapp.R.string.btn_request_sent)
+            } else {
+                binding.root.context.getString(com.example.messageapp.R.string.btn_add_friend)
+            }
+
             binding.button2.setOnClickListener {
-                onItemClick(user)
+                if (!isPending) {
+                    onAddFriend(user)
+                }
             }
         }
     }

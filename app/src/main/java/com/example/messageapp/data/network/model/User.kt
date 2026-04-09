@@ -30,7 +30,7 @@ import kotlinx.serialization.Serializable
 data class User(
     @SerializedName("id") val id: Int = 0,
     @SerializedName("name") val name: String = "",
-    @SerializedName("username") val userName: String = "", // Важно: username в JSON
+    @SerializedName("userName") val userName: String = "",
     @SerializedName("listUserName") val friend: List<String>? = emptyList(),
     @SerializedName("token") val token: String = "",
     @SerializedName("password") val password: String? = null

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark surfaces (main theme) -->
+    <color name="md_theme_surface">#1A1A2E</color>
+    <color name="md_theme_onSurface">#E8E8E8</color>
+    <color name="md_theme_surfaceVariant">#2B2D3E</color>
+    <color name="md_theme_onSurfaceVariant">#B0B0B8</color>
+    <color name="md_theme_surfaceContainer">#222240</color>
+    <color name="md_theme_surfaceContainerHigh">#2E3050</color>
+    <color name="md_theme_inverseSurface">#E8E8E8</color>
+    <color name="md_theme_inverseOnSurface">#1A1A2E</color>
+
+    <!-- Dark primary overrides -->
+    <color name="md_theme_primary">#25D366</color>
+    <color name="md_theme_onPrimary">#003829</color>
+    <color name="md_theme_primaryContainer">#004D35</color>
+    <color name="md_theme_onPrimaryContainer">#7DFFAA</color>
+    <color name="md_theme_secondary">#4ACCB0</color>
+    <color name="md_theme_onSecondary">#003829</color>
+    <color name="md_theme_secondaryContainer">#004D35</color>
+    <color name="md_theme_onSecondaryContainer">#7DFFAA</color>
+
+    <color name="md_theme_outline">#8A8A9E</color>
+    <color name="md_theme_outlineVariant">#3A3C50</color>
+
+    <!-- Dark chat bubbles -->
+    <color name="chat_bubble_mine">#075E54</color>
+    <color name="chat_bubble_mine_on">#FFFFFF</color>
+    <color name="chat_bubble_other">#2B2D3E</color>
+    <color name="chat_bubble_other_on">#E8E8E8</color>
+    <color name="chat_time_mine">#4ACCB0</color>
+    <color name="chat_time_other">#8A8A9E</color>
+
+    <!-- Nav bar light even in dark mode -->
+    <color name="nav_bar">#FFFFFF</color>
+</resources>

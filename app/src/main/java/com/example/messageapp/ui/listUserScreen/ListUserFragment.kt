@@ -7,6 +7,7 @@ import android.app.NotificationManager
 import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -22,6 +23,7 @@ import com.example.messageapp.R
 import com.example.messageapp.core.ConstVariables
 import com.example.messageapp.core.logD
 import com.example.messageapp.core.snackBar
+import com.example.messageapp.data.network.model.AcceptFriendRequest
 import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.databinding.FragmentListUserBinding
 import com.example.messageapp.setupBottomNavigation
@@ -37,20 +39,20 @@ class ListUserFragment : BaseFragment<FragmentListUserBinding>(FragmentListUserB
     private val userArgs: ListUserFragmentArgs by navArgs()
 
 
+    private var userAdapter: ListUserAdapter? = null
+
     override fun initView() {
         initSearchView()
         initBottomNavigation()
 
         viewModel.saveUserName(userArgs.User.userName)
-        viewModel.connectWebSocket(userArgs.User.userName)
+        viewModel.startPolling(userArgs.User.userName)
 
-        logD("${ userArgs.User.userName } fjdkhsgafkjdhlg23432")
+        logD("${userArgs.User.userName} fjdkhsgafkjdhlg23432")
 
         initRecyclerView()
         initObserver()
         hiddenRecyclerView()
-
-
     }
 
     private fun initSearchView() {
@@ -61,7 +63,7 @@ class ListUserFragment : BaseFragment<FragmentListUserBinding>(FragmentListUserB
                     val userName = UserRequest(
                         username = query!!
                     )
-                    viewModel.searchUser(userName)
+                    viewModel.searchUser(userName, userArgs.User.userName)
                 } catch (_: Exception) {
                     Toast.makeText(requireContext(), "Данного пользователя нет", Toast.LENGTH_LONG)
                         .show()
@@ -72,7 +74,7 @@ class ListUserFragment : BaseFragment<FragmentListUserBinding>(FragmentListUserB
 
             override fun onQueryTextChange(newText: String?): Boolean {
                 if (newText != null) {
-                    viewModel.findUserByStr(newText)
+                    viewModel.findUserByStr(newText, userArgs.User.userName)
                 } else {
                     hiddenRecyclerView()
                 }
@@ -87,12 +89,12 @@ class ListUserFragment : BaseFragment<FragmentListUserBinding>(FragmentListUserB
         requireView().setupBottomNavigation(
             bottomNavigationView = binding.bottomNavigationView,
             currentDestinationId = R.id.navSearch
-        ){
+        ) {
             navigateWithDirections(R.id.navChat) {
                 ListUserFragmentDirections.actionListUserFragmentToChatListFragment(userArgs.User)
             }
 
-            navigateWithDirections(R.id.navNews){
+            navigateWithDirections(R.id.navNews) {
                 ListUserFragmentDirections.actionNavSearchToNewsListFragment(userArgs.User)
             }
 
@@ -104,24 +106,25 @@ class ListUserFragment : BaseFragment<FragmentListUserBinding>(FragmentListUserB
 
 
     @SuppressLint("MissingPermission")
-    private fun initNotification(){
+    private fun initNotification() {
         initNotificationChanel()
 
         val titleNotification = getString(R.string.titleNotification)
-        val notification = NotificationCompat.Builder(requireContext(), ConstVariables.channelFriendNotification)
-            .setSmallIcon(R.drawable.notification_24)
-            .setContentTitle(titleNotification)
-            .setContentText("")
-            .setPriority(NotificationManager.IMPORTANCE_DEFAULT)
-            .build()
+        val notification =
+            NotificationCompat.Builder(requireContext(), ConstVariables.channelFriendNotification)
+                .setSmallIcon(R.drawable.notification_24)
+                .setContentTitle(titleNotification)
+                .setContentText("")
+                .setPriority(NotificationManager.IMPORTANCE_DEFAULT)
+                .build()
 
-        with(NotificationManagerCompat.from(requireContext())){
-            notify(0,notification)
+        with(NotificationManagerCompat.from(requireContext())) {
+            notify(0, notification)
         }
 
     }
 
-    private fun initNotificationChanel(){
+    private fun initNotificationChanel() {
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
             val chanel = NotificationChannel(
                 ConstVariables.channelFriendNotification,
@@ -133,36 +136,98 @@ class ListUserFragment : BaseFragment<FragmentListUserBinding>(FragmentListUserB
             NotificationManagerCompat.from(requireContext()).createNotificationChannel(chanel)
         }
     }
-    private fun initRecyclerView() {
-        lifecycleScope.launch {
-            viewModel.foundUser.collect { user ->
-                logD(user.toString())
-                binding.recyclerView2.adapter = ListUserAdapter(user) { currentUser ->
-                    val message = "Заявка в друзья для пользователя ${currentUser.username}"
 
-                    viewModel.sendMessage("${userArgs.User.userName}:${currentUser.username}:$message", currentUser.username)
-                }
-                binding.recyclerView2.layoutManager = LinearLayoutManager(requireContext())
+    private fun initRecyclerView() {
+        userAdapter = ListUserAdapter(mutableListOf(), emptySet()) { currentUser ->
+            viewModel.sendFriendRequest(userArgs.User.userName, currentUser.username)
+        }
+        binding.recyclerView2.adapter = userAdapter
+        binding.recyclerView2.layoutManager = LinearLayoutManager(requireContext())
+
+        lifecycleScope.launch {
+            viewModel.foundUser.collect { users ->
+                logD("foundUser: $users")
+                userAdapter?.updateData(users, viewModel.pendingRequests.value)
             }
         }
     }
 
     private fun initObserver() {
         lifecycleScope.launch {
-            viewModel.messageNotification.collect { _ ->
-                initNotification()
+            viewModel.messageNotification.collect { message ->
+                logD("messageNotification: $message")
+                if (message.isNotBlank()) {
+                    initNotification()
+                    showAcceptFriendDialog(message)
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            viewModel.pendingRequests.collect { pending ->
+                userAdapter?.updateData(viewModel.foundUser.value, pending)
+            }
+        }
+
+        lifecycleScope.launch {
+            viewModel.friendRequestResult.collect { result ->
+                result?.let {
+                    snackBar(binding.root, it)
+                    viewModel.resetFriendRequestResult()
+                }
             }
         }
     }
 
+    private fun showAcceptFriendDialog(message: String) {
+        logD("showAcceptFriendDialog: message=$message")
+        
+        if (userArgs.User.userName.isBlank()) {
+            logD("showAcceptFriendDialog: current user name is blank")
+            return
+        }
+        
+        if (message.isBlank()) {
+            logD("showAcceptFriendDialog: message is blank, returning")
+            return
+        }
 
+        // Server sends: "Заявка от @username"
+        val senderUsername = if (message.startsWith("Заявка от ")) {
+            message.removePrefix("Заявка от ").trim()
+        } else if (message.contains(":")) {
+            message.split(":").firstOrNull()?.trim()
+        } else {
+            message.trim()
+        }
+        
+        logD("showAcceptFriendDialog: extracted senderUsername=$senderUsername")
+        if (senderUsername.isNullOrEmpty() || senderUsername.isBlank()) {
+            logD("showAcceptFriendDialog: blank username, returning")
+            return
+        }
 
-    private fun hiddenRecyclerView() {
-        binding.searchView.setOnCloseListener {
-            binding.recyclerView2.adapter = ListUserAdapter(mutableListOf()) {}
-            return@setOnCloseListener true
+        logD("showAcceptFriendDialog: showing dialog for $senderUsername")
+        activity?.runOnUiThread {
+            AlertDialog.Builder(requireContext())
+                .setTitle("Заявка в друзья")
+                .setMessage("Пользователь $senderUsername хочет добавить вас в друзья")
+                .setPositiveButton("Принять") { _, _ ->
+                    viewModel.acceptFriend(senderUsername, userArgs.User.userName)
+                }
+                .setNegativeButton("Отклонить") { _, _ ->
+                    viewModel.rejectFriend(senderUsername, userArgs.User.userName)
+                }
+                .setCancelable(true)
+                .show()
         }
     }
 
 
+    private fun hiddenRecyclerView() {
+        binding.searchView.setOnCloseListener {
+            userAdapter?.updateData(mutableListOf(), emptySet())
+            return@setOnCloseListener true
+        }
+    }
 }
