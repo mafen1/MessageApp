@@ -19,6 +19,7 @@
     <!-- Registration -->
     <string name="registration_title">Создайте аккаунт</string>
     <string name="registration_subtitle">Начните общаться с друзьями по всему миру</string>
+    <string name="login_subtitle">Войдите, чтобы продолжить переписку</string>
     <string name="hint_display_name">Отображаемое имя</string>
     <string name="hint_username">Имя пользователя (@username)</string>
     <string name="hint_password">Пароль</string>
@@ -60,11 +61,19 @@
     <string name="news_empty_desc">Подпишитесь на друзей, чтобы видеть их новости</string>
     <string name="new_post_title">Новый пост</string>
     <string name="post_hint">Что у вас нового?</string>
+    <string name="error_fill_post">Напишите текст поста</string>
+    <string name="menu_add_image">Добавить изображение</string>
+    <string name="add_comment_title">Комментарий</string>
+    <string name="comment_hint">Напишите комментарий</string>
+    <string name="btn_send">Отправить</string>
 
     <!-- Account -->
     <string name="account_title">Аккаунт</string>
     <string name="account_friends">Друзей</string>
     <string name="account_posts">Постов</string>
+    <string name="account_new_password">Новый пароль (необязательно)</string>
+    <string name="account_save_profile">Сохранить профиль</string>
+    <string name="account_profile_saved">Профиль сохранён</string>
     <string name="btn_logout">Выйти из аккаунта</string>
 
     <!-- Bottom nav -->

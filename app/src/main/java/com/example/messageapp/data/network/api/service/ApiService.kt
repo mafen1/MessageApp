@@ -3,19 +3,20 @@ package com.example.messageapp.data.network.api.service
 import com.example.messageapp.data.network.model.AcceptFriendRequest
 import com.example.messageapp.data.network.model.FriendRequest
 import com.example.messageapp.data.network.model.FriendResponse
+import com.example.messageapp.data.network.model.CommentRequest
+import com.example.messageapp.data.network.model.ImageUploadResponse
+import com.example.messageapp.data.network.model.LikeRequest
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.LoginResponse
 import com.example.messageapp.data.network.model.MessageResponse
 import com.example.messageapp.data.network.model.NewsRequest
 import com.example.messageapp.data.network.model.NewsResponse
-import com.example.messageapp.data.network.model.NewsUploadWithOutImage
-import com.example.messageapp.data.network.model.Token
+import com.example.messageapp.data.network.model.UpdateProfileRequest
 import com.example.messageapp.data.network.model.User
 import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.data.network.model.UserResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Headers
@@ -30,11 +31,8 @@ interface ApiService {
     @Headers("Content-Type: application/json", "Accept: application/json")
     suspend fun addUser(@Body user: User): LoginResponse
 
-
-    @POST("/getUserToken")
-    suspend fun fetchUser(
-        @Body token: Token
-    ): User
+    @GET("/me")
+    suspend fun getCurrentUser(): User
 
     @POST("/findUserByName")
     suspend fun findUserByName(
@@ -42,14 +40,14 @@ interface ApiService {
     ): UserResponse
 
     @GET("/allUser")
-    suspend fun allUser(): MutableList<UserResponse>
+    suspend fun allUser(): List<UserResponse>
 
     @POST("/findUserByStr")
     suspend fun findUserByStr(@Body userName: UserRequest): List<UserResponse>
 
     @POST("/login")
     @Headers("Content-Type: application/json", "Accept: application/json")
-    suspend fun loginUser(@Body loginRequest: LoginRequest): User
+    suspend fun loginUser(@Body loginRequest: LoginRequest): LoginResponse
 
     @Multipart
     @POST("/uploadNews")
@@ -60,14 +58,19 @@ interface ApiService {
         newsRequest: RequestBody
     )
 
-    // todo News RESPONSE
     @GET("/allNews")
     suspend fun allNews(): List<NewsResponse>
 
     @POST("/uploadNewsWithOutImage")
     suspend fun uploadNewsWithOutImage(
-        @Body newsUploadWithOutImage: NewsUploadWithOutImage
+        @Body newsRequest: NewsRequest
     )
+
+    @POST("/news/like")
+    suspend fun toggleLike(@Body request: LikeRequest): NewsResponse
+
+    @POST("/news/comment")
+    suspend fun addComment(@Body request: CommentRequest): NewsResponse
 
     @POST("/requestFriend")
     @Headers("Content-Type: application/json", "Accept: application/json")
@@ -92,5 +95,14 @@ interface ApiService {
         @Path("user1") user1: String,
         @Path("user2") user2: String
     ): List<MessageResponse>
+
+    @Multipart
+    @POST("/uploadMessageImage")
+    suspend fun uploadMessageImage(
+        @Part part: MultipartBody.Part
+    ): ImageUploadResponse
+
+    @POST("/updateProfile")
+    suspend fun updateProfile(@Body request: UpdateProfileRequest): User
 
 }

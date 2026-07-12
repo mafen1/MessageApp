@@ -1,17 +1,17 @@
 package com.example.messageapp.domain.useCase
 
-import com.example.messageapp.core.ConstVariables.userName
-import com.example.messageapp.core.logD
 import com.example.messageapp.data.network.model.AcceptFriendRequest
 import com.example.messageapp.data.network.model.FriendRequest
 import com.example.messageapp.data.network.model.FriendResponse
+import com.example.messageapp.data.network.model.CommentRequest
+import com.example.messageapp.data.network.model.ImageUploadResponse
+import com.example.messageapp.data.network.model.LikeRequest
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.LoginResponse
 import com.example.messageapp.data.network.model.MessageResponse
 import com.example.messageapp.data.network.model.NewsRequest
 import com.example.messageapp.data.network.model.NewsResponse
-import com.example.messageapp.data.network.model.NewsUploadWithOutImage
-import com.example.messageapp.data.network.model.Token
+import com.example.messageapp.data.network.model.UpdateProfileRequest
 import com.example.messageapp.data.network.model.User
 import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.data.network.model.UserResponse
@@ -26,10 +26,8 @@ class ApiServiceUseCase @Inject constructor(private val apiServiceImpl: ApiServi
         return apiServiceImpl.addUser(user)
     }
 
-    suspend fun fetchUser(
-        token: Token
-    ): Result<User> {
-        return apiServiceImpl.fetchUser(token)
+    suspend fun getCurrentUser(): Result<User> {
+        return apiServiceImpl.getCurrentUser()
     }
 
     suspend fun findUserByName(
@@ -38,7 +36,7 @@ class ApiServiceUseCase @Inject constructor(private val apiServiceImpl: ApiServi
         return apiServiceImpl.findUserByName(username)
     }
 
-    suspend fun allUser(): Result<MutableList<UserResponse>> {
+    suspend fun allUser(): Result<List<UserResponse>> {
         return apiServiceImpl.allUser()
     }
 
@@ -46,7 +44,7 @@ class ApiServiceUseCase @Inject constructor(private val apiServiceImpl: ApiServi
         return apiServiceImpl.findUserByStr(userName)
     }
 
-    suspend fun loginUser(loginRequest: LoginRequest): Result<User> {
+    suspend fun loginUser(loginRequest: LoginRequest): Result<LoginResponse> {
         return apiServiceImpl.loginUser(loginRequest)
     }
 
@@ -61,8 +59,14 @@ class ApiServiceUseCase @Inject constructor(private val apiServiceImpl: ApiServi
         return apiServiceImpl.allNews()
     }
 
-    suspend fun uploadNewsWithOutImage(newsUploadWithOutImage: NewsUploadWithOutImage) =
-        apiServiceImpl.uploadNewsWithOutImage(newsUploadWithOutImage)
+    suspend fun uploadNewsWithOutImage(newsRequest: NewsRequest) =
+        apiServiceImpl.uploadNewsWithOutImage(newsRequest)
+
+    suspend fun toggleLike(request: LikeRequest): Result<NewsResponse> =
+        apiServiceImpl.toggleLike(request)
+
+    suspend fun addComment(request: CommentRequest): Result<NewsResponse> =
+        apiServiceImpl.addComment(request)
 
     suspend fun sendFriendRequest(friendRequest: FriendRequest): Result<FriendResponse> =
         apiServiceImpl.sendFriendRequest(friendRequest)
@@ -81,5 +85,11 @@ class ApiServiceUseCase @Inject constructor(private val apiServiceImpl: ApiServi
 
     suspend fun getMessages(user1: String, user2: String): Result<List<MessageResponse>> =
         apiServiceImpl.getMessages(user1, user2)
+
+    suspend fun uploadMessageImage(part: MultipartBody.Part): Result<ImageUploadResponse> =
+        apiServiceImpl.uploadMessageImage(part)
+
+    suspend fun updateProfile(request: UpdateProfileRequest): Result<User> =
+        apiServiceImpl.updateProfile(request)
 
 }

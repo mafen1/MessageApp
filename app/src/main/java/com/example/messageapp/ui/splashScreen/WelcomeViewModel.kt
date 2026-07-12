@@ -1,12 +1,11 @@
 package com.example.messageapp.ui.splashScreen
 
 import android.util.Log
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.messageapp.core.ConstVariables
+import com.example.messageapp.core.TokenStorage
 import com.example.messageapp.core.logD
-import com.example.messageapp.data.network.model.Token
 import com.example.messageapp.data.network.model.User
 import com.example.messageapp.domain.useCase.ApiServiceUseCase
 import com.example.messageapp.domain.useCase.AppPreferencesUseCase
@@ -24,37 +23,44 @@ class WelcomeViewModel @Inject constructor(
     private val apiServiceUseCase: ApiServiceUseCase
 ): ViewModel() {
 
-    private val _user = MutableLiveData<User?>()
-    var user = _user
+    private val _user = MutableStateFlow<User?>(null)
+    val user: StateFlow<User?> = _user
 
-    private var _token: MutableStateFlow<String?> = MutableStateFlow(null)
-    var token: StateFlow<String?> = _token
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> = _isLoading
 
-    private var _nameRequestFriends: MutableStateFlow<String?> = MutableStateFlow(null)
-    var nameRequestFriends: StateFlow<String?> = _nameRequestFriends
+    private val _token = MutableStateFlow<String?>(null)
+    val token: StateFlow<String?> = _token
 
+    private val _nameRequestFriends = MutableStateFlow<String?>(null)
 
     fun loginUser() {
         viewModelScope.launch(Dispatchers.IO) {
 
             _token.value = appPreference.getString(ConstVariables.tokenJWT).first()
+            val currentToken = _token.value
 
-            if (_token.value?.isNotEmpty() == true) {
+            if (!currentToken.isNullOrEmpty()) {
+                TokenStorage.setToken(currentToken)
                 try {
-                    val user = apiServiceUseCase.fetchUser(Token(_token.value!!))
+                    val user = apiServiceUseCase.getCurrentUser()
 
                     logD("Received user: $user")
 
-                    _user.postValue(user.getOrThrow())
-                    appPreference.save(ConstVariables.userName, user.getOrNull()?.userName)
-                    appPreference.save(ConstVariables.nameUser, user.getOrNull()?.name)
+                    _user.value = user.getOrThrow()
+                    appPreference.setString(ConstVariables.userName, user.getOrNull()?.userName.orEmpty())
+                    appPreference.setString(ConstVariables.nameUser, user.getOrNull()?.name.orEmpty())
 
 
                 } catch (e: Exception) {
                     Log.e("TAGG", "Error fetching user: ${e.message}")
+                    _user.value = null
+                } finally {
+                    _isLoading.value = false
                 }
             } else {
-                _user.postValue(null)
+                _user.value = null
+                _isLoading.value = false
                 logD("USER NULL")
             }
         }

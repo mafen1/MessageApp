@@ -22,7 +22,12 @@ class DataStore @Inject constructor(@ApplicationContext private val context: Con
         context.dataStore.edit { preferences ->
             preferences[stringPreferencesKey(key)] = value as String
         }
-        logD(value.toString())
+        val logValue = if (value is String && value.length > 200) {
+            "$key saved (${value.length} chars)"
+        } else {
+            value.toString()
+        }
+        logD(logValue)
     }
 
     override fun <T> readValue(

@@ -31,10 +31,12 @@ class ChatWebSocketClient @Inject constructor(
     }
 
     override fun sendMessage(message: String) {
-        send(message)
+        if (isOpen) {
+            send(message)
+        }
     }
 
     override fun disconnect() {
-        disconnect()
+        close()
     }
 }

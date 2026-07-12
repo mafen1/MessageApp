@@ -3,6 +3,7 @@ package com.example.messageapp.ui.listUserScreen
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.messageapp.BuildConfig
 import com.example.messageapp.core.ConstVariables
 import com.example.messageapp.core.logD
 import com.example.messageapp.data.network.model.AcceptFriendRequest
@@ -18,7 +19,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.net.URI
 import javax.inject.Inject
 
@@ -28,8 +32,8 @@ class ListUserViewModel @Inject constructor(
     private val apiServiceUseCase: ApiServiceUseCase
 ) : ViewModel() {
 
-    private var _foundUsers = MutableStateFlow<MutableList<UserResponse>>(mutableListOf())
-    var foundUser: StateFlow<MutableList<UserResponse>> = _foundUsers
+    private var _foundUsers = MutableStateFlow<List<UserResponse>>(emptyList())
+    var foundUser: StateFlow<List<UserResponse>> = _foundUsers
 
     private val _messageNotification = MutableStateFlow("")
     var messageNotification: StateFlow<String> = _messageNotification
@@ -53,7 +57,7 @@ class ListUserViewModel @Inject constructor(
         _isPollingStarted = true
         _currentUserName = userName
         _pollingJob = viewModelScope.launch(Dispatchers.IO) {
-            while (_pollingJob!!.isActive) {
+            while (isActive) {
                 try {
                     val result = apiServiceUseCase.getFriendRequests(userName)
                     if (result.isSuccess) {
@@ -82,12 +86,16 @@ class ListUserViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val users = apiServiceUseCase.findUserByStr(UserRequest(userName))
-                val filtered = users.getOrThrow().filter { it.username != currentUserName }.toMutableList()
+                val filtered = users.getOrThrow().filter { it.username != currentUserName }
                 _foundUsers.value = filtered
             } catch (e: Exception) {
                 Log.e("ListUserViewModel", "Error finding user by string", e)
             }
         }
+    }
+
+    fun clearSearchResults() {
+        _foundUsers.value = emptyList()
     }
 
     fun searchUser(userName: UserRequest, currentUserName: String) {
@@ -96,9 +104,9 @@ class ListUserViewModel @Inject constructor(
                 val user = apiServiceUseCase.findUserByName(userName)
                 val u = user.getOrThrow()
                 if (u.username != currentUserName) {
-                    _foundUsers.value = mutableListOf(u)
+                    _foundUsers.value = listOf(u)
                 } else {
-                    _foundUsers.value = mutableListOf()
+                    _foundUsers.value = emptyList()
                 }
             } catch (e: Exception) {
                 Log.e("ListUserViewModel", "Error searching user", e)
@@ -108,15 +116,19 @@ class ListUserViewModel @Inject constructor(
 
     fun connectWebSocket(userName: String) {
         logD("Connecting WebSocket for: $userName")
-        val serverUri = URI("${ConstVariables.wsUrl}/friendMessage/$userName")
+        val token = runBlocking {
+            appPreference.getString(ConstVariables.tokenJWT).first()
+        }
+        val serverUri = URI("${BuildConfig.WS_URL}/friendMessage/$userName?token=$token")
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                _webSocketClient = ChatWebSocketClient(serverUri) { message ->
+                val client = ChatWebSocketClient(serverUri) { message ->
                     logD("WebSocket received message: '$message'")
                     _messageNotification.value = message
                     logD("messageNotification updated to: '$message'")
                 }
-                _webSocketClient!!.connect()
+                _webSocketClient = client
+                client.connect()
                 logD("WebSocket connected successfully")
             } catch (e: Exception) {
                 Log.e("TAG", "WebSocket connection error: ${e.message}", e)

@@ -10,8 +10,9 @@ class AppPreferencesUseCase @Inject constructor(private val dataStore: DataStore
     suspend fun <T> save(key: String, value: T) {
         dataStore.save(key, value)
     }
-    fun <T> readValue(key: Preferences.Key<T>): Flow<T> {
-        return dataStore.readValue(key, defaultValue = "" as T)
+
+    fun readString(key: Preferences.Key<String>): Flow<String> {
+        return dataStore.readValue(key, defaultValue = "")
     }
 
     fun getString(key: String): Flow<String>{

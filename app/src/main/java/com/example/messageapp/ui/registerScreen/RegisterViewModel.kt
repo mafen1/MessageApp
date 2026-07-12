@@ -7,9 +7,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.messageapp.core.ConstVariables
+import com.example.messageapp.core.TokenStorage
 import com.example.messageapp.core.logD
 import com.example.messageapp.core.snackBar
-import com.example.messageapp.data.network.api.client.RetrofitClient.apiService
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.LoginResponse
 import com.example.messageapp.data.network.model.User
@@ -41,7 +41,7 @@ class RegisterViewModel @Inject constructor(
     private val _registrationSuccess = MutableStateFlow<User?>(null)
     val registrationSuccess: StateFlow<User?> = _registrationSuccess
 
-    private val _error = MutableStateFlow<String?>("")
+    private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
     fun addAccount(user: User) {
@@ -54,6 +54,9 @@ class RegisterViewModel @Inject constructor(
 
                     if (loginResponse != null) {
                         appPreference.setString(ConstVariables.tokenJWT, loginResponse.token)
+                        TokenStorage.setToken(loginResponse.token)
+                        appPreference.setString(ConstVariables.userName, loginResponse.user.userName)
+                        appPreference.setString(ConstVariables.nameUser, loginResponse.user.name)
                         _registrationSuccess.value = (loginResponse.user)
                     } else {
                         _error.value = ("Получен пустой ответ от сервера")
@@ -74,15 +77,14 @@ class RegisterViewModel @Inject constructor(
             try {
                 val response = apiServiceUseCase.loginUser(loginRequest)
                 if (response.isSuccess) {
-                    val user = response.getOrNull()
-                    if (user != null) {
-
-                        user.let {
-                            appPreference.save(ConstVariables.tokenJWT, it.token ?: "")
-                            _currentUser.value = (it)
-                        }
-
-                    }else{
+                    val loginResponse = response.getOrNull()
+                    if (loginResponse != null) {
+                        appPreference.setString(ConstVariables.tokenJWT, loginResponse.token)
+                        TokenStorage.setToken(loginResponse.token)
+                        appPreference.setString(ConstVariables.userName, loginResponse.user.userName)
+                        appPreference.setString(ConstVariables.nameUser, loginResponse.user.name)
+                        _currentUser.value = loginResponse.user
+                    } else {
                         _error.value = "Пустой ответ сервера"
                     }
                 } else {

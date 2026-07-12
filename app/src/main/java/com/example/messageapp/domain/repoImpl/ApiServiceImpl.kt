@@ -2,18 +2,19 @@ package com.example.messageapp.domain.repoImpl
 
 import android.util.Log
 import android.util.MalformedJsonException
-import com.example.messageapp.core.ConstVariables.userName
 import com.example.messageapp.data.network.api.service.ApiService
 import com.example.messageapp.data.network.model.AcceptFriendRequest
 import com.example.messageapp.data.network.model.FriendRequest
 import com.example.messageapp.data.network.model.FriendResponse
+import com.example.messageapp.data.network.model.CommentRequest
+import com.example.messageapp.data.network.model.ImageUploadResponse
+import com.example.messageapp.data.network.model.LikeRequest
 import com.example.messageapp.data.network.model.LoginRequest
 import com.example.messageapp.data.network.model.LoginResponse
 import com.example.messageapp.data.network.model.MessageResponse
 import com.example.messageapp.data.network.model.NewsRequest
 import com.example.messageapp.data.network.model.NewsResponse
-import com.example.messageapp.data.network.model.NewsUploadWithOutImage
-import com.example.messageapp.data.network.model.Token
+import com.example.messageapp.data.network.model.UpdateProfileRequest
 import com.example.messageapp.data.network.model.User
 import com.example.messageapp.data.network.model.UserRequest
 import com.example.messageapp.data.network.model.UserResponse
@@ -26,23 +27,22 @@ import javax.inject.Inject
 
 class ApiServiceImpl @Inject constructor(
     private val apiService: ApiService,
+    private val gson: Gson,
 ) : ApiRepository {
 
     override suspend fun addUser(user: User): Result<LoginResponse> {
-        return safeApiCall {  apiService.addUser(user) }
+        return safeApiCall { apiService.addUser(user) }
     }
 
-    override suspend fun fetchUser(token: Token): Result<User> {
-        return safeApiCall { apiService.fetchUser(token) }
+    override suspend fun getCurrentUser(): Result<User> {
+        return safeApiCall { apiService.getCurrentUser() }
     }
-
 
     override suspend fun findUserByName(username: UserRequest): Result<UserResponse> {
         return safeApiCall { apiService.findUserByName(username) }
     }
 
-
-    override suspend fun allUser(): Result<MutableList<UserResponse>> {
+    override suspend fun allUser(): Result<List<UserResponse>> {
         return safeApiCall { apiService.allUser() }
     }
 
@@ -50,7 +50,7 @@ class ApiServiceImpl @Inject constructor(
         return safeApiCall { apiService.findUserByStr(userName) }
     }
 
-    override suspend fun loginUser(loginRequest: LoginRequest): Result<User> {
+    override suspend fun loginUser(loginRequest: LoginRequest): Result<LoginResponse> {
         return safeApiCall { apiService.loginUser(loginRequest) }
     }
 
@@ -61,14 +61,12 @@ class ApiServiceImpl @Inject constructor(
         safeApiCall { apiService.uploadNews(part, newsRequest) }
     }
 
-
     override suspend fun allNews(): List<NewsResponse> = apiService.allNews()
 
-    ///
     override suspend fun <T> safeApiCall(apiCall: suspend () -> T): Result<T> {
         return try {
             val result = apiCall()
-            Log.d("API_SUCCESS", "Response: ${Gson().toJson(result)}")
+            Log.d("API_SUCCESS", "Response: ${gson.toJson(result)}")
             Result.success(result)
         } catch (e: Exception) {
             if (e is JsonParseException || e is MalformedJsonException) {
@@ -79,8 +77,16 @@ class ApiServiceImpl @Inject constructor(
         }
     }
 
-    override suspend fun uploadNewsWithOutImage(newsUploadWithOutImage: NewsUploadWithOutImage) {
-        apiService.uploadNewsWithOutImage(newsUploadWithOutImage)
+    override suspend fun uploadNewsWithOutImage(newsRequest: NewsRequest) {
+        safeApiCall { apiService.uploadNewsWithOutImage(newsRequest) }
+    }
+
+    override suspend fun toggleLike(request: LikeRequest): Result<NewsResponse> {
+        return safeApiCall { apiService.toggleLike(request) }
+    }
+
+    override suspend fun addComment(request: CommentRequest): Result<NewsResponse> {
+        return safeApiCall { apiService.addComment(request) }
     }
 
     override suspend fun sendFriendRequest(friendRequest: FriendRequest): Result<FriendResponse> {
@@ -105,6 +111,14 @@ class ApiServiceImpl @Inject constructor(
 
     override suspend fun getMessages(user1: String, user2: String): Result<List<MessageResponse>> {
         return safeApiCall { apiService.getMessages(user1, user2) }
+    }
+
+    override suspend fun uploadMessageImage(part: MultipartBody.Part): Result<ImageUploadResponse> {
+        return safeApiCall { apiService.uploadMessageImage(part) }
+    }
+
+    override suspend fun updateProfile(request: UpdateProfileRequest): Result<User> {
+        return safeApiCall { apiService.updateProfile(request) }
     }
 
 }

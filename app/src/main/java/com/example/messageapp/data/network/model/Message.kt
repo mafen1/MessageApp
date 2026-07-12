@@ -5,12 +5,18 @@ import kotlinx.serialization.Serializable
 
 data class Message(
     val message: String,
-    val isType: Boolean
+    val isType: Boolean,
+    val messageType: String = "text"
 )
 
 data class MessageResponse(
     @SerializedName("id") val id: Int,
     @SerializedName("name") val senderUsername: String,
     @SerializedName("recipientUsername") val recipientUsername: String,
-    @SerializedName("message") val message: String
+    @SerializedName("message") val message: String,
+    @SerializedName("messageType") val messageType: String? = "text"
+)
+
+data class ImageUploadResponse(
+    @SerializedName("fileName") val fileName: String
 )

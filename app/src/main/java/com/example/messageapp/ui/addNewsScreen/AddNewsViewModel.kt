@@ -2,23 +2,18 @@ package com.example.messageapp.ui.addNewsScreen
 
 import android.graphics.Bitmap
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.messageapp.core.ConstVariables
 import com.example.messageapp.core.logD
 import com.example.messageapp.data.network.model.NewsRequest
-import com.example.messageapp.data.network.model.NewsUploadWithOutImage
 import com.example.messageapp.domain.useCase.ApiServiceUseCase
 import com.example.messageapp.domain.useCase.AppPreferencesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -38,7 +33,7 @@ class AddNewsViewModel @Inject constructor(
     var userName: StateFlow<String?> = _userName
 
     private var _nameUser: MutableStateFlow<String?> = MutableStateFlow(null)
-    var nameUser: StateFlow<String?> = _userName
+    var nameUser: StateFlow<String?> = _nameUser
     private var _image: MutableStateFlow<MultipartBody.Part?> = MutableStateFlow(null)
     var image: StateFlow<MultipartBody.Part?> = _image
 
@@ -58,10 +53,7 @@ class AddNewsViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
 
             try {
-                if (_image.value != null ) {
-
-                    val imageBody = _image.value!!.body
-
+                if (_image.value != null) {
                     apiServiceUseCase.uploadNews(part, newsRequest)
                     logD("Новость успешна отправлена")
                 }else{
@@ -74,21 +66,10 @@ class AddNewsViewModel @Inject constructor(
         }
     }
 
-    fun uploadNewsWithOutImage(
-        userName: String,
-        description: String
-    ){
-        val newsNoImage = NewsUploadWithOutImage(
-            id = Random.nextInt(),
-            userName = userName,
-            description = description
-        )
-
-        logD(newsNoImage.toString())
-
+    fun uploadNewsWithOutImage(newsRequest: NewsRequest) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                apiServiceUseCase.uploadNewsWithOutImage(newsNoImage)
+                apiServiceUseCase.uploadNewsWithOutImage(newsRequest)
             }catch (e: Exception){
                 logD("не сохранилась новость без картинки ${e.toString()}")
             }
@@ -102,7 +83,7 @@ class AddNewsViewModel @Inject constructor(
             val stream = ByteArrayOutputStream()
             image.compress(Bitmap.CompressFormat.JPEG, 80, stream)
             val byteArray = stream.toByteArray()
-            val nameImage = image.config?.name
+            val nameImage = "news_${System.currentTimeMillis()}.jpg"
 
             val body = MultipartBody.Part.createFormData(
                 "file", nameImage,

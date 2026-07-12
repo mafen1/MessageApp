@@ -1,14 +1,16 @@
 package com.example.messageapp.di
 
 import android.util.Log
-import com.example.messageapp.core.ConstVariables
+import com.example.messageapp.BuildConfig
 import com.example.messageapp.data.network.api.service.ApiService
 import com.example.messageapp.domain.repoImpl.ApiServiceImpl
 import com.example.messageapp.domain.repo.apiRepository.ApiRepository
+import com.example.messageapp.data.network.api.client.AuthInterceptor
 import com.example.messageapp.domain.repo.preferences.AppPreference
 import com.example.messageapp.store.DataStore
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.Strictness
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,11 +29,11 @@ object Module {
 
     @Provides
     fun provideGson() : Gson = GsonBuilder()
-        .setLenient()
+        .setStrictness(Strictness.LENIENT)
         .create()
 
     @Provides
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideOkHttpClient(appPreference: AppPreference): OkHttpClient {
         val loggingInterceptor = HttpLoggingInterceptor { message ->
             Log.d("NETWORK_DEBUG", message)
         }.apply {
@@ -39,6 +41,7 @@ object Module {
         }
 
         return OkHttpClient.Builder()
+            .addInterceptor(AuthInterceptor(appPreference))
             .addInterceptor(loggingInterceptor)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
@@ -54,7 +57,7 @@ object Module {
         return Retrofit.Builder()
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create(gson))
-            .baseUrl(ConstVariables.url)
+            .baseUrl(BuildConfig.BASE_URL)
             .build()
             .create(ApiService::class.java)
     }
