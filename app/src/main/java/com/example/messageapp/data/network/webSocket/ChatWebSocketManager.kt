@@ -1,6 +1,16 @@
 package com.example.messageapp.data.network.webSocket
 
+import android.content.Context
 import android.util.Log
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import com.example.messageapp.data.local.db.dao.MessageDao
+import com.example.messageapp.data.local.db.dao.PendingMessageDao
+import com.example.messageapp.data.local.db.entity.PendingMessageEntity
+import com.example.messageapp.data.mapper.toDomain
+import com.example.messageapp.data.mapper.toEntity
 import com.example.messageapp.domain.model.Message
 import com.example.messageapp.domain.model.MessageStatus
 import com.example.messageapp.domain.model.SocketState
@@ -9,7 +19,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,7 +37,11 @@ import javax.inject.Singleton
 import kotlin.math.min
 
 @Singleton
-class ChatWebSocketManager @Inject constructor() : ChatSocketRepository {
+class ChatWebSocketManager @Inject constructor(
+    private val pendingMessageDao: PendingMessageDao,
+    private val messageDao: MessageDao,
+    private val workManager: WorkManager
+) : ChatSocketRepository {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -37,8 +50,6 @@ class ChatWebSocketManager @Inject constructor() : ChatSocketRepository {
 
     private val _messages = MutableSharedFlow<Message>(extraBufferCapacity = 64)
     override fun observeMessages(): SharedFlow<Message> = _messages.asSharedFlow()
-
-    private val outbox = Channel<Message>(Channel.BUFFERED)
 
     private var client: WebSocketClient? = null
     private var currentUserName: String = ""
@@ -49,18 +60,9 @@ class ChatWebSocketManager @Inject constructor() : ChatSocketRepository {
     @Volatile
     private var isClosing = false
 
-    init {
-        scope.launch {
-            for (message in outbox) {
-                waitForAuthenticated()
-                sendFrame(message)
-            }
-        }
-    }
-
     override fun connect(userName: String, token: String) {
         if (currentUserName == userName && currentToken == token &&
-            (_connectionState.value == SocketState.Connected || _connectionState.value == SocketState.Authenticated)
+            _connectionState.value == SocketState.Authenticated
         ) {
             return
         }
@@ -85,7 +87,16 @@ class ChatWebSocketManager @Inject constructor() : ChatSocketRepository {
         } else {
             message.copy(status = MessageStatus.SENDING)
         }
-        outbox.send(messageWithId)
+
+        val chatId = chatId(message.senderUsername, message.recipientUsername)
+        messageDao.insert(messageWithId.toEntity(chatId))
+
+        if (_connectionState.value == SocketState.Authenticated) {
+            sendFrame(messageWithId)
+        } else {
+            pendingMessageDao.insert(messageWithId.toPendingEntity(chatId))
+            scheduleSendPendingMessages()
+        }
     }
 
     private fun createAndConnectClient() {
@@ -99,6 +110,7 @@ class ChatWebSocketManager @Inject constructor() : ChatSocketRepository {
                 Log.d(TAG, "WebSocket opened")
                 _connectionState.value = SocketState.Authenticated
                 reconnectAttempt = 0
+                scope.launch { drainPendingMessages() }
             }
 
             override fun onMessage(message: String?) {
@@ -160,17 +172,17 @@ class ChatWebSocketManager @Inject constructor() : ChatSocketRepository {
         }
     }
 
-    private suspend fun waitForAuthenticated() {
-        while (scope.isActive && _connectionState.value != SocketState.Authenticated) {
-            delay(100)
+    private suspend fun drainPendingMessages() {
+        val pending = pendingMessageDao.getAll()
+        for (item in pending) {
+            val message = item.toDomain()
+            sendFrame(message)
         }
     }
 
-    private fun sendFrame(message: Message) {
-        val client = client ?: run {
-            scope.launch { outbox.send(message.copy(status = MessageStatus.SENDING)) }
-            return
-        }
+    private suspend fun sendFrame(message: Message) {
+        val client = client ?: return
+        val chatId = chatId(message.senderUsername, message.recipientUsername)
 
         val frame = when (message.type) {
             "image" -> "to:${message.recipientUsername}:image:${message.clientMessageId}:${message.text}"
@@ -180,13 +192,12 @@ class ChatWebSocketManager @Inject constructor() : ChatSocketRepository {
         try {
             if (client.isOpen) {
                 client.send(frame)
+                pendingMessageDao.delete(message.clientMessageId)
+                messageDao.insert(message.copy(status = MessageStatus.SENT).toEntity(chatId))
                 _messages.tryEmit(message.copy(status = MessageStatus.SENT))
-            } else {
-                scope.launch { outbox.send(message.copy(status = MessageStatus.SENDING)) }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to send message", e)
-            scope.launch { outbox.send(message.copy(status = MessageStatus.FAILED)) }
         }
     }
 
@@ -227,16 +238,14 @@ class ChatWebSocketManager @Inject constructor() : ChatSocketRepository {
 
             parts.size >= 3 -> {
                 val sender = parts[0]
-                val type = "text"
-                val clientId = UUID.randomUUID().toString()
                 val text = parts[1]
                 Message(
-                    clientMessageId = clientId,
+                    clientMessageId = UUID.randomUUID().toString(),
                     senderUsername = sender,
                     recipientUsername = currentUserName,
                     text = text,
                     isFromMe = sender == currentUserName,
-                    type = type,
+                    type = "text",
                     status = MessageStatus.DELIVERED
                 )
             }
@@ -259,7 +268,42 @@ class ChatWebSocketManager @Inject constructor() : ChatSocketRepository {
         }
     }
 
+    private fun scheduleSendPendingMessages() {
+        val request = OneTimeWorkRequestBuilder<SendPendingMessagesWorker>()
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+            )
+            .build()
+        workManager.enqueue(request)
+    }
+
+    private fun chatId(user1: String, user2: String): String {
+        return listOf(user1, user2).sorted().joinToString("__")
+    }
+
     companion object {
         private const val TAG = "ChatWebSocketManager"
     }
 }
+
+private fun PendingMessageEntity.toDomain(): Message = Message(
+    clientMessageId = clientMessageId,
+    senderUsername = "",
+    recipientUsername = recipientUsername,
+    text = text,
+    isFromMe = true,
+    type = type,
+    status = MessageStatus.SENDING,
+    timestamp = createdAt
+)
+
+private fun Message.toPendingEntity(chatId: String): PendingMessageEntity = PendingMessageEntity(
+    clientMessageId = clientMessageId,
+    chatId = chatId,
+    recipientUsername = recipientUsername,
+    text = text,
+    type = type,
+    createdAt = timestamp
+)

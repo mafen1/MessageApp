@@ -22,7 +22,7 @@
 - [x] Hilt `DatabaseModule`.
 - [x] `MessageRepository` caches history in Room and falls back to local on remote failure.
 - [x] Chat ViewModel persists messages via Room instead of JSON in preferences.
-- [ ] WorkManager sync for outbox.
+- [x] WorkManager sync for outbox (`SendPendingMessagesWorker` with network constraint, retry limit = 5).
 - [ ] FTS5 search.
 
 ## Phase 4

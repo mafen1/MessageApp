@@ -79,6 +79,10 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.kotlinx.coroutines.android)
 
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
+
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
