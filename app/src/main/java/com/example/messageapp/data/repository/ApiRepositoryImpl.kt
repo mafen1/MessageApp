@@ -27,6 +27,7 @@ import com.example.messageapp.domain.repository.FriendRepository
 import com.example.messageapp.domain.repository.MessageRepository
 import com.example.messageapp.domain.repository.NewsRepository
 import com.example.messageapp.domain.repository.UserRepository
+import com.example.messageapp.domain.security.EncryptionManager
 import com.google.gson.Gson
 import com.google.gson.JsonParseException
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -39,7 +40,8 @@ import javax.inject.Singleton
 class ApiRepositoryImpl @Inject constructor(
     private val apiService: ApiService,
     private val gson: Gson,
-    private val messageDao: MessageDao
+    private val messageDao: MessageDao,
+    private val encryptionManager: EncryptionManager
 ) : AuthRepository, UserRepository, FriendRepository, MessageRepository, NewsRepository {
 
     override suspend fun register(credentials: UserCredentials): Result<LoggedInUser> = safeApiCall {
@@ -116,7 +118,17 @@ class ApiRepositoryImpl @Inject constructor(
     override suspend fun getMessages(user1: String, user2: String): Result<List<Message>> {
         val chatId = chatId(user1, user2)
         return try {
-            val remoteMessages = apiService.getMessages(user1, user2).map { it.toDomain(user1) }
+            val remoteMessages = apiService.getMessages(user1, user2)
+                .map { it.toDomain(user1) }
+                .map { message ->
+                    val decryptedText = try {
+                        encryptionManager.decrypt(chatId, message.text)
+                    } catch (e: Exception) {
+                        Log.w("MessageRepo", "Failed to decrypt message ${message.clientMessageId}", e)
+                        message.text
+                    }
+                    message.copy(text = decryptedText)
+                }
             messageDao.insertAll(remoteMessages.map { it.toEntity(chatId) })
             Result.success(remoteMessages)
         } catch (e: Exception) {

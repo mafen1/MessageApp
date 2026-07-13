@@ -24,6 +24,7 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ApiService {
 
@@ -101,6 +102,21 @@ interface ApiService {
     suspend fun uploadMessageImage(
         @Part part: MultipartBody.Part
     ): ImageUploadResponse
+
+    @POST("/keys")
+    suspend fun uploadPublicKey(@Body request: com.example.messageapp.data.network.model.PublicKeyRequest)
+
+    @GET("/keys/{username}")
+    suspend fun getPublicKey(@Path("username") username: String): com.example.messageapp.data.network.model.PublicKeyResponse
+
+    @POST("/chat-keys")
+    suspend fun uploadWrappedChatKey(@Body request: com.example.messageapp.data.network.model.WrappedKeyRequest)
+
+    @GET("/chat-keys/{chatId}")
+    suspend fun getWrappedChatKey(
+        @Path("chatId") chatId: String,
+        @Query("recipient") recipient: String
+    ): com.example.messageapp.data.network.model.WrappedKeyResponse
 
     @POST("/updateProfile")
     suspend fun updateProfile(@Body request: UpdateProfileRequest): User

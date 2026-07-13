@@ -15,6 +15,9 @@ import com.example.messageapp.domain.model.Message
 import com.example.messageapp.domain.model.MessageStatus
 import com.example.messageapp.domain.model.SocketState
 import com.example.messageapp.domain.repository.ChatSocketRepository
+import com.example.messageapp.domain.repository.SecurityRepository
+import com.example.messageapp.domain.security.Base64Codec
+import com.example.messageapp.domain.security.EncryptionManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -40,7 +43,10 @@ import kotlin.math.min
 class ChatWebSocketManager @Inject constructor(
     private val pendingMessageDao: PendingMessageDao,
     private val messageDao: MessageDao,
-    private val workManager: WorkManager
+    private val workManager: WorkManager,
+    private val encryptionManager: EncryptionManager,
+    private val securityRepository: SecurityRepository,
+    private val base64Codec: Base64Codec
 ) : ChatSocketRepository {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -92,7 +98,7 @@ class ChatWebSocketManager @Inject constructor(
         messageDao.insert(messageWithId.toEntity(chatId))
 
         if (_connectionState.value == SocketState.Authenticated) {
-            sendFrame(messageWithId)
+            sendEncryptedFrame(messageWithId, chatId)
         } else {
             pendingMessageDao.insert(messageWithId.toPendingEntity(chatId))
             scheduleSendPendingMessages()
@@ -110,6 +116,7 @@ class ChatWebSocketManager @Inject constructor(
                 Log.d(TAG, "WebSocket opened")
                 _connectionState.value = SocketState.Authenticated
                 reconnectAttempt = 0
+                scope.launch { uploadPublicKey() }
                 scope.launch { drainPendingMessages() }
             }
 
@@ -172,21 +179,33 @@ class ChatWebSocketManager @Inject constructor(
         }
     }
 
+    private suspend fun uploadPublicKey() {
+        securityRepository.uploadLocalPublicKey()
+            .onFailure { Log.w(TAG, "Failed to upload public key", it) }
+    }
+
     private suspend fun drainPendingMessages() {
         val pending = pendingMessageDao.getAll()
         for (item in pending) {
             val message = item.toDomain()
-            sendFrame(message)
+            val chatId = chatId(message.senderUsername, message.recipientUsername)
+            sendEncryptedFrame(message, chatId)
         }
     }
 
-    private suspend fun sendFrame(message: Message) {
+    private suspend fun sendEncryptedFrame(message: Message, chatId: String) {
         val client = client ?: return
-        val chatId = chatId(message.senderUsername, message.recipientUsername)
+
+        val textToSend = if (ensureChatKey(chatId, message.recipientUsername)) {
+            encryptionManager.encrypt(chatId, message.text)
+        } else {
+            Log.w(TAG, "No chat key available, sending plaintext for ${message.clientMessageId}")
+            message.text
+        }
 
         val frame = when (message.type) {
-            "image" -> "to:${message.recipientUsername}:image:${message.clientMessageId}:${message.text}"
-            else -> "to:${message.recipientUsername}:text:${message.clientMessageId}:${message.text}"
+            "image" -> "to:${message.recipientUsername}:image:${message.clientMessageId}:$textToSend"
+            else -> "to:${message.recipientUsername}:text:${message.clientMessageId}:$textToSend"
         }
 
         try {
@@ -201,7 +220,45 @@ class ChatWebSocketManager @Inject constructor(
         }
     }
 
+    private suspend fun ensureChatKey(chatId: String, recipientUsername: String): Boolean {
+        if (encryptionManager.hasChatKey(chatId)) return true
+
+        return try {
+            val wrappedForMe = securityRepository.getWrappedChatKey(chatId, currentUserName).getOrNull()
+            if (!wrappedForMe.isNullOrBlank()) {
+                encryptionManager.unwrapChatKey(chatId, base64Codec.decode(wrappedForMe))
+                return true
+            }
+
+            val recipientPublicKey = securityRepository.getPublicKey(recipientUsername).getOrThrow()
+            val wrappedForRecipient = encryptionManager.wrapChatKey(chatId, recipientPublicKey)
+            securityRepository.uploadWrappedChatKey(
+                chatId,
+                recipientUsername,
+                base64Codec.encode(wrappedForRecipient)
+            )
+            true
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to resolve chat key for $chatId", e)
+            false
+        }
+    }
+
     private fun parseIncomingMessage(raw: String): Message? {
+        val baseMessage = parseBaseMessage(raw) ?: return null
+        val chatId = chatId(baseMessage.senderUsername, currentUserName)
+
+        val decryptedText = try {
+            encryptionManager.decrypt(chatId, baseMessage.text)
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to decrypt message from ${baseMessage.senderUsername}", e)
+            baseMessage.text
+        }
+
+        return baseMessage.copy(text = decryptedText)
+    }
+
+    private fun parseBaseMessage(raw: String): Message? {
         val parts = raw.split(":", limit = 5)
         return when {
             parts.size >= 5 && parts[0] == "to" -> {

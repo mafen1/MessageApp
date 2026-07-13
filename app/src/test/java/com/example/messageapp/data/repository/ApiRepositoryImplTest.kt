@@ -4,6 +4,7 @@ import com.example.messageapp.data.local.db.dao.MessageDao
 import com.example.messageapp.data.network.api.service.ApiService
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.domain.model.User
+import com.example.messageapp.domain.security.EncryptionManager
 import com.google.gson.Gson
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -22,13 +23,16 @@ class ApiRepositoryImplTest {
     @Mock
     private lateinit var messageDao: MessageDao
 
+    @Mock
+    private lateinit var encryptionManager: EncryptionManager
+
     private val gson = Gson()
     private lateinit var repository: ApiRepositoryImpl
 
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
-        repository = ApiRepositoryImpl(apiService, gson, messageDao)
+        repository = ApiRepositoryImpl(apiService, gson, messageDao, encryptionManager)
     }
 
     @Test
