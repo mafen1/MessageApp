@@ -4,5 +4,6 @@ import com.example.messageapp.domain.model.Message
 
 interface MessageRepository {
     suspend fun getMessages(user1: String, user2: String): Result<List<Message>>
+    suspend fun saveMessage(message: Message, chatId: String)
     suspend fun uploadImage(imageBytes: ByteArray): Result<String>
 }

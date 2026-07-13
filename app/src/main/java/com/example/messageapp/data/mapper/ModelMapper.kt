@@ -1,5 +1,6 @@
 package com.example.messageapp.data.mapper
 
+import com.example.messageapp.data.local.db.entity.MessageEntity
 import com.example.messageapp.data.network.model.User as UserDto
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.data.network.model.LoginResponse
@@ -7,6 +8,7 @@ import com.example.messageapp.data.network.model.MessageResponse
 import com.example.messageapp.data.network.model.NewsResponse
 import com.example.messageapp.data.network.model.NewsRequest
 import com.example.messageapp.data.network.model.FriendRequest as FriendRequestDto
+import com.example.messageapp.domain.model.MessageStatus
 import com.example.messageapp.domain.model.User
 import com.example.messageapp.domain.model.UserCredentials
 import com.example.messageapp.domain.model.LoggedInUser
@@ -100,4 +102,28 @@ fun FriendRequestDto.toDomain(): FriendRequest = FriendRequest(
     senderUserName = senderUserName,
     receiverUserName = receiverUserName,
     status = status
+)
+
+fun MessageEntity.toDomain(): Message = Message(
+    id = id.toInt(),
+    clientMessageId = clientMessageId,
+    senderUsername = senderUsername,
+    recipientUsername = recipientUsername,
+    text = text,
+    isFromMe = isFromMe,
+    type = type,
+    status = status,
+    timestamp = timestamp
+)
+
+fun Message.toEntity(chatId: String): MessageEntity = MessageEntity(
+    clientMessageId = clientMessageId.ifBlank { java.util.UUID.randomUUID().toString() },
+    chatId = chatId,
+    senderUsername = senderUsername,
+    recipientUsername = recipientUsername,
+    text = text,
+    isFromMe = isFromMe,
+    type = type,
+    status = status,
+    timestamp = timestamp
 )

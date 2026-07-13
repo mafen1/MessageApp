@@ -1,5 +1,6 @@
 package com.example.messageapp.data.repository
 
+import com.example.messageapp.data.local.db.dao.MessageDao
 import com.example.messageapp.data.network.api.service.ApiService
 import com.example.messageapp.data.network.model.UserResponse
 import com.example.messageapp.domain.model.User
@@ -18,13 +19,16 @@ class ApiRepositoryImplTest {
     @Mock
     private lateinit var apiService: ApiService
 
+    @Mock
+    private lateinit var messageDao: MessageDao
+
     private val gson = Gson()
     private lateinit var repository: ApiRepositoryImpl
 
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
-        repository = ApiRepositoryImpl(apiService, gson)
+        repository = ApiRepositoryImpl(apiService, gson, messageDao)
     }
 
     @Test

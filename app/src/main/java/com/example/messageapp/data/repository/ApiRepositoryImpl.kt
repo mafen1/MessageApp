@@ -2,8 +2,10 @@ package com.example.messageapp.data.repository
 
 import android.util.Log
 import android.util.MalformedJsonException
+import com.example.messageapp.data.local.db.dao.MessageDao
 import com.example.messageapp.data.mapper.toDomain
 import com.example.messageapp.data.mapper.toDto
+import com.example.messageapp.data.mapper.toEntity
 import com.example.messageapp.data.mapper.toLoginRequest
 import com.example.messageapp.data.mapper.toRegisterDto
 import com.example.messageapp.data.network.api.service.ApiService
@@ -36,7 +38,8 @@ import javax.inject.Singleton
 @Singleton
 class ApiRepositoryImpl @Inject constructor(
     private val apiService: ApiService,
-    private val gson: Gson
+    private val gson: Gson,
+    private val messageDao: MessageDao
 ) : AuthRepository, UserRepository, FriendRepository, MessageRepository, NewsRepository {
 
     override suspend fun register(credentials: UserCredentials): Result<LoggedInUser> = safeApiCall {
@@ -110,8 +113,25 @@ class ApiRepositoryImpl @Inject constructor(
         ).message
     }
 
-    override suspend fun getMessages(user1: String, user2: String): Result<List<Message>> = safeApiCall {
-        apiService.getMessages(user1, user2).map { it.toDomain(user1) }
+    override suspend fun getMessages(user1: String, user2: String): Result<List<Message>> {
+        val chatId = chatId(user1, user2)
+        return try {
+            val remoteMessages = apiService.getMessages(user1, user2).map { it.toDomain(user1) }
+            messageDao.insertAll(remoteMessages.map { it.toEntity(chatId) })
+            Result.success(remoteMessages)
+        } catch (e: Exception) {
+            Log.e("MessageRepo", "Failed to fetch messages, returning local", e)
+            val local = messageDao.getMessages(chatId).map { it.toDomain() }
+            if (local.isNotEmpty()) {
+                Result.success(local)
+            } else {
+                Result.failure(e)
+            }
+        }
+    }
+
+    override suspend fun saveMessage(message: Message, chatId: String) {
+        messageDao.insert(message.toEntity(chatId))
     }
 
     override suspend fun uploadImage(imageBytes: ByteArray): Result<String> = safeApiCall {
@@ -149,6 +169,10 @@ class ApiRepositoryImpl @Inject constructor(
 
     override suspend fun addComment(newsId: Int, userName: String, text: String): Result<NewsPost> = safeApiCall {
         apiService.addComment(CommentRequest(newsId, userName, text)).toDomain()
+    }
+
+    private fun chatId(user1: String, user2: String): String {
+        return listOf(user1, user2).sorted().joinToString("__")
     }
 
     private suspend fun <T> safeApiCall(apiCall: suspend () -> T): Result<T> {

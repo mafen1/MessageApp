@@ -12,9 +12,8 @@ import com.example.messageapp.domain.model.User
 import com.example.messageapp.domain.repository.ChatSocketRepository
 import com.example.messageapp.domain.usecase.AppPreferencesUseCase
 import com.example.messageapp.domain.usecase.GetChatHistoryUseCase
+import com.example.messageapp.domain.usecase.SaveMessageUseCase
 import com.example.messageapp.domain.usecase.UploadChatImageUseCase
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +32,7 @@ class ChatViewModel @Inject constructor(
     private val appPreference: AppPreferencesUseCase,
     private val getChatHistoryUseCase: GetChatHistoryUseCase,
     private val uploadChatImageUseCase: UploadChatImageUseCase,
+    private val saveMessageUseCase: SaveMessageUseCase,
     private val chatSocketRepository: ChatSocketRepository
 ) : ViewModel() {
 
@@ -53,9 +53,6 @@ class ChatViewModel @Inject constructor(
 
     private var currentUserName: String = ""
     private var activePeerUserName: String = ""
-    private var activeChatCacheKey: String? = null
-    private val gson = Gson()
-    private val messageListType = object : TypeToken<List<Message>>() {}.type
 
     init {
         chatSocketRepository.observeMessages()
@@ -93,27 +90,28 @@ class ChatViewModel @Inject constructor(
         _messageList.update { currentList ->
             val filtered = currentList.filter { it.clientMessageId.isBlank() || it.clientMessageId != message.clientMessageId }
             val newList = filtered + message
-            saveActiveChat(newList)
+            saveMessage(message)
             newList
+        }
+    }
+
+    private fun saveMessage(message: Message) {
+        if (currentUserName.isBlank() || activePeerUserName.isBlank()) return
+        viewModelScope.launch(Dispatchers.IO) {
+            saveMessageUseCase(message, chatId(currentUserName, activePeerUserName))
         }
     }
 
     fun loadMessageHistory(currentUser: String, otherUser: String) {
         viewModelScope.launch(Dispatchers.IO) {
+            currentUserName = currentUser
             activePeerUserName = otherUser
-            activeChatCacheKey = chatCacheKey(currentUser, otherUser)
-            val cachedMessages = readCachedMessages(activeChatCacheKey.orEmpty())
-            if (cachedMessages.isNotEmpty()) {
-                _messageList.value = cachedMessages
-            }
 
             try {
                 val result = getChatHistoryUseCase(currentUser, otherUser)
                 val messages = result.getOrNull() ?: emptyList()
                 logD("Loaded ${messages.size} messages between $currentUser and $otherUser")
-
                 _messageList.value = messages
-                saveCachedMessages(activeChatCacheKey.orEmpty(), messages)
             } catch (e: Exception) {
                 Log.e("ChatVM", "Error loading message history", e)
                 _error.value = "Error loading history: ${e.message}"
@@ -162,36 +160,8 @@ class ChatViewModel @Inject constructor(
             senderUsername == currentUserName
     }
 
-    private fun chatCacheKey(user1: String, user2: String): String {
-        val users = listOf(user1, user2).sorted().joinToString(separator = "__") { username ->
-            username.replace(Regex("[^A-Za-z0-9_@.-]"), "_")
-        }
-        return "chat_history_$users"
-    }
-
-    private suspend fun readCachedMessages(key: String): List<Message> {
-        if (key.isBlank()) return emptyList()
-        val cached = appPreference.getString(key).first()
-        if (cached.isBlank()) return emptyList()
-
-        return runCatching {
-            gson.fromJson<List<Message>>(cached, messageListType).orEmpty()
-        }.getOrElse { error ->
-            Log.e("ChatVM", "Error reading cached chat", error)
-            emptyList()
-        }
-    }
-
-    private fun saveActiveChat(messages: List<Message>) {
-        val key = activeChatCacheKey ?: return
-        viewModelScope.launch(Dispatchers.IO) {
-            saveCachedMessages(key, messages)
-        }
-    }
-
-    private suspend fun saveCachedMessages(key: String, messages: List<Message>) {
-        if (key.isBlank()) return
-        appPreference.setString(key, gson.toJson(messages))
+    private fun chatId(user1: String, user2: String): String {
+        return listOf(user1, user2).sorted().joinToString("__")
     }
 
     fun findUser() {

@@ -16,10 +16,14 @@
 - [ ] Server WebSocket manager has no deduplication or delivery receipts.
 - [ ] No protobuf binary framing.
 
-## Phase 3
-- [ ] Room is not used as source of truth.
-- [ ] No outbox pattern or WorkManager sync.
-- [ ] No FTS search.
+## Phase 3 (partially resolved)
+- [x] Room database with `MessageEntity`, `ChatEntity`, `PendingMessageEntity`.
+- [x] DAOs with Flow/suspend queries.
+- [x] Hilt `DatabaseModule`.
+- [x] `MessageRepository` caches history in Room and falls back to local on remote failure.
+- [x] Chat ViewModel persists messages via Room instead of JSON in preferences.
+- [ ] WorkManager sync for outbox.
+- [ ] FTS5 search.
 
 ## Phase 4
 - [ ] No foreground service for background WebSocket.
