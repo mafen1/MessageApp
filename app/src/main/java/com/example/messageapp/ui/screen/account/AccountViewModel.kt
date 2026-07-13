@@ -4,10 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.messageapp.core.ConstVariables
 import com.example.messageapp.core.TokenStorage
-import com.example.messageapp.data.network.model.UpdateProfileRequest
-import com.example.messageapp.data.network.model.User
-import com.example.messageapp.domain.useCase.ApiServiceUseCase
-import com.example.messageapp.domain.useCase.AppPreferencesUseCase
+import com.example.messageapp.domain.model.User
+import com.example.messageapp.domain.usecase.AppPreferencesUseCase
+import com.example.messageapp.domain.usecase.UpdateProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AccountViewModel @Inject constructor(
     private val appPreferencesUseCase: AppPreferencesUseCase,
-    private val apiServiceUseCase: ApiServiceUseCase
+    private val updateProfileUseCase: UpdateProfileUseCase
 ) : ViewModel() {
 
     private val _user = MutableStateFlow<User?>(null)
@@ -41,9 +40,7 @@ class AccountViewModel @Inject constructor(
     fun updateProfile(name: String, password: String?) {
         viewModelScope.launch(Dispatchers.IO) {
             val username = _user.value?.userName ?: return@launch
-            val result = apiServiceUseCase.updateProfile(
-                UpdateProfileRequest(username, name, password)
-            )
+            val result = updateProfileUseCase(username, name, password)
             val updated = result.getOrNull()
             if (updated != null) {
                 appPreferencesUseCase.setString(ConstVariables.nameUser, updated.name)

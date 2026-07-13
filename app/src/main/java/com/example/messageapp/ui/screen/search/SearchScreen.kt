@@ -40,9 +40,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.messageapp.R
-import com.example.messageapp.data.network.model.UserResponse
+import com.example.messageapp.domain.model.User
 import com.example.messageapp.ui.components.EmptyState
-import com.example.messageapp.ui.listUserScreen.ListUserViewModel
+import com.example.messageapp.ui.screen.search.SearchViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,7 +53,7 @@ fun SearchScreen(
     onNavigateToNews: (String, String) -> Unit,
     onNavigateToAccount: () -> Unit,
     onNavigateToChat: (String, String) -> Unit,
-    viewModel: ListUserViewModel = hiltViewModel()
+    viewModel: SearchViewModel = hiltViewModel()
 ) {
     val foundUsers by viewModel.foundUser.collectAsStateWithLifecycle()
     val pendingRequests by viewModel.pendingRequests.collectAsStateWithLifecycle()
@@ -179,13 +179,13 @@ fun SearchScreen(
                 ) {
                     items(
                         items = foundUsers,
-                        key = { it.username }
+                        key = { it.userName }
                     ) { user ->
                         UserListItem(
                             user = user,
-                            isPending = pendingRequests.contains(user.username),
+                            isPending = pendingRequests.contains(user.userName),
                             onAddFriend = {
-                                viewModel.sendFriendRequest(userName, user.username)
+                                viewModel.sendFriendRequest(userName, user.userName)
                             }
                         )
                     }
@@ -197,7 +197,7 @@ fun SearchScreen(
 
 @Composable
 private fun UserListItem(
-    user: UserResponse,
+    user: User,
     isPending: Boolean,
     onAddFriend: () -> Unit,
     modifier: Modifier = Modifier
@@ -223,7 +223,7 @@ private fun UserListItem(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = user.username,
+                text = user.userName,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 2.dp)

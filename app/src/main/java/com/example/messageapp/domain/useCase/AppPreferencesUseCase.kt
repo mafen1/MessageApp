@@ -1,26 +1,14 @@
-package com.example.messageapp.domain.useCase
+package com.example.messageapp.domain.usecase
 
-import androidx.datastore.preferences.core.Preferences
-import com.example.messageapp.store.DataStore
+import com.example.messageapp.domain.repository.PreferencesRepository
 import kotlinx.coroutines.flow.Flow
-import javax.inject.Inject
 
-class AppPreferencesUseCase @Inject constructor(private val dataStore: DataStore) {
-
-    suspend fun <T> save(key: String, value: T) {
-        dataStore.save(key, value)
-    }
-
-    fun readString(key: Preferences.Key<String>): Flow<String> {
-        return dataStore.readValue(key, defaultValue = "")
-    }
-
-    fun getString(key: String): Flow<String>{
-        return dataStore.getStringValue(key)
-    }
+class AppPreferencesUseCase constructor(
+    private val preferencesRepository: PreferencesRepository
+) {
+    fun getString(key: String): Flow<String> = preferencesRepository.getString(key)
 
     suspend fun setString(key: String, value: String) {
-        dataStore.setStringValue(key, value)
+        preferencesRepository.setString(key, value)
     }
-
 }

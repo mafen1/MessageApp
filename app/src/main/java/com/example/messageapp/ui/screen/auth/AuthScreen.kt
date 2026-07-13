@@ -39,14 +39,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.messageapp.R
-import com.example.messageapp.data.network.model.User
-import com.example.messageapp.ui.registerScreen.RegisterViewModel
-import kotlin.random.Random
+import com.example.messageapp.domain.model.UserCredentials
+import com.example.messageapp.ui.screen.auth.AuthViewModel
 
 @Composable
 fun AuthScreen(
     onAuthSuccess: (String, String) -> Unit,
-    viewModel: RegisterViewModel = hiltViewModel()
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
     val currentUser by viewModel.currentUser.collectAsStateWithLifecycle()
     val registrationSuccess by viewModel.registrationSuccess.collectAsStateWithLifecycle()
@@ -166,25 +165,15 @@ fun AuthScreen(
                             if (validationError != null) {
                                 scope.launch { snackbarHostState.showSnackbar(validationError) }
                             } else {
+                                val credentials = UserCredentials(
+                                    name = name,
+                                    userName = username,
+                                    password = password
+                                )
                                 if (isLoginMode) {
-                                    viewModel.loginAccount(
-                                        com.example.messageapp.data.network.model.LoginRequest(
-                                            name = name,
-                                            userName = username,
-                                            password = password
-                                        )
-                                    )
+                                    viewModel.loginAccount(credentials)
                                 } else {
-                                    viewModel.addAccount(
-                                        User(
-                                            id = Random.nextInt(),
-                                            name = name,
-                                            userName = username,
-                                            friend = emptyList(),
-                                            token = "",
-                                            password = password
-                                        )
-                                    )
+                                    viewModel.addAccount(credentials)
                                 }
                             }
                         },

@@ -15,8 +15,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.example.messageapp.ui.chatListScreen.ChatListScreen
-import com.example.messageapp.ui.chatListScreen.ChatListViewModel
+import com.example.messageapp.ui.screen.chatlist.ChatListScreen
+import com.example.messageapp.ui.screen.chatlist.ChatListViewModel
 import com.example.messageapp.ui.components.MessageBottomBar
 import com.example.messageapp.ui.screen.account.AccountScreen
 import com.example.messageapp.ui.screen.auth.AuthScreen
@@ -176,7 +176,7 @@ fun MessageAppNavHost(
                             ChatRoute(
                                 currentUserName = args.userName,
                                 currentName = args.name,
-                                otherUserName = selectedUser.username,
+                                otherUserName = selectedUser.userName,
                                 otherName = selectedUser.name
                             )
                         )

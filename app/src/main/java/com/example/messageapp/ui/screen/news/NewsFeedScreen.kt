@@ -46,11 +46,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.example.messageapp.R
-import com.example.messageapp.data.network.model.NewsResponse
-import com.example.messageapp.data.network.model.User
+import com.example.messageapp.domain.model.NewsPost
+import com.example.messageapp.domain.model.User
 import com.example.messageapp.ui.components.EmptyState
 import com.example.messageapp.ui.components.imageUrl
-import com.example.messageapp.ui.newsListScreen.NewsViewModel
+import com.example.messageapp.ui.screen.news.NewsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,7 +65,7 @@ fun NewsFeedScreen(
 ) {
     val newsList by viewModel.newsList.collectAsStateWithLifecycle()
 
-    var commentNews by remember { mutableStateOf<NewsResponse?>(null) }
+    var commentNews by remember { mutableStateOf<NewsPost?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.saveUser(User(name = name, userName = userName))
@@ -132,14 +132,14 @@ fun NewsFeedScreen(
 
 @Composable
 private fun NewsCard(
-    news: NewsResponse,
+    news: NewsPost,
     currentUserName: String,
     onLikeClick: () -> Unit,
     onCommentClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val likedByMe = news.likedUsers.orEmpty().contains(currentUserName)
-    val comments = news.comment.orEmpty()
+    val likedByMe = news.likedUsers.contains(currentUserName)
+    val comments = news.comments
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -180,9 +180,9 @@ private fun NewsCard(
                 modifier = Modifier.padding(top = 12.dp)
             )
 
-            if (!news.newsImage.isNullOrBlank() && news.newsImage != "ARGB_8888") {
+            if (!news.imageUrl.isNullOrBlank() && news.imageUrl != "ARGB_8888") {
                 AsyncImage(
-                    model = imageUrl(news.newsImage),
+                    model = imageUrl(news.imageUrl),
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxWidth()

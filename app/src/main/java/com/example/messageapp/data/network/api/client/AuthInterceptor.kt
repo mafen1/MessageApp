@@ -1,13 +1,13 @@
 package com.example.messageapp.data.network.api.client
 
 import com.example.messageapp.core.ConstVariables
-import com.example.messageapp.domain.repo.preferences.AppPreference
+import com.example.messageapp.domain.repository.PreferencesRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
 
-class AuthInterceptor(private val appPreference: AppPreference) : Interceptor {
+class AuthInterceptor(private val preferencesRepository: PreferencesRepository) : Interceptor {
 
     private val noAuthPaths = setOf("/register", "/login")
 
@@ -20,7 +20,7 @@ class AuthInterceptor(private val appPreference: AppPreference) : Interceptor {
         }
 
         val token = runBlocking {
-            runCatching { appPreference.getStringValue(ConstVariables.tokenJWT).first() }.getOrDefault("")
+            runCatching { preferencesRepository.getString(ConstVariables.tokenJWT).first() }.getOrDefault("")
         }
 
         val newRequest = if (token.isNotBlank()) {

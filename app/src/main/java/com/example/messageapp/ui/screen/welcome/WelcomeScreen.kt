@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.messageapp.R
-import com.example.messageapp.ui.splashScreen.WelcomeViewModel
+import com.example.messageapp.ui.screen.welcome.WelcomeViewModel
 
 @Composable
 fun WelcomeScreen(

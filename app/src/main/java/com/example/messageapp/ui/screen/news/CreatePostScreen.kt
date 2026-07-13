@@ -49,11 +49,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.messageapp.R
-import com.example.messageapp.data.network.model.NewsRequest
-import com.example.messageapp.ui.addNewsScreen.AddNewsViewModel
-import com.google.gson.Gson
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
+import com.example.messageapp.domain.model.NewsPost
+import com.example.messageapp.ui.screen.news.CreatePostViewModel
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,7 +59,7 @@ fun CreatePostScreen(
     userName: String,
     name: String,
     onNavigateBack: () -> Unit,
-    viewModel: AddNewsViewModel = hiltViewModel()
+    viewModel: CreatePostViewModel = hiltViewModel()
 ) {
     val authorUserName by viewModel.userName.collectAsStateWithLifecycle()
     val authorName by viewModel.nameUser.collectAsStateWithLifecycle()
@@ -82,7 +79,7 @@ fun CreatePostScreen(
         uri?.let {
             context.contentResolver.openInputStream(it)?.use { stream ->
                 bitmap = BitmapFactory.decodeStream(stream)
-                bitmap?.let { bmp -> viewModel.convertBitMapToPart(bmp) }
+                bitmap?.let { bmp -> viewModel.convertBitmapToBytes(bmp) }
             }
         }
     }
@@ -120,23 +117,16 @@ fun CreatePostScreen(
                         }
                         return@FloatingActionButton
                     }
-                    val newsRequest = NewsRequest(
+                    val post = NewsPost(
                         userNameAuthor = authorUserName ?: userName,
                         nameAuthor = authorName ?: name,
                         date = Calendar.getInstance().time.toString(),
                         countLike = 0,
                         countComment = 0,
                         avatarAuthor = "",
-                        description = text,
-                        comment = listOf()
+                        description = text
                     )
-                    if (imagePart != null) {
-                        val gsonNews = Gson().toJson(newsRequest)
-                            .toRequestBody("application/json".toMediaTypeOrNull())
-                        viewModel.uploadNewsWithImage(imagePart!!, gsonNews)
-                    } else {
-                        viewModel.uploadNewsWithOutImage(newsRequest)
-                    }
+                    viewModel.uploadNews(post, imagePart)
                     onNavigateBack()
                 },
                 containerColor = MaterialTheme.colorScheme.primary,

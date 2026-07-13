@@ -47,12 +47,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import com.example.messageapp.data.network.model.Message
-import com.example.messageapp.ui.chatScreen.ChatViewModel
+import com.example.messageapp.domain.model.Message
 import com.example.messageapp.ui.components.imageUrl
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.toRequestBody
+import com.example.messageapp.ui.screen.chat.ChatViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,13 +72,7 @@ fun ChatScreen(
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
             val bytes = context.contentResolver.openInputStream(it)?.use { stream -> stream.readBytes() } ?: return@let
-            val body = bytes.toRequestBody("image/*".toMediaTypeOrNull(), 0, bytes.size)
-            val part = MultipartBody.Part.createFormData(
-                "file",
-                "chat_${System.currentTimeMillis()}.jpg",
-                body
-            )
-            viewModel.sendImageMessage(otherUserName, part)
+            viewModel.sendImageMessage(otherUserName, bytes)
         }
     }
 
@@ -200,7 +191,7 @@ private fun ChatBubble(
     message: Message,
     modifier: Modifier = Modifier
 ) {
-    val isMine = message.isType
+    val isMine = message.isFromMe
     val bubbleColor = if (isMine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
     val contentColor = if (isMine) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
     val alignment = if (isMine) Alignment.CenterEnd else Alignment.CenterStart
@@ -215,16 +206,16 @@ private fun ChatBubble(
                 .background(bubbleColor)
                 .padding(12.dp)
         ) {
-            if (message.messageType == "image") {
+            if (message.type == "image") {
                 AsyncImage(
-                    model = imageUrl(message.message),
+                    model = imageUrl(message.text),
                     contentDescription = null,
                     modifier = Modifier.size(200.dp),
                     contentScale = ContentScale.Crop
                 )
             } else {
                 Text(
-                    text = message.message,
+                    text = message.text,
                     color = contentColor,
                     style = MaterialTheme.typography.bodyLarge
                 )
