@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.messageapp.BuildConfig
 import com.example.messageapp.core.ConstVariables
 import com.example.messageapp.core.logD
-import com.example.messageapp.data.network.webSocket.client.ChatWebSocketClient
+import com.example.messageapp.data.network.webSocket.FriendWebSocketClient
 import com.example.messageapp.domain.model.User
 import com.example.messageapp.domain.usecase.AcceptFriendRequestUseCase
 import com.example.messageapp.domain.usecase.AppPreferencesUseCase
@@ -49,7 +49,7 @@ class SearchViewModel @Inject constructor(
     private val _friendRequestResult = MutableStateFlow<String?>(null)
     val friendRequestResult: StateFlow<String?> = _friendRequestResult
 
-    private var _webSocketClient: ChatWebSocketClient? = null
+    private var _webSocketClient: FriendWebSocketClient? = null
 
     private var _pollingJob: Job? = null
     private var _currentUserName = ""
@@ -127,7 +127,7 @@ class SearchViewModel @Inject constructor(
         val serverUri = URI("${BuildConfig.WS_URL}/friendMessage/$userName?token=$token")
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val client = ChatWebSocketClient(serverUri) { message ->
+                val client = FriendWebSocketClient(serverUri) { message ->
                     logD("WebSocket received message: '$message'")
                     _messageNotification.value = message
                     logD("messageNotification updated to: '$message'")
@@ -215,7 +215,7 @@ class SearchViewModel @Inject constructor(
 
     fun disconnect() {
         viewModelScope.launch(Dispatchers.IO) {
-            _webSocketClient?.disconnect()
+            _webSocketClient?.close()
         }
     }
 

@@ -1,7 +1,9 @@
 package com.example.messageapp.di
 
 import com.example.messageapp.data.repository.ApiRepositoryImpl
+import com.example.messageapp.data.network.webSocket.ChatWebSocketManager
 import com.example.messageapp.domain.repository.AuthRepository
+import com.example.messageapp.domain.repository.ChatSocketRepository
 import com.example.messageapp.domain.repository.FriendRepository
 import com.example.messageapp.domain.repository.MessageRepository
 import com.example.messageapp.domain.repository.NewsRepository
@@ -35,4 +37,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindNewsRepository(impl: ApiRepositoryImpl): NewsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindChatSocketRepository(impl: ChatWebSocketManager): ChatSocketRepository
 }

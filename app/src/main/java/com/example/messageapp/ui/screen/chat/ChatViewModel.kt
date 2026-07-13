@@ -3,12 +3,13 @@ package com.example.messageapp.ui.screen.chat
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.messageapp.BuildConfig
 import com.example.messageapp.core.ConstVariables
 import com.example.messageapp.core.logD
-import com.example.messageapp.data.network.webSocket.client.ChatWebSocketClient
 import com.example.messageapp.domain.model.Message
+import com.example.messageapp.domain.model.MessageStatus
+import com.example.messageapp.domain.model.SocketState
 import com.example.messageapp.domain.model.User
+import com.example.messageapp.domain.repository.ChatSocketRepository
 import com.example.messageapp.domain.usecase.AppPreferencesUseCase
 import com.example.messageapp.domain.usecase.GetChatHistoryUseCase
 import com.example.messageapp.domain.usecase.UploadChatImageUseCase
@@ -19,34 +20,36 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import java.net.URI
 import javax.inject.Inject
-import kotlin.jvm.Synchronized
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val appPreference: AppPreferencesUseCase,
     private val getChatHistoryUseCase: GetChatHistoryUseCase,
-    private val uploadChatImageUseCase: UploadChatImageUseCase
+    private val uploadChatImageUseCase: UploadChatImageUseCase,
+    private val chatSocketRepository: ChatSocketRepository
 ) : ViewModel() {
 
     private val _user: MutableStateFlow<User?> = MutableStateFlow(null)
-    var user: StateFlow<User?> = _user
+    val user: StateFlow<User?> = _user
 
     private val _messageText: MutableStateFlow<String> = MutableStateFlow("")
-    var messageText: StateFlow<String> = _messageText
-
-    var webSocketClient: ChatWebSocketClient? = null
+    val messageText: StateFlow<String> = _messageText
 
     private val _messageList: MutableStateFlow<List<Message>> = MutableStateFlow(emptyList())
-    var messageList: StateFlow<List<Message>> = _messageList
+    val messageList: StateFlow<List<Message>> = _messageList
+
+    private val _connectionState: MutableStateFlow<SocketState> = MutableStateFlow(SocketState.Disconnected)
+    val connectionState: StateFlow<SocketState> = _connectionState
 
     private val _error: MutableStateFlow<String?> = MutableStateFlow(null)
-    var error: StateFlow<String?> = _error
+    val error: StateFlow<String?> = _error
 
     private var currentUserName: String = ""
     private var activePeerUserName: String = ""
@@ -54,59 +57,30 @@ class ChatViewModel @Inject constructor(
     private val gson = Gson()
     private val messageListType = object : TypeToken<List<Message>>() {}.type
 
-    @Synchronized
-    fun disconnect() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                webSocketClient?.disconnect()
-            } catch (e: Exception) {
-                Log.e("ChatVM", "Error disconnecting WebSocket", e)
-            }
-            webSocketClient = null
-        }
-    }
-
-    @Synchronized
-    fun connect(userName: String) {
-        try {
-            currentUserName = userName
-            webSocketClient?.disconnect()
-            val token = runBlocking {
-                appPreference.getString(ConstVariables.tokenJWT).first()
-            }
-            val serverUri = URI("${BuildConfig.WS_URL}/chat/$userName?token=$token")
-
-            logD("web socket username: ${userName}")
-
-            webSocketClient = ChatWebSocketClient(serverUri) { message ->
-                viewModelScope.launch(Dispatchers.Main) {
-                    val parts = message.split(":", limit = 3)
-                    if (parts.size >= 3) {
-                        val senderUsername = parts[0]
-                        val messageType = parts[1]
-                        val messageContent = parts[2]
-                        if (!isMessageForActiveChat(senderUsername)) return@launch
-                        val isFromMe = senderUsername == currentUserName
-                        updateMessageList(Message(text = messageContent, isFromMe = isFromMe, type = messageType))
-                        logD("Получено сообщение от $senderUsername, isFromMe: $isFromMe")
-                    } else if (parts.size >= 2) {
-                        val senderUsername = parts[0]
-                        val messageContent = parts[1]
-                        if (!isMessageForActiveChat(senderUsername)) return@launch
-                        val isFromMe = senderUsername == currentUserName
-                        updateMessageList(Message(text = messageContent, isFromMe = isFromMe))
-                    } else {
-                        updateMessageList(Message(text = message, isFromMe = false))
-                    }
+    init {
+        chatSocketRepository.observeMessages()
+            .onEach { message ->
+                if (isMessageForActiveChat(message.senderUsername)) {
+                    updateMessageList(message)
                 }
             }
+            .launchIn(viewModelScope)
 
-            webSocketClient?.connect()
-            logD("connect web socket")
-        } catch (e: Exception) {
-            logD("log web socket: ${e.toString()}")
-            _error.value = "WebSocket error: ${e.message}"
+        chatSocketRepository.connectionState
+            .onEach { _connectionState.value = it }
+            .launchIn(viewModelScope)
+    }
+
+    fun connect(userName: String) {
+        currentUserName = userName
+        val token = runBlocking {
+            appPreference.getString(ConstVariables.tokenJWT).first()
         }
+        chatSocketRepository.connect(userName, token)
+    }
+
+    fun disconnect() {
+        chatSocketRepository.disconnect()
     }
 
     suspend fun findUserName(): String {
@@ -117,7 +91,8 @@ class ChatViewModel @Inject constructor(
 
     fun updateMessageList(message: Message) {
         _messageList.update { currentList ->
-            val newList = currentList + message
+            val filtered = currentList.filter { it.clientMessageId.isBlank() || it.clientMessageId != message.clientMessageId }
+            val newList = filtered + message
             saveActiveChat(newList)
             newList
         }
@@ -149,11 +124,35 @@ class ChatViewModel @Inject constructor(
         }
     }
 
+    fun sendTextMessage(targetUsername: String, text: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val message = Message(
+                senderUsername = currentUserName,
+                recipientUsername = targetUsername,
+                text = text,
+                isFromMe = true,
+                type = "text",
+                status = MessageStatus.SENDING
+            )
+            updateMessageList(message)
+            chatSocketRepository.sendMessage(message)
+        }
+    }
+
     fun sendImageMessage(targetUsername: String, imageBytes: ByteArray) {
         viewModelScope.launch(Dispatchers.IO) {
             val response = uploadChatImageUseCase(imageBytes)
             val fileName = response.getOrNull() ?: return@launch
-            webSocketClient?.sendMessage("to:$targetUsername:image:$fileName")
+            val message = Message(
+                senderUsername = currentUserName,
+                recipientUsername = targetUsername,
+                text = fileName,
+                isFromMe = true,
+                type = "image",
+                status = MessageStatus.SENDING
+            )
+            updateMessageList(message)
+            chatSocketRepository.sendMessage(message)
         }
     }
 
@@ -198,7 +197,6 @@ class ChatViewModel @Inject constructor(
     fun findUser() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                // Current user is not fetched here to keep the screen focused on the peer.
                 _user.value = null
             } catch (e: Exception) {
                 Log.e("ChatVM", "Error finding current user", e)

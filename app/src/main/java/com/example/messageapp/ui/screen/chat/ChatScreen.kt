@@ -48,6 +48,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.example.messageapp.domain.model.Message
+import com.example.messageapp.domain.model.SocketState
 import com.example.messageapp.ui.components.imageUrl
 import com.example.messageapp.ui.screen.chat.ChatViewModel
 
@@ -63,6 +64,7 @@ fun ChatScreen(
 ) {
     val messages by viewModel.messageList.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
+    val connectionState by viewModel.connectionState.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
@@ -105,9 +107,9 @@ fun ChatScreen(
                     Column {
                         Text(text = otherName, style = MaterialTheme.typography.titleMedium)
                         Text(
-                            text = otherUserName,
+                            text = connectionStateLabel(connectionState),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = connectionStateColor(connectionState)
                         )
                     }
                 },
@@ -150,8 +152,7 @@ fun ChatScreen(
                 IconButton(
                     onClick = {
                         if (inputText.isNotBlank()) {
-                            val message = "to:$otherUserName:text:$inputText"
-                            viewModel.webSocketClient?.sendMessage(message)
+                            viewModel.sendTextMessage(otherUserName, inputText)
                             inputText = ""
                         }
                     }
@@ -184,6 +185,23 @@ fun ChatScreen(
             }
         }
     }
+}
+
+@Composable
+private fun connectionStateLabel(state: SocketState): String {
+    return when (state) {
+        is SocketState.Disconnected -> "Отключено"
+        is SocketState.Connecting -> "Подключение…"
+        is SocketState.Connected, is SocketState.Authenticated -> "В сети"
+        is SocketState.Error -> "Ошибка соединения"
+    }
+}
+
+@Composable
+private fun connectionStateColor(state: SocketState) = when (state) {
+    is SocketState.Disconnected, is SocketState.Error -> MaterialTheme.colorScheme.error
+    is SocketState.Connecting -> MaterialTheme.colorScheme.primary
+    is SocketState.Connected, is SocketState.Authenticated -> MaterialTheme.colorScheme.tertiary
 }
 
 @Composable

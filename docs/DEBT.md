@@ -8,8 +8,11 @@
 - [x] Split Hilt modules into `NetworkModule`, `DataStoreModule`, `RepositoryModule`, `UseCaseModule`.
 - [x] Removed unused XML layouts, fragments, adapters, menus, and navigation resources.
 
-## Phase 2
-- [ ] Android WebSocket client lacks state machine and reconnect logic.
+## Phase 2 (partially resolved)
+- [x] Android WebSocket manager has state machine (`SocketState`) exposed as `StateFlow`.
+- [x] Automatic reconnect with exponential backoff (1s → 2s → 4s → 8s → 30s).
+- [x] Outbox queue for messages sent while disconnected.
+- [x] `clientMessageId` generated per outgoing message; UI deduplicates by it.
 - [ ] Server WebSocket manager has no deduplication or delivery receipts.
 - [ ] No protobuf binary framing.
 

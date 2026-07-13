@@ -1,6 +1,8 @@
 package com.example.messageapp.ui.screen.chat
 
 import com.example.messageapp.domain.model.Message
+import com.example.messageapp.domain.model.SocketState
+import com.example.messageapp.domain.repository.ChatSocketRepository
 import com.example.messageapp.domain.usecase.AppPreferencesUseCase
 import com.example.messageapp.domain.usecase.GetChatHistoryUseCase
 import com.example.messageapp.domain.usecase.UploadChatImageUseCase
@@ -32,6 +34,9 @@ class ChatViewModelTest {
     @Mock
     private lateinit var uploadChatImageUseCase: UploadChatImageUseCase
 
+    @Mock
+    private lateinit var chatSocketRepository: ChatSocketRepository
+
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var viewModel: ChatViewModel
 
@@ -40,7 +45,8 @@ class ChatViewModelTest {
         Dispatchers.setMain(testDispatcher)
         MockitoAnnotations.openMocks(this)
         whenever(appPreferencesUseCase.getString(any())).thenReturn(flowOf(""))
-        viewModel = ChatViewModel(appPreferencesUseCase, getChatHistoryUseCase, uploadChatImageUseCase)
+        whenever(chatSocketRepository.connectionState).thenReturn(kotlinx.coroutines.flow.MutableStateFlow(SocketState.Disconnected))
+        viewModel = ChatViewModel(appPreferencesUseCase, getChatHistoryUseCase, uploadChatImageUseCase, chatSocketRepository)
     }
 
     @After
