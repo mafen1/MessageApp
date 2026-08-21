@@ -56,6 +56,9 @@ import kotlinx.coroutines.launch
 fun AccountScreen(
     userName: String,
     name: String,
+    onNavigateToSearch: (String, String) -> Unit,
+    onNavigateToChatList: (String, String) -> Unit,
+    onNavigateToNews: (String, String) -> Unit,
     onLogout: () -> Unit,
     viewModel: AccountViewModel = hiltViewModel()
 ) {

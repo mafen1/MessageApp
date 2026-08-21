@@ -47,6 +47,11 @@ import com.example.messageapp.ui.components.EmptyState
 @Composable
 fun SearchScreen(
     userName: String,
+    name: String,
+    onNavigateToChatList: (String, String) -> Unit,
+    onNavigateToNews: (String, String) -> Unit,
+    onNavigateToAccount: () -> Unit,
+    onNavigateToChat: (String, String) -> Unit,
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val foundUsers by viewModel.foundUser.collectAsStateWithLifecycle()

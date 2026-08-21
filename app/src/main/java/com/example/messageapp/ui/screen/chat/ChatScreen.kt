@@ -54,6 +54,7 @@ import com.example.messageapp.ui.components.imageUrl
 @Composable
 fun ChatScreen(
     currentUserName: String,
+    currentName: String,
     otherUserName: String,
     otherName: String,
     onNavigateBack: () -> Unit,
