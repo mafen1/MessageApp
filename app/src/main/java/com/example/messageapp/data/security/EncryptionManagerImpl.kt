@@ -53,6 +53,14 @@ class EncryptionManagerImpl @Inject constructor(
         return chatKey
     }
 
+    override fun tryUnwrapChatKey(wrappedKey: ByteArray): ByteArray? {
+        return try {
+            rsaEngine.unwrapKey(wrappedKey, localKeyStore.getOrCreateKeyPair())
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     override fun wrapChatKey(chatId: String, recipientPublicKey: PublicKey): ByteArray {
         val chatKey = getOrCreateChatKey(chatId)
         return rsaEngine.wrapKey(chatKey, recipientPublicKey)

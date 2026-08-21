@@ -1,6 +1,7 @@
 package com.example.messageapp.data.network.api.client
 
 import com.example.messageapp.core.ConstVariables
+import com.example.messageapp.core.TokenStorage
 import com.example.messageapp.domain.repository.PreferencesRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -11,15 +12,20 @@ class AuthInterceptor(private val preferencesRepository: PreferencesRepository) 
 
     private val noAuthPaths = setOf("/register", "/login")
 
+    private fun isNoAuthPath(path: String): Boolean {
+        return noAuthPaths.any { path == it || path.endsWith(it) }
+    }
+
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
         val path = request.url.encodedPath
 
-        if (path in noAuthPaths) {
+        if (isNoAuthPath(path)) {
             return chain.proceed(request)
         }
 
-        val token = runBlocking {
+        // сначала пробуем in-memory TokenStorage (синхронно, без блокировки), затем DataStore
+        val token = TokenStorage.getToken().takeIf { it.isNotBlank() } ?: runBlocking {
             runCatching { preferencesRepository.getString(ConstVariables.tokenJWT).first() }.getOrDefault("")
         }
 

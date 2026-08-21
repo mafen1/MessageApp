@@ -20,7 +20,6 @@ import com.example.messageapp.domain.usecase.LikePostUseCase
 import com.example.messageapp.domain.usecase.LoginUseCase
 import com.example.messageapp.domain.usecase.RegisterUseCase
 import com.example.messageapp.domain.usecase.RejectFriendRequestUseCase
-import com.example.messageapp.domain.usecase.SaveMessageUseCase
 import com.example.messageapp.domain.usecase.SearchUsersUseCase
 import com.example.messageapp.domain.usecase.SendFriendRequestUseCase
 import com.example.messageapp.domain.usecase.UpdateProfileUseCase
@@ -99,10 +98,7 @@ object UseCaseModule {
         return UploadChatImageUseCase(messageRepository)
     }
 
-    @Provides
-    fun provideSaveMessageUseCase(messageRepository: MessageRepository): SaveMessageUseCase {
-        return SaveMessageUseCase(messageRepository)
-    }
+    // SaveMessageUseCase имеет @Inject constructor — отдельный @Provides не нужен (фикс C3)
 
     @Provides
     fun provideGetNewsFeedUseCase(newsRepository: NewsRepository): GetNewsFeedUseCase {

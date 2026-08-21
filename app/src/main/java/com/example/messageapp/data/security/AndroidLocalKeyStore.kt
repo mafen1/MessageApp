@@ -26,8 +26,8 @@ class AndroidLocalKeyStore @Inject constructor() : LocalKeyStore {
             KEY_ALIAS,
             KeyProperties.PURPOSE_DECRYPT
         )
-            .setDigests(KeyProperties.DIGEST_SHA256)
-            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_OAEP)
+            // паддинг совпадает с RsaEngineImpl (PKCS1); дайджесты для PKCS1 не нужны
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
             .setKeySize(KEY_SIZE)
             .build()
 

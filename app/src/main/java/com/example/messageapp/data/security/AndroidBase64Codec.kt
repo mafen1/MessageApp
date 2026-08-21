@@ -8,7 +8,8 @@ import javax.inject.Singleton
 @Singleton
 class AndroidBase64Codec @Inject constructor() : Base64Codec {
 
-    override fun encode(bytes: ByteArray): String = Base64.encodeToString(bytes, Base64.DEFAULT)
+    override fun encode(bytes: ByteArray): String = Base64.encodeToString(bytes, Base64.NO_WRAP)
 
+    // DEFAULT при декодировании терпит переносы — читаем и старые (wrap) записи
     override fun decode(encoded: String): ByteArray = Base64.decode(encoded, Base64.DEFAULT)
 }

@@ -9,10 +9,11 @@ import com.example.messageapp.domain.security.ChatKeyStorage
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import androidx.core.content.edit
 
 @Singleton
 class EncryptedSharedPreferencesChatKeyStorage @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : ChatKeyStorage {
 
     private val prefs: SharedPreferences by lazy {
@@ -35,9 +36,15 @@ class EncryptedSharedPreferencesChatKeyStorage @Inject constructor(
     }
 
     override fun saveChatKey(chatId: String, key: ByteArray) {
-        prefs.edit()
-            .putString(chatId, Base64.encodeToString(key, Base64.DEFAULT))
-            .apply()
+        prefs.edit(commit = true) {
+            putString(chatId, Base64.encodeToString(key, Base64.DEFAULT))
+        }
+    }
+
+    override fun deleteChatKey(chatId: String) {
+        prefs.edit(commit = true) {
+            remove(chatId)
+        }
     }
 
     private companion object {

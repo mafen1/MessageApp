@@ -3,6 +3,7 @@ package com.example.messageapp.data.repository
 import com.example.messageapp.data.local.db.dao.MessageDao
 import com.example.messageapp.data.network.api.service.ApiService
 import com.example.messageapp.data.network.model.UserResponse
+import com.example.messageapp.data.security.ChatKeyResolver
 import com.example.messageapp.domain.model.User
 import com.example.messageapp.domain.security.EncryptionManager
 import com.google.gson.Gson
@@ -26,13 +27,16 @@ class ApiRepositoryImplTest {
     @Mock
     private lateinit var encryptionManager: EncryptionManager
 
+    @Mock
+    private lateinit var chatKeyResolver: ChatKeyResolver
+
     private val gson = Gson()
     private lateinit var repository: ApiRepositoryImpl
 
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
-        repository = ApiRepositoryImpl(apiService, gson, messageDao, encryptionManager)
+        repository = ApiRepositoryImpl(apiService, gson, messageDao, encryptionManager, chatKeyResolver)
     }
 
     @Test

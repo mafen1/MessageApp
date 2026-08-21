@@ -6,6 +6,9 @@ interface EncryptionManager {
     fun getOrCreateChatKey(chatId: String): ByteArray
     fun hasChatKey(chatId: String): Boolean
     fun unwrapChatKey(chatId: String, wrappedKey: ByteArray): ByteArray
+
+    /** Разворачивает обёртку без сохранения; null, если локальный keystore не может её открыть. */
+    fun tryUnwrapChatKey(wrappedKey: ByteArray): ByteArray?
     fun wrapChatKey(chatId: String, recipientPublicKey: java.security.PublicKey): ByteArray
     fun getLocalPublicKey(): java.security.PublicKey
 }

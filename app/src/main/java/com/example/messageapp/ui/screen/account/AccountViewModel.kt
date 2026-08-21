@@ -6,6 +6,8 @@ import com.example.messageapp.core.ConstVariables
 import com.example.messageapp.core.TokenStorage
 import com.example.messageapp.domain.model.User
 import com.example.messageapp.domain.usecase.AppPreferencesUseCase
+import com.example.messageapp.domain.usecase.GetFriendsUseCase
+import com.example.messageapp.domain.usecase.GetNewsFeedUseCase
 import com.example.messageapp.domain.usecase.UpdateProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +20,9 @@ import javax.inject.Inject
 @HiltViewModel
 class AccountViewModel @Inject constructor(
     private val appPreferencesUseCase: AppPreferencesUseCase,
-    private val updateProfileUseCase: UpdateProfileUseCase
+    private val updateProfileUseCase: UpdateProfileUseCase,
+    private val getNewsFeedUseCase: GetNewsFeedUseCase,
+    private val getFriendsUseCase: GetFriendsUseCase
 ) : ViewModel() {
 
     private val _user = MutableStateFlow<User?>(null)
@@ -27,6 +31,12 @@ class AccountViewModel @Inject constructor(
     private val _saveResult = MutableStateFlow<String?>(null)
     val saveResult: StateFlow<String?> = _saveResult
 
+    private val _postCount = MutableStateFlow(0)
+    val postCount: StateFlow<Int> = _postCount
+
+    private val _friendCount = MutableStateFlow(0)
+    val friendCount: StateFlow<Int> = _friendCount
+
     fun loadUser() {
         viewModelScope.launch(Dispatchers.IO) {
             val name = appPreferencesUseCase.getString(ConstVariables.nameUser).first()
@@ -34,6 +44,16 @@ class AccountViewModel @Inject constructor(
             val token = appPreferencesUseCase.getString(ConstVariables.tokenJWT).first()
             TokenStorage.setToken(token)
             _user.value = User(name = name, userName = username, token = token)
+
+            val postsResult = getNewsFeedUseCase()
+            postsResult.getOrNull()?.let { posts ->
+                _postCount.value = posts.count { it.userNameAuthor == username }
+            }
+
+            val friendsResult = getFriendsUseCase(username)
+            friendsResult.getOrNull()?.let { friends ->
+                _friendCount.value = friends.size
+            }
         }
     }
 
@@ -53,8 +73,9 @@ class AccountViewModel @Inject constructor(
         }
     }
 
-    fun logout() {
-        viewModelScope.launch(Dispatchers.IO) {
+    suspend fun logout() {
+        // await-очистка ДО навигации, чтобы Welcome не прочитал старый токен (фикс H5)
+        kotlinx.coroutines.withContext(Dispatchers.IO) {
             appPreferencesUseCase.setString(ConstVariables.tokenJWT, "")
             appPreferencesUseCase.setString(ConstVariables.userName, "")
             appPreferencesUseCase.setString(ConstVariables.nameUser, "")

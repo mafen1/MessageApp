@@ -23,9 +23,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.net.URI
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
@@ -62,21 +62,29 @@ class SearchViewModel @Inject constructor(
         _isPollingStarted = true
         _currentUserName = userName
         _pollingJob = viewModelScope.launch(Dispatchers.IO) {
+            var lastNotifiedSenders = emptySet<String>()
             while (isActive) {
                 try {
                     val result = getFriendRequestsUseCase(userName)
                     if (result.isSuccess) {
                         val requests = result.getOrNull() ?: emptyList()
                         if (requests.isNotEmpty()) {
-                            val sender = requests.last().senderUserName
-                            logD("Polling: found friend request from $sender")
-                            _messageNotification.value = "Заявка от $sender"
+                            val senders = requests.map { it.senderUserName }.toSet()
+                            // показываем только если появились новые отправители, чтобы не спамить
+                            if (senders != lastNotifiedSenders) {
+                                lastNotifiedSenders = senders
+                                val sender = requests.last().senderUserName
+                                logD("Polling: found friend requests from $senders")
+                                _messageNotification.value = "Заявка от $sender"
+                            }
+                        } else {
+                            lastNotifiedSenders = emptySet()
                         }
                     }
                 } catch (e: Exception) {
                     Log.e("ListUserVM", "Polling error: ${e.message}")
                 }
-                delay(3000)
+                delay(3000.milliseconds)
             }
         }
     }
@@ -102,31 +110,13 @@ class SearchViewModel @Inject constructor(
     fun clearSearchResults() {
         _foundUsers.value = emptyList()
     }
-
-    fun searchUser(userName: String, currentUserName: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val user = searchUsersUseCase(userName)
-                val u = user.getOrThrow().firstOrNull()
-                if (u != null && u.userName != currentUserName) {
-                    _foundUsers.value = listOf(u)
-                } else {
-                    _foundUsers.value = emptyList()
-                }
-            } catch (e: Exception) {
-                Log.e("ListUserViewModel", "Error searching user", e)
-            }
-        }
-    }
-
     fun connectWebSocket(userName: String) {
-        logD("Connecting WebSocket for: $userName")
-        val token = runBlocking {
-            appPreference.getString(ConstVariables.tokenJWT).first()
-        }
-        val serverUri = URI("${BuildConfig.WS_URL}/friendMessage/$userName?token=$token")
         viewModelScope.launch(Dispatchers.IO) {
+            logD("Connecting WebSocket for: $userName")
+            val token = appPreference.getString(ConstVariables.tokenJWT).first()
+            val serverUri = URI("${BuildConfig.WS_URL}/friendMessage/$userName?token=$token")
             try {
+                _webSocketClient?.close()
                 val client = FriendWebSocketClient(serverUri) { message ->
                     logD("WebSocket received message: '$message'")
                     _messageNotification.value = message
@@ -140,17 +130,6 @@ class SearchViewModel @Inject constructor(
             }
         }
     }
-
-    fun sendMessage(message: String, user: String) {
-        _webSocketClient?.send(message)
-        logD(message)
-
-        viewModelScope.launch(Dispatchers.IO) {
-            _messageNotification.value = user
-        }
-        logD("$user kjfdhkjsfdhjkdsah")
-    }
-
     fun saveUserName(userName: String) {
         viewModelScope.launch(Dispatchers.IO) {
             appPreference.setString(ConstVariables.userName, userName)
@@ -186,6 +165,7 @@ class SearchViewModel @Inject constructor(
                 if (result.isSuccess) {
                     _friendRequestResult.value = "Заявка принята"
                     _pendingRequests.value = _pendingRequests.value - senderUsername
+                    _messageNotification.value = ""
                 } else {
                     _friendRequestResult.value = "Ошибка: ${result.exceptionOrNull()?.message}"
                 }
@@ -203,6 +183,7 @@ class SearchViewModel @Inject constructor(
                 if (result.isSuccess) {
                     _friendRequestResult.value = "Заявка отклонена"
                     _pendingRequests.value = _pendingRequests.value - senderUsername
+                    _messageNotification.value = ""
                 } else {
                     _friendRequestResult.value = "Ошибка: ${result.exceptionOrNull()?.message}"
                 }
@@ -217,6 +198,10 @@ class SearchViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             _webSocketClient?.close()
         }
+    }
+
+    fun resetMessageNotification() {
+        _messageNotification.value = ""
     }
 
     override fun onCleared() {

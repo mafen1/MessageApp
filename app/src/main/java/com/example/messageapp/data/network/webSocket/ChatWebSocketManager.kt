@@ -1,6 +1,5 @@
 package com.example.messageapp.data.network.webSocket
 
-import android.content.Context
 import android.util.Log
 import androidx.work.Constraints
 import androidx.work.NetworkType
@@ -9,19 +8,19 @@ import androidx.work.WorkManager
 import com.example.messageapp.data.local.db.dao.MessageDao
 import com.example.messageapp.data.local.db.dao.PendingMessageDao
 import com.example.messageapp.data.local.db.entity.PendingMessageEntity
-import com.example.messageapp.data.mapper.toDomain
 import com.example.messageapp.data.mapper.toEntity
+import com.example.messageapp.data.security.ChatKeyResolver
 import com.example.messageapp.domain.model.Message
 import com.example.messageapp.domain.model.MessageStatus
 import com.example.messageapp.domain.model.SocketState
 import com.example.messageapp.domain.repository.ChatSocketRepository
 import com.example.messageapp.domain.repository.SecurityRepository
-import com.example.messageapp.domain.security.Base64Codec
+import com.example.messageapp.domain.security.AesEngine
 import com.example.messageapp.domain.security.EncryptionManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,10 +45,10 @@ class ChatWebSocketManager @Inject constructor(
     private val workManager: WorkManager,
     private val encryptionManager: EncryptionManager,
     private val securityRepository: SecurityRepository,
-    private val base64Codec: Base64Codec
+    private val chatKeyResolver: ChatKeyResolver
 ) : ChatSocketRepository {
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _connectionState = MutableStateFlow<SocketState>(SocketState.Disconnected)
     override val connectionState: StateFlow<SocketState> = _connectionState.asStateFlow()
@@ -63,6 +62,7 @@ class ChatWebSocketManager @Inject constructor(
 
     private val reconnectDelays = listOf(1000L, 2000L, 4000L, 8000L, 30000L)
     private var reconnectAttempt = 0
+
     @Volatile
     private var isClosing = false
 
@@ -71,6 +71,11 @@ class ChatWebSocketManager @Inject constructor(
             _connectionState.value == SocketState.Authenticated
         ) {
             return
+        }
+
+        // пересоздаем scope если был отменён (фикс ENC после выхода)
+        if (!scope.isActive) {
+            scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         }
 
         isClosing = false
@@ -84,12 +89,15 @@ class ChatWebSocketManager @Inject constructor(
     override fun disconnect() {
         isClosing = true
         disconnectInternal()
-        scope.cancel()
+        scope.coroutineContext.cancelChildren()
     }
 
     override suspend fun sendMessage(message: Message) {
         val messageWithId = if (message.clientMessageId.isBlank()) {
-            message.copy(clientMessageId = UUID.randomUUID().toString(), status = MessageStatus.SENDING)
+            message.copy(
+                clientMessageId = UUID.randomUUID().toString(),
+                status = MessageStatus.SENDING
+            )
         } else {
             message.copy(status = MessageStatus.SENDING)
         }
@@ -110,7 +118,8 @@ class ChatWebSocketManager @Inject constructor(
 
         _connectionState.value = SocketState.Connecting
 
-        val uri = URI("${com.example.messageapp.BuildConfig.WS_URL}/chat/$currentUserName?token=$currentToken")
+        val uri =
+            URI("${com.example.messageapp.BuildConfig.WS_URL}/chat/$currentUserName?token=$currentToken")
         val newClient = object : WebSocketClient(uri) {
             override fun onOpen(handshakedata: ServerHandshake?) {
                 Log.d(TAG, "WebSocket opened")
@@ -123,7 +132,9 @@ class ChatWebSocketManager @Inject constructor(
             override fun onMessage(message: String?) {
                 message ?: return
                 Log.d(TAG, "Received: $message")
-                parseIncomingMessage(message)?.let { _messages.tryEmit(it) }
+                scope.launch {
+                    parseIncomingMessage(message)?.let { _messages.tryEmit(it) }
+                }
             }
 
             override fun onClose(code: Int, reason: String?, remote: Boolean) {
@@ -187,8 +198,11 @@ class ChatWebSocketManager @Inject constructor(
     private suspend fun drainPendingMessages() {
         val pending = pendingMessageDao.getAll()
         for (item in pending) {
-            val message = item.toDomain()
-            val chatId = chatId(message.senderUsername, message.recipientUsername)
+            val message = item.toDomain().copy(senderUsername = currentUserName)
+            val chatId = item.chatId.takeIf { it.isNotBlank() } ?: chatId(
+                message.senderUsername,
+                message.recipientUsername
+            )
             sendEncryptedFrame(message, chatId)
         }
     }
@@ -196,12 +210,24 @@ class ChatWebSocketManager @Inject constructor(
     private suspend fun sendEncryptedFrame(message: Message, chatId: String) {
         val client = client ?: return
 
-        val textToSend = if (ensureChatKey(chatId, message.recipientUsername)) {
-            encryptionManager.encrypt(chatId, message.text)
-        } else {
-            Log.w(TAG, "No chat key available, sending plaintext for ${message.clientMessageId}")
-            message.text
+        val ensured = try {
+            chatKeyResolver.ensure(chatId, message.recipientUsername, currentUserName)
+        } catch (e: Exception) {
+            Log.w(TAG, "ensureChatKey failed for ${message.clientMessageId}", e)
+            false
         }
+        if (!ensured) {
+            // plaintext-фолбэка нет: E2E либо работает, либо сообщение ждёт в очереди
+            Log.w(
+                TAG,
+                "No usable chat key for $chatId — queuing ${message.clientMessageId} (E2E enforced)"
+            )
+            pendingMessageDao.insert(message.toPendingEntity(chatId))
+            scheduleSendPendingMessages()
+            return
+        }
+
+        val textToSend = encryptionManager.encrypt(chatId, message.text)
 
         val frame = when (message.type) {
             "image" -> "to:${message.recipientUsername}:image:${message.clientMessageId}:$textToSend"
@@ -212,7 +238,8 @@ class ChatWebSocketManager @Inject constructor(
             if (client.isOpen) {
                 client.send(frame)
                 pendingMessageDao.delete(message.clientMessageId)
-                messageDao.insert(message.copy(status = MessageStatus.SENT).toEntity(chatId))
+                // атомарный апдейт статуса вместо REPLACE всей строки (фикс H4)
+                messageDao.updateStatus(message.clientMessageId, MessageStatus.SENT)
                 _messages.tryEmit(message.copy(status = MessageStatus.SENT))
             }
         } catch (e: Exception) {
@@ -220,46 +247,59 @@ class ChatWebSocketManager @Inject constructor(
         }
     }
 
-    private suspend fun ensureChatKey(chatId: String, recipientUsername: String): Boolean {
-        if (encryptionManager.hasChatKey(chatId)) return true
-
-        return try {
-            val wrappedForMe = securityRepository.getWrappedChatKey(chatId, currentUserName).getOrNull()
-            if (!wrappedForMe.isNullOrBlank()) {
-                encryptionManager.unwrapChatKey(chatId, base64Codec.decode(wrappedForMe))
-                return true
+    private suspend fun parseIncomingMessage(raw: String): Message? {
+        val baseMessage = parseBaseMessage(raw) ?: return null
+        // для нового формата с recipient используем оба, иначе fallback на currentUser
+        val chatId =
+            if (baseMessage.recipientUsername.isNotBlank() && baseMessage.recipientUsername != baseMessage.senderUsername) {
+                chatId(baseMessage.senderUsername, baseMessage.recipientUsername)
+            } else {
+                chatId(baseMessage.senderUsername, currentUserName)
             }
 
-            val recipientPublicKey = securityRepository.getPublicKey(recipientUsername).getOrThrow()
-            val wrappedForRecipient = encryptionManager.wrapChatKey(chatId, recipientPublicKey)
-            securityRepository.uploadWrappedChatKey(
-                chatId,
-                recipientUsername,
-                base64Codec.encode(wrappedForRecipient)
-            )
-            true
-        } catch (e: Exception) {
-            Log.w(TAG, "Failed to resolve chat key for $chatId", e)
-            false
+        val peer = if (baseMessage.isFromMe) {
+            baseMessage.recipientUsername.takeIf { it.isNotBlank() } ?: currentUserName
+        } else {
+            baseMessage.senderUsername
         }
-    }
 
-    private fun parseIncomingMessage(raw: String): Message? {
-        val baseMessage = parseBaseMessage(raw) ?: return null
-        val chatId = chatId(baseMessage.senderUsername, currentUserName)
-
-        val decryptedText = try {
-            encryptionManager.decrypt(chatId, baseMessage.text)
-        } catch (e: Exception) {
-            Log.w(TAG, "Failed to decrypt message from ${baseMessage.senderUsername}", e)
-            baseMessage.text
-        }
+        val decryptedText = decryptIncoming(chatId, peer, baseMessage.text)
 
         return baseMessage.copy(text = decryptedText)
     }
 
+    private suspend fun decryptIncoming(chatId: String, peer: String, text: String): String {
+        val firstPass = try {
+            encryptionManager.decrypt(chatId, text)
+        } catch (e: Exception) {
+            Log.w(TAG, "Decrypt failed for $chatId", e)
+            null
+        }
+        if (firstPass != null) return firstPass
+
+        // нешифрованный текст (legacy) — отдаём как есть
+        if (!text.startsWith(AesEngine.ENCRYPTED_PREFIX)) return text
+
+        // самолечение: серверная копия ключа приоритетнее локальной; при битой обёртке — ротация
+        val healed = try {
+            chatKeyResolver.ensure(chatId, peer, currentUserName, forceRefresh = true)
+        } catch (e: Exception) {
+            Log.w(TAG, "Key heal failed for $chatId", e)
+            false
+        }
+        if (healed) {
+            try {
+                return encryptionManager.decrypt(chatId, text)
+            } catch (e: Exception) {
+                Log.w(TAG, "Retry decrypt failed for $chatId", e)
+            }
+        }
+
+        return AesEngine.UNDECRYPTABLE_PLACEHOLDER
+    }
+
     private fun parseBaseMessage(raw: String): Message? {
-        val parts = raw.split(":", limit = 5)
+        val parts = raw.split(":", limit = 6)
         return when {
             parts.size >= 5 && parts[0] == "to" -> {
                 val sender = parts[1]
@@ -270,6 +310,44 @@ class ChatWebSocketManager @Inject constructor(
                     clientMessageId = clientId,
                     senderUsername = sender,
                     recipientUsername = currentUserName,
+                    text = text,
+                    isFromMe = sender == currentUserName,
+                    type = type,
+                    status = MessageStatus.DELIVERED
+                )
+            }
+
+            parts.size >= 6 -> {
+                // новый формат сервера с recipient: sender:recipient:type:clientId:text
+                val sender = parts[0]
+                val recipient = parts[1]
+                val type = parts[2]
+                val clientId = parts[3]
+                val text = parts[4]
+                // если текст содержал ":", он будет в parts[5] из-за limit 6 — склеиваем обратно
+                val fullText = if (parts.size > 5) text + ":" + parts[5] else text
+                Message(
+                    clientMessageId = clientId,
+                    senderUsername = sender,
+                    recipientUsername = recipient,
+                    text = fullText,
+                    isFromMe = sender == currentUserName,
+                    type = type,
+                    status = MessageStatus.DELIVERED
+                )
+            }
+
+            parts.size >= 5 -> {
+                // новый формат без проверки to: sender:recipient:type:clientId:text (5 частей)
+                val sender = parts[0]
+                val recipient = parts[1]
+                val type = parts[2]
+                val clientId = parts[3]
+                val text = parts[4]
+                Message(
+                    clientMessageId = clientId,
+                    senderUsername = sender,
+                    recipientUsername = recipient,
                     text = text,
                     isFromMe = sender == currentUserName,
                     type = type,
@@ -326,14 +404,18 @@ class ChatWebSocketManager @Inject constructor(
     }
 
     private fun scheduleSendPendingMessages() {
-        val request = OneTimeWorkRequestBuilder<SendPendingMessagesWorker>()
-            .setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build()
-            )
-            .build()
-        workManager.enqueue(request)
+        // unique work: не плодим параллельные воркеры (фикс M6/C1)
+        workManager.enqueueUniqueWork(
+            UNIQUE_PENDING_WORK_NAME,
+            androidx.work.ExistingWorkPolicy.KEEP,
+            OneTimeWorkRequestBuilder<SendPendingMessagesWorker>()
+                .setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build()
+                )
+                .build()
+        )
     }
 
     private fun chatId(user1: String, user2: String): String {
@@ -342,6 +424,7 @@ class ChatWebSocketManager @Inject constructor(
 
     companion object {
         private const val TAG = "ChatWebSocketManager"
+        private const val UNIQUE_PENDING_WORK_NAME = "send_pending_messages"
     }
 }
 

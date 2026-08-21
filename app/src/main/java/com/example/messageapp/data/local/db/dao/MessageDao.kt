@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.messageapp.data.local.db.entity.MessageEntity
+import com.example.messageapp.domain.model.MessageStatus
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -27,4 +28,8 @@ interface MessageDao {
 
     @Query("SELECT * FROM messages WHERE clientMessageId = :clientMessageId LIMIT 1")
     suspend fun getByClientId(clientMessageId: String): MessageEntity?
+
+    // атомарное обновление статуса без REPLACE всей строки (фикс H4)
+    @Query("UPDATE messages SET status = :status WHERE clientMessageId = :clientMessageId")
+    suspend fun updateStatus(clientMessageId: String, status: MessageStatus)
 }

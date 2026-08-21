@@ -21,6 +21,11 @@ class RsaEngineImpl @Inject constructor() : RsaEngine {
     }
 
     private companion object {
-        private const val TRANSFORMATION = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding"
+        // PKCS1 вместо OAEP: keymint на новых эмуляторах (API 33+) не даёт
+        // авторизовать MGF1-дайджест через KeyGenParameterSpec и OAEP-unwrap
+        // падает (INCOMPATIBLE_MGF_DIGEST / UNKNOWN_ERROR на finish).
+        // Обёртка статична (лежит на сервере), а не расшифровывается по оракулу,
+        // поэтому риски padding-oracle неприменимы
+        private const val TRANSFORMATION = "RSA/ECB/PKCS1Padding"
     }
 }

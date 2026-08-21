@@ -42,17 +42,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.messageapp.R
 import com.example.messageapp.domain.model.User
 import com.example.messageapp.ui.components.EmptyState
-import com.example.messageapp.ui.screen.search.SearchViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
     userName: String,
-    name: String,
-    onNavigateToChatList: (String, String) -> Unit,
-    onNavigateToNews: (String, String) -> Unit,
-    onNavigateToAccount: () -> Unit,
-    onNavigateToChat: (String, String) -> Unit,
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val foundUsers by viewModel.foundUser.collectAsStateWithLifecycle()
@@ -68,8 +62,10 @@ fun SearchScreen(
 
     DisposableEffect(Unit) {
         viewModel.saveUserName(userName)
+        viewModel.connectWebSocket(userName)
         viewModel.startPolling(userName)
         onDispose {
+            viewModel.disconnect()
             viewModel.stopPolling()
         }
     }
@@ -98,7 +94,10 @@ fun SearchScreen(
 
     pendingDialogUsername?.let { sender ->
         AlertDialog(
-            onDismissRequest = { pendingDialogUsername = null },
+            onDismissRequest = {
+                pendingDialogUsername = null
+                viewModel.resetMessageNotification()
+            },
             title = { Text(stringResource(id = R.string.titleNotification)) },
             text = { Text("Пользователь $sender хочет добавить вас в друзья") },
             confirmButton = {

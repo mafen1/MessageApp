@@ -35,6 +35,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,22 +49,23 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.messageapp.R
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountScreen(
     userName: String,
     name: String,
-    onNavigateToSearch: (String, String) -> Unit,
-    onNavigateToChatList: (String, String) -> Unit,
-    onNavigateToNews: (String, String) -> Unit,
     onLogout: () -> Unit,
     viewModel: AccountViewModel = hiltViewModel()
 ) {
     val user by viewModel.user.collectAsStateWithLifecycle()
     val saveResult by viewModel.saveResult.collectAsStateWithLifecycle()
+    val postCount by viewModel.postCount.collectAsStateWithLifecycle()
+    val friendCount by viewModel.friendCount.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     var editedName by remember { mutableStateOf(name) }
     var password by remember { mutableStateOf("") }
 
@@ -72,12 +74,19 @@ fun AccountScreen(
     }
 
     LaunchedEffect(user) {
-        user?.let { editedName = it.name }
+        // обновляем поле только если юзер ещё ничего не правил (фикс L8: не затирать ввод)
+        val loaded = user?.name
+        if (!loaded.isNullOrBlank() && editedName == name) {
+            editedName = loaded
+        }
     }
 
     LaunchedEffect(saveResult) {
         saveResult?.let {
             snackbarHostState.showSnackbar(it)
+            if (it == "Профиль сохранён") {
+                password = ""
+            }
             viewModel.resetSaveResult()
         }
     }
@@ -142,8 +151,8 @@ fun AccountScreen(
                         .padding(20.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    StatColumn(value = "0", label = stringResource(id = R.string.account_friends))
-                    StatColumn(value = "0", label = stringResource(id = R.string.account_posts))
+                    StatColumn(value = friendCount.toString(), label = stringResource(id = R.string.account_friends))
+                    StatColumn(value = postCount.toString(), label = stringResource(id = R.string.account_posts))
                 }
             }
 
@@ -190,8 +199,10 @@ fun AccountScreen(
 
             OutlinedButton(
                 onClick = {
-                    viewModel.logout()
-                    onLogout()
+                    scope.launch {
+                        viewModel.logout()
+                        onLogout()
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()

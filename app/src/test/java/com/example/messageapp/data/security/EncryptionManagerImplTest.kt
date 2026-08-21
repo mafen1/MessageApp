@@ -105,6 +105,29 @@ class EncryptionManagerImplTest {
     }
 
     @Test
+    fun `tryUnwrapChatKey returns key without saving and null on foreign wrap`() {
+        val senderStore = FakeLocalKeyStore()
+
+        val sender = EncryptionManagerImpl(
+            localKeyStore = senderStore,
+            chatKeyStorage = FakeChatKeyStorage(),
+            aesEngine = AesEngineImpl(base64Codec),
+            rsaEngine = RsaEngineImpl()
+        )
+
+        val chatKey = sender.getOrCreateChatKey("chat_1")
+        val wrappedForMe = sender.wrapChatKey("chat_1", manager.getLocalPublicKey())
+
+        // чужая обёртка не открывается -> null, ничего не сохранено
+        assertEquals(null, manager.tryUnwrapChatKey(sender.wrapChatKey("chat_1", FakeLocalKeyStore().getPublicKey())))
+        assertEquals(false, manager.hasChatKey("chat_1"))
+
+        // своя обёртка разворачивается без сохранения в хранилище
+        assertArrayEquals(chatKey, manager.tryUnwrapChatKey(wrappedForMe))
+        assertEquals(false, manager.hasChatKey("chat_1"))
+    }
+
+    @Test
     fun `getLocalPublicKey returns stable public key`() {
         val first = manager.getLocalPublicKey()
         val second = manager.getLocalPublicKey()
@@ -120,6 +143,10 @@ class EncryptionManagerImplTest {
 
         override fun saveChatKey(chatId: String, key: ByteArray) {
             keys[chatId] = key.copyOf()
+        }
+
+        override fun deleteChatKey(chatId: String) {
+            keys.remove(chatId)
         }
     }
 

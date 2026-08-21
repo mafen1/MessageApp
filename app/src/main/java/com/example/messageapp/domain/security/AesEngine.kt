@@ -6,5 +6,6 @@ interface AesEngine {
 
     companion object {
         const val ENCRYPTED_PREFIX = "ENC:"
+        const val UNDECRYPTABLE_PLACEHOLDER = "🔒 Зашифрованное сообщение"
     }
 }

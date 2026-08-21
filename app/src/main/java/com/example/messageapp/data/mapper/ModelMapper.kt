@@ -8,7 +8,6 @@ import com.example.messageapp.data.network.model.MessageResponse
 import com.example.messageapp.data.network.model.NewsResponse
 import com.example.messageapp.data.network.model.NewsRequest
 import com.example.messageapp.data.network.model.FriendRequest as FriendRequestDto
-import com.example.messageapp.domain.model.MessageStatus
 import com.example.messageapp.domain.model.User
 import com.example.messageapp.domain.model.UserCredentials
 import com.example.messageapp.domain.model.LoggedInUser
@@ -22,15 +21,6 @@ fun UserDto.toDomain(): User = User(
     userName = userName,
     friends = friend ?: emptyList(),
     token = token
-)
-
-fun User.toDto(): UserDto = UserDto(
-    id = id,
-    name = name,
-    userName = userName,
-    friend = friends,
-    token = token,
-    password = null
 )
 
 fun UserResponse.toDomain(): User = User(
@@ -65,6 +55,8 @@ fun LoginResponse.toDomain(): LoggedInUser = LoggedInUser(
 
 fun MessageResponse.toDomain(currentUser: String): Message = Message(
     id = id,
+    // детерминированный id из серверного PK — дедупликация истории при повторных загрузках (фикс H3)
+    clientMessageId = "srv-$id",
     senderUsername = senderUsername,
     recipientUsername = recipientUsername,
     text = message,

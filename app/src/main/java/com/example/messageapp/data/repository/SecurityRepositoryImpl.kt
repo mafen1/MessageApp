@@ -2,11 +2,13 @@ package com.example.messageapp.data.repository
 
 import android.util.Log
 import com.example.messageapp.data.network.api.service.ApiService
+import com.example.messageapp.data.network.model.PublishChatKeysRequest
 import com.example.messageapp.data.network.model.PublicKeyRequest
-import com.example.messageapp.data.network.model.WrappedKeyRequest
+import com.example.messageapp.data.network.model.WrappedKeyEntry
 import com.example.messageapp.domain.repository.SecurityRepository
 import com.example.messageapp.domain.security.Base64Codec
 import com.example.messageapp.domain.security.EncryptionManager
+import com.example.messageapp.domain.security.WrappedKeyCopy
 import java.security.PublicKey
 import java.security.spec.X509EncodedKeySpec
 import javax.inject.Inject
@@ -31,23 +33,29 @@ class SecurityRepositoryImpl @Inject constructor(
         keyFactory.generatePublic(X509EncodedKeySpec(bytes))
     }
 
-    override suspend fun uploadWrappedChatKey(
+    override suspend fun publishWrappedChatKeys(
         chatId: String,
-        recipientUsername: String,
-        wrappedKey: String
-    ): Result<Unit> = safeCall {
-        apiService.uploadWrappedChatKey(
-            WrappedKeyRequest(chatId, recipientUsername, wrappedKey)
-        )
+        entries: Map<String, String>
+    ): Result<Long> = safeCall {
+        apiService.publishWrappedChatKeys(
+            PublishChatKeysRequest(
+                chatId = chatId,
+                entries = entries.map { (recipient, wrapped) -> WrappedKeyEntry(recipient, wrapped) }
+            )
+        ).version
     }
 
-    override suspend fun getWrappedChatKey(chatId: String, recipientUsername: String): Result<String> = safeCall {
-        apiService.getWrappedChatKey(chatId, recipientUsername).wrappedKey
+    override suspend fun getWrappedChatKey(chatId: String, recipientUsername: String): Result<WrappedKeyCopy> = safeCall {
+        val response = apiService.getWrappedChatKey(chatId, recipientUsername)
+        WrappedKeyCopy(wrappedKey = response.wrappedKey, version = response.version)
     }
 
     private suspend fun <T> safeCall(call: suspend () -> T): Result<T> {
         return try {
             Result.success(call())
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            // не глотаем отмену корутины (фикс M11)
+            throw e
         } catch (e: Exception) {
             Log.e("SecurityRepository", "Security operation failed", e)
             Result.failure(e)

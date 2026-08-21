@@ -19,7 +19,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AttachFile
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,13 +49,11 @@ import coil3.compose.AsyncImage
 import com.example.messageapp.domain.model.Message
 import com.example.messageapp.domain.model.SocketState
 import com.example.messageapp.ui.components.imageUrl
-import com.example.messageapp.ui.screen.chat.ChatViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
     currentUserName: String,
-    currentName: String,
     otherUserName: String,
     otherName: String,
     onNavigateBack: () -> Unit,
@@ -73,7 +70,17 @@ fun ChatScreen(
     val context = LocalContext.current
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
-            val bytes = context.contentResolver.openInputStream(it)?.use { stream -> stream.readBytes() } ?: return@let
+            // ограничиваем размер, чтобы не упасть по OOM на больших фото
+            val bytes = context.contentResolver.openInputStream(it)?.use { stream ->
+                val chunk = ByteArray(MAX_IMAGE_BYTES + 1)
+                var total = 0
+                while (total <= MAX_IMAGE_BYTES) {
+                    val read = stream.read(chunk, total, chunk.size - total)
+                    if (read <= 0) break
+                    total += read
+                }
+                if (total > MAX_IMAGE_BYTES) null else chunk.copyOf(total)
+            } ?: return@let
             viewModel.sendImageMessage(otherUserName, bytes)
         }
     }
@@ -92,7 +99,6 @@ fun ChatScreen(
     }
 
     DisposableEffect(currentUserName, otherUserName) {
-        viewModel.findUser()
         viewModel.connect(currentUserName)
         viewModel.loadMessageHistory(currentUserName, otherUserName)
         onDispose {
@@ -179,7 +185,7 @@ fun ChatScreen(
                     .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(messages, key = { it.hashCode() }) { message ->
+                items(messages, key = { it.clientMessageId.ifBlank { "idx-${it.hashCode()}" } }) { message ->
                     ChatBubble(message = message)
                 }
             }
@@ -241,3 +247,5 @@ private fun ChatBubble(
         }
     }
 }
+
+private const val MAX_IMAGE_BYTES = 10 * 1024 * 1024 // 10 MB

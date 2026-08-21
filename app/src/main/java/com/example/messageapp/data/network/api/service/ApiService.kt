@@ -109,8 +109,8 @@ interface ApiService {
     @GET("/keys/{username}")
     suspend fun getPublicKey(@Path("username") username: String): com.example.messageapp.data.network.model.PublicKeyResponse
 
-    @POST("/chat-keys")
-    suspend fun uploadWrappedChatKey(@Body request: com.example.messageapp.data.network.model.WrappedKeyRequest)
+    @POST("/chat-keys/publish")
+    suspend fun publishWrappedChatKeys(@Body request: com.example.messageapp.data.network.model.PublishChatKeysRequest): com.example.messageapp.data.network.model.PublishChatKeysResponse
 
     @GET("/chat-keys/{chatId}")
     suspend fun getWrappedChatKey(

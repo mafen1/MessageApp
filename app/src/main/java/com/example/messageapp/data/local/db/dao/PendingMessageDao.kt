@@ -12,7 +12,8 @@ interface PendingMessageDao {
     @Query("SELECT * FROM pending_messages ORDER BY createdAt ASC")
     suspend fun getAll(): List<PendingMessageEntity>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    // IGNORE: не затираем существующую строку, чтобы не сбрасывать retryCount (фикс C2)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(message: PendingMessageEntity)
 
     @Query("DELETE FROM pending_messages WHERE clientMessageId = :clientMessageId")

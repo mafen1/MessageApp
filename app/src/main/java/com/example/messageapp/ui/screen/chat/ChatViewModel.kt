@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -38,10 +37,6 @@ class ChatViewModel @Inject constructor(
 
     private val _user: MutableStateFlow<User?> = MutableStateFlow(null)
     val user: StateFlow<User?> = _user
-
-    private val _messageText: MutableStateFlow<String> = MutableStateFlow("")
-    val messageText: StateFlow<String> = _messageText
-
     private val _messageList: MutableStateFlow<List<Message>> = MutableStateFlow(emptyList())
     val messageList: StateFlow<List<Message>> = _messageList
 
@@ -69,36 +64,42 @@ class ChatViewModel @Inject constructor(
     }
 
     fun connect(userName: String) {
-        currentUserName = userName
-        val token = runBlocking {
-            appPreference.getString(ConstVariables.tokenJWT).first()
+        viewModelScope.launch(Dispatchers.IO) {
+            currentUserName = userName
+            val token = appPreference.getString(ConstVariables.tokenJWT).first()
+            chatSocketRepository.connect(userName, token)
         }
-        chatSocketRepository.connect(userName, token)
     }
 
     fun disconnect() {
         chatSocketRepository.disconnect()
     }
 
-    suspend fun findUserName(): String {
-        return withContext(Dispatchers.IO) {
-            appPreference.getString(ConstVariables.userName).first()
-        }
-    }
-
     fun updateMessageList(message: Message) {
         _messageList.update { currentList ->
-            val filtered = currentList.filter { it.clientMessageId.isBlank() || it.clientMessageId != message.clientMessageId }
-            val newList = filtered + message
-            saveMessage(message)
-            newList
+            val filtered = currentList.filter { existing ->
+                when {
+                    // точный дедуп по id
+                    message.clientMessageId.isNotBlank() && existing.clientMessageId == message.clientMessageId -> false
+                    // вытесняем stale blank-id оптимистичную заглушку тем же содержимым (фикс дублей у отправителя)
+                    existing.clientMessageId.isBlank() && message.isFromMe &&
+                        existing.text == message.text &&
+                        existing.recipientUsername == message.recipientUsername -> false
+                    else -> true
+                }
+            }
+            filtered + message
         }
+        saveMessage(message)
     }
 
     private fun saveMessage(message: Message) {
-        if (currentUserName.isBlank() || activePeerUserName.isBlank()) return
+        if (currentUserName.isBlank()) return
+        val other = if (message.isFromMe) message.recipientUsername else message.senderUsername
+        val peer = other.takeIf { it.isNotBlank() } ?: activePeerUserName
+        if (peer.isBlank()) return
         viewModelScope.launch(Dispatchers.IO) {
-            saveMessageUseCase(message, chatId(currentUserName, activePeerUserName))
+            saveMessageUseCase(message, chatId(currentUserName, peer))
         }
     }
 
@@ -125,6 +126,7 @@ class ChatViewModel @Inject constructor(
     fun sendTextMessage(targetUsername: String, text: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val message = Message(
+                clientMessageId = java.util.UUID.randomUUID().toString(),
                 senderUsername = currentUserName,
                 recipientUsername = targetUsername,
                 text = text,
@@ -142,6 +144,7 @@ class ChatViewModel @Inject constructor(
             val response = uploadChatImageUseCase(imageBytes)
             val fileName = response.getOrNull() ?: return@launch
             val message = Message(
+                clientMessageId = java.util.UUID.randomUUID().toString(),
                 senderUsername = currentUserName,
                 recipientUsername = targetUsername,
                 text = fileName,
@@ -162,17 +165,6 @@ class ChatViewModel @Inject constructor(
 
     private fun chatId(user1: String, user2: String): String {
         return listOf(user1, user2).sorted().joinToString("__")
-    }
-
-    fun findUser() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                _user.value = null
-            } catch (e: Exception) {
-                Log.e("ChatVM", "Error finding current user", e)
-                _error.value = "Error finding user: ${e.message}"
-            }
-        }
     }
 
     fun resetError() {
