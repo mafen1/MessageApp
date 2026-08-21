@@ -189,7 +189,6 @@ fun MessageAppNavHost(
                 val args = backStackEntry.toRoute<ChatRoute>()
                 ChatScreen(
                     currentUserName = args.currentUserName,
-                    currentName = args.currentName,
                     otherUserName = args.otherUserName,
                     otherName = args.otherName,
                     onNavigateBack = { navController.popBackStack() }
