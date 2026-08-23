@@ -1,10 +1,16 @@
-# MESSAGEAPP
+# MessageApp — Android-мессенджер с E2E-шифрованием
 
-Android-приложение для обмена сообщениями, разработанное на **Kotlin**.
+![Kotlin](https://img.shields.io/badge/Kotlin-2.1-7F52FF?style=flat-square&logo=kotlin&logoColor=white)
+![Platform](https://img.shields.io/badge/Android-minSdk%2024-3DDC84?style=flat-square&logo=android&logoColor=white)
+![UI](https://img.shields.io/badge/UI-Jetpack_Compose-4285F4?style=flat-square&logo=jetpackcompose&logoColor=white)
+![Tests](https://img.shields.io/badge/tests-26%20unit%20%2B%205%20integration-25A162?style=flat-square&logo=junit5&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-yellow?style=flat-square)
+
+Полноценный мессенджер на Kotlin: сквозное шифрование переписки (AES-GCM + RSA в Android Keystore), real-time чат поверх WebSocket, offline-first через Room и WorkManager. Собственный backend — [ServerMessage](https://github.com/mafen1/ServerMessage) (Ktor, PostgreSQL, Docker).
 
 ## 📱 Описание
 
-MESSAGEAPP — это клиентское Android-приложение для отправки и получения сообщений. Проект реализует базовый функционал мессенджера с интуитивным интерфейсом.
+MessageApp — клиентское Android-приложение мессенджера: личные чаты с E2E-шифрованием, друзья и заявки, лента новостей с лайками и комментариями, статусы доставки сообщений и устойчивость к потере сети.
 
 ## 🚀 Технологии
 
@@ -50,7 +56,7 @@ MESSAGEAPP — это клиентское Android-приложение для �
 1. Клонируйте репозиторий:
 
 ```bash
-git clone https://github.com/mafen1/MESSAGEAPP.git
+git clone https://github.com/mafen1/MessageApp.git
 ```
 
 2. Откройте проект в Android Studio
@@ -84,15 +90,18 @@ MESSAGEAPP/
 
 - **ServerMessage** — backend-сервер мессенджера (Ktor, PostgreSQL, Docker): [github.com/mafen1/ServerMessage](https://github.com/mafen1/ServerMessage)
 
-## 📈 Возможности для расширения
+## 📈 Roadmap
 
-- [x] Поддержка отправки изображений и файлов
-- [ ] Уведомления о новых сообщениях
-- [x] Светлая и тёмная тема в тёмно-синих тонах
-- [x] Кэширование сообщений локально (Room)
-- [x] Статусы сообщений (отправлено, доставлено) — осталось «прочитано»
-- [x] Unit-тесты (ViewModel, репозитории, E2E-шифрование)
-- [ ] UI-тесты
+- [x] Отправка текстовых сообщений и изображений
+- [x] E2E-шифрование чатов с ротацией ключей (версии эпох на сервере)
+- [x] Offline-first: кэш Room + очередь отправки через WorkManager
+- [x] Статусы сообщений: отправляется / отправлено / доставлено / не доставлено
+- [x] Экран заявок в друзья с бейджем-счётчиком
+- [x] Pull-to-refresh и автообновление ленты новостей
+- [x] Unit-тесты (шифрование, репозитории, ViewModel) и интеграционные тесты API
+- [ ] Уведомления о новых сообщениях (foreground service)
+- [ ] Статус «прочитано» (read-receipts)
+- [ ] UI-тесты на Compose
 
 ## 📸 Скриншоты
 
