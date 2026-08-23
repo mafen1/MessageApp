@@ -96,25 +96,38 @@ MESSAGEAPP/
 
 ## 📸 Скриншоты
 
-> Добавьте скриншоты приложения в папку `screenshots/`
-> 
-> ![Скриншот 1](screenshots/1.png)
-> ![Скриншот 2](screenshots/2.png)
-> ![Скриншот 3](screenshots/3.png)
-> ![Скриншот 4](screenshots/4.png)
-> ![Скриншот 5](screenshots/5.png)
-> ![Скриншот 6](screenshots/6.png)
-> ![Скриншот 7](screenshots/7.png)
-> ![Скриншот 8](screenshots/8.png)
-> ![Скриншот 9](screenshots/9.png)
-> ![Скриншот 10](screenshots/10.png)
-> ![Скриншот 11](screenshots/11.png)
-> ![Скриншот 12](screenshots/12.png)
-> ![Скриншот 13](screenshots/13.png)
-> ![Скриншот 14](screenshots/14.png)
-> ![Скриншот 15](screenshots/15.png)
-> ![Скриншот 16](screenshots/16.png)
-> ![Скриншот 17](screenshots/17.png)
+<table>
+  <tr>
+    <td><img src="screenshots/1.png" width="260"/></td>
+    <td><img src="screenshots/2.png" width="260"/></td>
+    <td><img src="screenshots/3.png" width="260"/></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/4.png" width="260"/></td>
+    <td><img src="screenshots/5.png" width="260"/></td>
+    <td><img src="screenshots/6.png" width="260"/></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/7.png" width="260"/></td>
+    <td><img src="screenshots/8.png" width="260"/></td>
+    <td><img src="screenshots/9.png" width="260"/></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/10.png" width="260"/></td>
+    <td><img src="screenshots/11.png" width="260"/></td>
+    <td><img src="screenshots/12.png" width="260"/></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/13.png" width="260"/></td>
+    <td><img src="screenshots/14.png" width="260"/></td>
+  </tr>
+
+ <tr>
+    <td><img src="screenshots/15.png" width="260"/></td>
+    <td><img src="screenshots/16.png" width="260"/></td>
+    <td><img src="screenshots/17.png" width="260"/></td>
+ </tr>
+</table>
 
 ## 👨‍💻 Автор
 
