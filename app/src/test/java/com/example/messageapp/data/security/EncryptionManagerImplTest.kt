@@ -148,6 +148,10 @@ class EncryptionManagerImplTest {
         override fun deleteChatKey(chatId: String) {
             keys.remove(chatId)
         }
+
+        override fun clear() {
+            keys.clear()
+        }
     }
 
     private class FakeLocalKeyStore : LocalKeyStore {

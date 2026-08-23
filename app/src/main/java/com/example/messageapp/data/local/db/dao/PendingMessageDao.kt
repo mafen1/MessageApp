@@ -21,4 +21,7 @@ interface PendingMessageDao {
 
     @Query("UPDATE pending_messages SET retryCount = retryCount + 1 WHERE clientMessageId = :clientMessageId")
     suspend fun incrementRetry(clientMessageId: String)
+
+    @Query("DELETE FROM pending_messages")
+    suspend fun clearAll()
 }

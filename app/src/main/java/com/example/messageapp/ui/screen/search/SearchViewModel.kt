@@ -62,24 +62,26 @@ class SearchViewModel @Inject constructor(
         _isPollingStarted = true
         _currentUserName = userName
         _pollingJob = viewModelScope.launch(Dispatchers.IO) {
-            var lastNotifiedSenders = emptySet<String>()
+            // все отправители, которые уже показывались в уведомлении:
+            // защищает от повторного диалога по той же заявке каждые N секунд
+            var knownSenders = emptySet<String>()
             while (isActive) {
                 try {
                     val result = getFriendRequestsUseCase(userName)
                     if (result.isSuccess) {
                         val requests = result.getOrNull() ?: emptyList()
-                        if (requests.isNotEmpty()) {
-                            val senders = requests.map { it.senderUserName }.toSet()
-                            // показываем только если появились новые отправители, чтобы не спамить
-                            if (senders != lastNotifiedSenders) {
-                                lastNotifiedSenders = senders
-                                val sender = requests.last().senderUserName
-                                logD("Polling: found friend requests from $senders")
-                                _messageNotification.value = "Заявка от $sender"
+                        val senders = requests.map { it.senderUserName }.toSet()
+                        val fresh = senders - knownSenders
+                        when {
+                            fresh.isNotEmpty() -> {
+                                logD("Polling: new friend requests from $fresh")
+                                _messageNotification.value = "Заявка от ${requests.last().senderUserName}"
                             }
-                        } else {
-                            lastNotifiedSenders = emptySet()
+                            // заявок больше нет — убираем зависшее уведомление
+                            senders.isEmpty() && _messageNotification.value.startsWith("Заявка от") ->
+                                _messageNotification.value = ""
                         }
+                        knownSenders = if (senders.isEmpty()) emptySet() else knownSenders + senders
                     }
                 } catch (e: Exception) {
                     Log.e("ListUserVM", "Polling error: ${e.message}")
@@ -114,10 +116,14 @@ class SearchViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             logD("Connecting WebSocket for: $userName")
             val token = appPreference.getString(ConstVariables.tokenJWT).first()
-            val serverUri = URI("${BuildConfig.WS_URL}/friendMessage/$userName?token=$token")
+            val serverUri = URI("${BuildConfig.WS_URL}/friendMessage/$userName")
             try {
                 _webSocketClient?.close()
-                val client = FriendWebSocketClient(serverUri) { message ->
+                // токен передаём заголовком, а не в query-параметрах (не попадает в логи)
+                val client = FriendWebSocketClient(
+                    serverUri,
+                    mapOf("Authorization" to "Bearer $token")
+                ) { message ->
                     logD("WebSocket received message: '$message'")
                     _messageNotification.value = message
                     logD("messageNotification updated to: '$message'")

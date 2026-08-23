@@ -48,3 +48,9 @@ data class AccountRoute(
     val userName: String,
     val name: String
 )
+
+@Serializable
+data class FriendRequestsRoute(
+    val userName: String,
+    val name: String
+)

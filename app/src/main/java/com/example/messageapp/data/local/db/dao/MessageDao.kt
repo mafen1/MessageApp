@@ -32,4 +32,7 @@ interface MessageDao {
     // атомарное обновление статуса без REPLACE всей строки (фикс H4)
     @Query("UPDATE messages SET status = :status WHERE clientMessageId = :clientMessageId")
     suspend fun updateStatus(clientMessageId: String, status: MessageStatus)
+
+    @Query("DELETE FROM messages")
+    suspend fun clearAll()
 }

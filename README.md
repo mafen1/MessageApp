@@ -9,32 +9,41 @@ MESSAGEAPP — это клиентское Android-приложение для �
 ## 🚀 Технологии
 
 - **Kotlin** — основной язык
-- **Android SDK** — платформа
-- **Jetpack Compose** — декларативный UI
-- **Compose Navigation** — навигация между экранами
+- **Jetpack Compose** — декларативный UI + type-safe Navigation
 - **Material Design 3** — компоненты и темизация
 - **Hilt** — внедрение зависимостей
+- **MVVM / Clean Architecture** — слои data/domain/ui
+- **Room** — offline-first кэш сообщений и очередь отправки (outbox)
+- **WorkManager** — синхронизация неотправленных сообщений при возврате сети
+- **WebSocket** (java-websocket) — real-time чат с авто-reconnect и backoff
+- **Retrofit / OkHttp** — REST API
+- **DataStore** — хранение настроек и сессии
+- **Coroutines / Flow / StateFlow** — асинхронность
+- **E2E-шифрование**: AES-GCM + RSA (Android Keystore), ключи чатов с версионированием эпох
 - **Coil** — загрузка изображений
+- **LeakCanary, MockWebServer, JUnit + Mockito** — отладка и тестирование
 - **Gradle (Kotlin DSL)** — система сборки
 - **Android Studio / IntelliJ IDEA** — среда разработки
 
 ## 📋 Функциональность
 
 - Отправка текстовых сообщений и изображений
-- Сквозное (E2E) шифрование чатов: AES-GCM для сообщений, RSA-обёртка ключей с версионированием эпох на сервере
+- Сквозное (E2E) шифрование чатов: AES-GCM для сообщений, RSA-обёртка ключей с версионированием эпох на сервере — [архитектурная документация](docs/ARCHITECTURE.md)
 - Список чатов, друзья и заявки в друзья
 - Лента новостей с лайками и комментариями
 - Оффлайн-режим: локальный кэш (Room) и очередь неотправленных сообщений (WorkManager)
-- Статусы сообщений (отправлено / доставлено)
-- Современный Material Design интерфейс
+- Статусы сообщений (отправлено / доставлено), дедупликация по clientMessageId
+- Автоматический реконнект WebSocket с экспоненциальной задержкой
 
 ## 🛠 Установка и запуск
 
 ### Требования
 
-- Android Studio Arctic Fox или новее
+- Android Studio Hedgehog или новее
 - JDK 11+
-- Android SDK 21+ (Android 5.0)
+- Android SDK 24+ (Android 7.0)
+
+Запуск сервера — см. репозиторий [ServerMessage](https://github.com/mafen1/ServerMessage) (`docker compose up --build`). По умолчанию debug-сборка обращается к `http://10.0.2.2:8081` (эмулятор → localhost).
 
 ### Запуск проекта
 
@@ -73,7 +82,7 @@ MESSAGEAPP/
 
 ## 🔗 Связанные проекты
 
-- **SERVERMESSAGE** — backend-сервер для обмена сообщениями: [github.com/mafen1/SERVERMESSAGE](https://github.com/mafen1/SERVERMESSAGE)
+- **ServerMessage** — backend-сервер мессенджера (Ktor, PostgreSQL, Docker): [github.com/mafen1/ServerMessage](https://github.com/mafen1/ServerMessage)
 
 ## 📈 Возможности для расширения
 
@@ -103,6 +112,9 @@ MESSAGEAPP/
 > ![Скриншот 12](screenshots/12.png)
 > ![Скриншот 13](screenshots/13.png)
 > ![Скриншот 14](screenshots/14.png)
+> ![Скриншот 15](screenshots/15.png)
+> ![Скриншот 16](screenshots/16.png)
+> ![Скриншот 17](screenshots/17.png)
 
 ## 👨‍💻 Автор
 

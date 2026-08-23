@@ -5,6 +5,7 @@ import androidx.work.Constraints
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.messageapp.core.buildChatId
 import com.example.messageapp.data.local.db.dao.MessageDao
 import com.example.messageapp.data.local.db.dao.PendingMessageDao
 import com.example.messageapp.data.local.db.entity.PendingMessageEntity
@@ -66,10 +67,16 @@ class ChatWebSocketManager @Inject constructor(
     @Volatile
     private var isClosing = false
 
+    /** clientMessageId, находящиеся в отправке прямо сейчас (дедуп drain + воркер). */
+    private val inFlightMessageIds: MutableSet<String> =
+        java.util.Collections.newSetFromMap(java.util.concurrent.ConcurrentHashMap<String, Boolean>())
+
     override fun connect(userName: String, token: String) {
         if (currentUserName == userName && currentToken == token &&
-            _connectionState.value == SocketState.Authenticated
+            (_connectionState.value == SocketState.Authenticated ||
+                _connectionState.value == SocketState.Connecting)
         ) {
+            // уже подключены или идёт подключение с теми же кредами — не рвём попытку
             return
         }
 
@@ -102,7 +109,7 @@ class ChatWebSocketManager @Inject constructor(
             message.copy(status = MessageStatus.SENDING)
         }
 
-        val chatId = chatId(message.senderUsername, message.recipientUsername)
+        val chatId = buildChatId(message.senderUsername, message.recipientUsername)
         messageDao.insert(messageWithId.toEntity(chatId))
 
         if (_connectionState.value == SocketState.Authenticated) {
@@ -118,9 +125,12 @@ class ChatWebSocketManager @Inject constructor(
 
         _connectionState.value = SocketState.Connecting
 
-        val uri =
-            URI("${com.example.messageapp.BuildConfig.WS_URL}/chat/$currentUserName?token=$currentToken")
-        val newClient = object : WebSocketClient(uri) {
+        // токен передаём заголовком, а не в query-параметрах (не попадает в логи)
+        val uri = URI("${com.example.messageapp.BuildConfig.WS_URL}/chat/$currentUserName")
+        val newClient = object : WebSocketClient(
+            uri,
+            mapOf("Authorization" to "Bearer $currentToken")
+        ) {
             override fun onOpen(handshakedata: ServerHandshake?) {
                 Log.d(TAG, "WebSocket opened")
                 _connectionState.value = SocketState.Authenticated
@@ -133,7 +143,12 @@ class ChatWebSocketManager @Inject constructor(
                 message ?: return
                 Log.d(TAG, "Received: $message")
                 scope.launch {
-                    parseIncomingMessage(message)?.let { _messages.tryEmit(it) }
+                    parseIncomingMessage(message)?.let { parsed ->
+                        // сохраняем каждое входящее в Room сразу, а не только открытое в чате,
+                        // иначе переписка вне активного экрана терялась
+                        messageDao.insert(parsed.message.toEntity(parsed.chatId))
+                        _messages.tryEmit(parsed.message)
+                    }
                 }
             }
 
@@ -199,7 +214,7 @@ class ChatWebSocketManager @Inject constructor(
         val pending = pendingMessageDao.getAll()
         for (item in pending) {
             val message = item.toDomain().copy(senderUsername = currentUserName)
-            val chatId = item.chatId.takeIf { it.isNotBlank() } ?: chatId(
+            val chatId = item.chatId.takeIf { it.isNotBlank() } ?: buildChatId(
                 message.senderUsername,
                 message.recipientUsername
             )
@@ -210,51 +225,57 @@ class ChatWebSocketManager @Inject constructor(
     private suspend fun sendEncryptedFrame(message: Message, chatId: String) {
         val client = client ?: return
 
-        val ensured = try {
-            chatKeyResolver.ensure(chatId, message.recipientUsername, currentUserName)
-        } catch (e: Exception) {
-            Log.w(TAG, "ensureChatKey failed for ${message.clientMessageId}", e)
-            false
-        }
-        if (!ensured) {
-            // plaintext-фолбэка нет: E2E либо работает, либо сообщение ждёт в очереди
-            Log.w(
-                TAG,
-                "No usable chat key for $chatId — queuing ${message.clientMessageId} (E2E enforced)"
-            )
-            pendingMessageDao.insert(message.toPendingEntity(chatId))
-            scheduleSendPendingMessages()
-            return
-        }
-
-        val textToSend = encryptionManager.encrypt(chatId, message.text)
-
-        val frame = when (message.type) {
-            "image" -> "to:${message.recipientUsername}:image:${message.clientMessageId}:$textToSend"
-            else -> "to:${message.recipientUsername}:text:${message.clientMessageId}:$textToSend"
-        }
-
+        // защита от параллельной отправки одного сообщения (drain при onOpen + воркер)
+        if (!inFlightMessageIds.add(message.clientMessageId)) return
         try {
-            if (client.isOpen) {
-                client.send(frame)
-                pendingMessageDao.delete(message.clientMessageId)
-                // атомарный апдейт статуса вместо REPLACE всей строки (фикс H4)
-                messageDao.updateStatus(message.clientMessageId, MessageStatus.SENT)
-                _messages.tryEmit(message.copy(status = MessageStatus.SENT))
+            val ensured = try {
+                chatKeyResolver.ensure(chatId, message.recipientUsername, currentUserName)
+            } catch (e: Exception) {
+                Log.w(TAG, "ensureChatKey failed for ${message.clientMessageId}", e)
+                false
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to send message", e)
+            if (!ensured) {
+                // plaintext-фолбэка нет: E2E либо работает, либо сообщение ждёт в очереди
+                Log.w(
+                    TAG,
+                    "No usable chat key for $chatId — queuing ${message.clientMessageId} (E2E enforced)"
+                )
+                pendingMessageDao.insert(message.toPendingEntity(chatId))
+                scheduleSendPendingMessages()
+                return
+            }
+
+            val textToSend = encryptionManager.encrypt(chatId, message.text)
+
+            val frame = when (message.type) {
+                "image" -> "to:${message.recipientUsername}:image:${message.clientMessageId}:$textToSend"
+                else -> "to:${message.recipientUsername}:text:${message.clientMessageId}:$textToSend"
+            }
+
+            try {
+                if (client.isOpen) {
+                    client.send(frame)
+                    pendingMessageDao.delete(message.clientMessageId)
+                    // атомарный апдейт статуса вместо REPLACE всей строки (фикс H4)
+                    messageDao.updateStatus(message.clientMessageId, MessageStatus.SENT)
+                    _messages.tryEmit(message.copy(status = MessageStatus.SENT))
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to send message", e)
+            }
+        } finally {
+            inFlightMessageIds.remove(message.clientMessageId)
         }
     }
 
-    private suspend fun parseIncomingMessage(raw: String): Message? {
+    private suspend fun parseIncomingMessage(raw: String): ParsedIncoming? {
         val baseMessage = parseBaseMessage(raw) ?: return null
         // для нового формата с recipient используем оба, иначе fallback на currentUser
         val chatId =
             if (baseMessage.recipientUsername.isNotBlank() && baseMessage.recipientUsername != baseMessage.senderUsername) {
-                chatId(baseMessage.senderUsername, baseMessage.recipientUsername)
+                buildChatId(baseMessage.senderUsername, baseMessage.recipientUsername)
             } else {
-                chatId(baseMessage.senderUsername, currentUserName)
+                buildChatId(baseMessage.senderUsername, currentUserName)
             }
 
         val peer = if (baseMessage.isFromMe) {
@@ -265,7 +286,7 @@ class ChatWebSocketManager @Inject constructor(
 
         val decryptedText = decryptIncoming(chatId, peer, baseMessage.text)
 
-        return baseMessage.copy(text = decryptedText)
+        return ParsedIncoming(baseMessage.copy(text = decryptedText), chatId)
     }
 
     private suspend fun decryptIncoming(chatId: String, peer: String, text: String): String {
@@ -300,101 +321,33 @@ class ChatWebSocketManager @Inject constructor(
 
     private fun parseBaseMessage(raw: String): Message? {
         val parts = raw.split(":", limit = 6)
+        if (parts.size < 2) return null
+
+        // служебные кадры сервера ("error:...") не являются сообщениями чата
+        if (parts[0] == "error") return null
+
         return when {
-            parts.size >= 5 && parts[0] == "to" -> {
-                val sender = parts[1]
-                val type = parts[2]
-                val clientId = parts[3]
-                val text = parts[4]
-                Message(
-                    clientMessageId = clientId,
-                    senderUsername = sender,
-                    recipientUsername = currentUserName,
-                    text = text,
-                    isFromMe = sender == currentUserName,
-                    type = type,
-                    status = MessageStatus.DELIVERED
-                )
-            }
+            // legacy-клиенты: to:<sender>:<type>:<clientId>:<text>
+            parts[0] == "to" && parts.size >= 5 -> Message(
+                clientMessageId = parts[3],
+                senderUsername = parts[1],
+                recipientUsername = currentUserName,
+                text = parts[4],
+                isFromMe = parts[1] == currentUserName,
+                type = parts[2],
+                status = MessageStatus.DELIVERED
+            )
 
-            parts.size >= 6 -> {
-                // новый формат сервера с recipient: sender:recipient:type:clientId:text
-                val sender = parts[0]
-                val recipient = parts[1]
-                val type = parts[2]
-                val clientId = parts[3]
-                val text = parts[4]
-                // если текст содержал ":", он будет в parts[5] из-за limit 6 — склеиваем обратно
-                val fullText = if (parts.size > 5) text + ":" + parts[5] else text
-                Message(
-                    clientMessageId = clientId,
-                    senderUsername = sender,
-                    recipientUsername = recipient,
-                    text = fullText,
-                    isFromMe = sender == currentUserName,
-                    type = type,
-                    status = MessageStatus.DELIVERED
-                )
-            }
-
+            // актуальный формат сервера: sender:recipient:type:clientId:text[:хвост с ':']
             parts.size >= 5 -> {
-                // новый формат без проверки to: sender:recipient:type:clientId:text (5 частей)
-                val sender = parts[0]
-                val recipient = parts[1]
-                val type = parts[2]
-                val clientId = parts[3]
-                val text = parts[4]
+                val fullText = if (parts.size > 5) parts[4] + ":" + parts[5] else parts[4]
                 Message(
-                    clientMessageId = clientId,
-                    senderUsername = sender,
-                    recipientUsername = recipient,
-                    text = text,
-                    isFromMe = sender == currentUserName,
-                    type = type,
-                    status = MessageStatus.DELIVERED
-                )
-            }
-
-            parts.size >= 4 -> {
-                val sender = parts[0]
-                val type = parts[1]
-                val clientId = parts[2]
-                val text = parts[3]
-                Message(
-                    clientMessageId = clientId,
-                    senderUsername = sender,
-                    recipientUsername = currentUserName,
-                    text = text,
-                    isFromMe = sender == currentUserName,
-                    type = type,
-                    status = MessageStatus.DELIVERED
-                )
-            }
-
-            parts.size >= 3 -> {
-                val sender = parts[0]
-                val text = parts[1]
-                Message(
-                    clientMessageId = UUID.randomUUID().toString(),
-                    senderUsername = sender,
-                    recipientUsername = currentUserName,
-                    text = text,
-                    isFromMe = sender == currentUserName,
-                    type = "text",
-                    status = MessageStatus.DELIVERED
-                )
-            }
-
-            parts.size >= 2 -> {
-                val sender = parts[0]
-                val text = parts[1]
-                Message(
-                    clientMessageId = UUID.randomUUID().toString(),
-                    senderUsername = sender,
-                    recipientUsername = currentUserName,
-                    text = text,
-                    isFromMe = sender == currentUserName,
-                    type = "text",
+                    clientMessageId = parts[3],
+                    senderUsername = parts[0],
+                    recipientUsername = parts[1],
+                    text = fullText,
+                    isFromMe = parts[0] == currentUserName,
+                    type = parts[2],
                     status = MessageStatus.DELIVERED
                 )
             }
@@ -418,15 +371,16 @@ class ChatWebSocketManager @Inject constructor(
         )
     }
 
-    private fun chatId(user1: String, user2: String): String {
-        return listOf(user1, user2).sorted().joinToString("__")
-    }
-
     companion object {
         private const val TAG = "ChatWebSocketManager"
         private const val UNIQUE_PENDING_WORK_NAME = "send_pending_messages"
     }
 }
+
+private data class ParsedIncoming(
+    val message: Message,
+    val chatId: String
+)
 
 private fun PendingMessageEntity.toDomain(): Message = Message(
     clientMessageId = clientMessageId,

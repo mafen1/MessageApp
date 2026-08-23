@@ -7,8 +7,9 @@ import java.net.URI
 
 class FriendWebSocketClient(
     serverUri: URI,
+    headers: Map<String, String> = emptyMap(),
     private val messageListener: (String) -> Unit
-) : WebSocketClient(serverUri) {
+) : WebSocketClient(serverUri, headers) {
 
     override fun onOpen(handshakedata: ServerHandshake?) {
         Log.d("FriendWS", "opened")

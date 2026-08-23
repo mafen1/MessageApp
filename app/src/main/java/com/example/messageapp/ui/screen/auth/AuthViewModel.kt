@@ -1,11 +1,9 @@
 package com.example.messageapp.ui.screen.auth
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.messageapp.core.ConstVariables
 import com.example.messageapp.core.TokenStorage
-import com.example.messageapp.core.logD
 import com.example.messageapp.domain.model.User
 import com.example.messageapp.domain.model.UserCredentials
 import com.example.messageapp.domain.usecase.AppPreferencesUseCase
@@ -52,7 +50,9 @@ class AuthViewModel @Inject constructor(
                         _error.value = ("Получен пустой ответ от сервера")
                     }
                 } else {
-                    _error.value = ("Ошибка регистрации: ${response.exceptionOrNull()}")
+                    // только человекочитаемое сообщение сервера («Пользователь уже существует»),
+                    // без стека исключения
+                    _error.value = response.exceptionOrNull()?.message ?: "Ошибка регистрации"
                 }
             } catch (e: Exception) {
                 _error.value = ("Ошибка сети: ${e.message}")
@@ -76,16 +76,13 @@ class AuthViewModel @Inject constructor(
                         _error.value = "Пустой ответ сервера"
                     }
                 } else {
-                    _error.value = ("Неверные данные для входа")
+                    // сообщение от сервера: «Неверный username или пароль»
+                    _error.value = response.exceptionOrNull()?.message ?: "Ошибка входа"
                 }
             } catch (e: Exception) {
                 _error.value = ("Ошибка входа: ${e.message}")
             }
         }
-    }
-
-    fun resetRegistrationState() {
-        _registrationSuccess.value = null
     }
 
     fun resetError() {

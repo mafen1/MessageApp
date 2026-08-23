@@ -27,13 +27,18 @@ android {
             buildConfigField("String", "WS_URL", "\"ws://10.0.2.2:8081\"")
         }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "BASE_URL", "\"https://your-server.com\"")
-            buildConfigField("String", "WS_URL", "\"wss://your-server.com\"")
+            // продовый адрес сервера задаётся при сборке:
+            // ./gradlew assembleRelease -PbaseUrl=https://example.com -PwsUrl=wss://example.com
+            val baseUrl = (project.findProperty("baseUrl") as String?) ?: "https://your-server.com"
+            val wsUrl = (project.findProperty("wsUrl") as String?) ?: "wss://your-server.com"
+            buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
+            buildConfigField("String", "WS_URL", "\"$wsUrl\"")
         }
     }
     compileOptions {

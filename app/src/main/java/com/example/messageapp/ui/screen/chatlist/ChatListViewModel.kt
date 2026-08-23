@@ -7,6 +7,7 @@ import com.example.messageapp.core.UiState
 import com.example.messageapp.core.logD
 import com.example.messageapp.domain.model.User
 import com.example.messageapp.domain.usecase.GetAllUsersUseCase
+import com.example.messageapp.domain.usecase.GetFriendRequestsUseCase
 import com.example.messageapp.domain.usecase.GetFriendsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatListViewModel @Inject constructor(
     private val getFriendsUseCase: GetFriendsUseCase,
-    private val getAllUsersUseCase: GetAllUsersUseCase
+    private val getAllUsersUseCase: GetAllUsersUseCase,
+    private val getFriendRequestsUseCase: GetFriendRequestsUseCase
 ) : ViewModel() {
 
     data class ChatListState(
@@ -28,10 +30,22 @@ class ChatListViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<UiState<ChatListState>>(UiState.Loading)
     val uiState: StateFlow<UiState<ChatListState>> = _uiState
 
+    private val _requestsCount = MutableStateFlow(0)
+    val requestsCount: StateFlow<Int> = _requestsCount
+
+    /** Полное обновление: друзья, профили и счётчик заявок. Вызывается при входе на экран. */
     fun loadChatList(userName: String, userFullName: String) {
         logD("loadChatList called for: $userName")
-        _uiState.value = UiState.Loading
+        loadRequests(userName)
+        loadFriends(userName, userFullName)
+    }
 
+    /** Обновление только счётчика входящих заявок (например, после их обработки). */
+    fun refreshRequests(userName: String) {
+        loadRequests(userName)
+    }
+
+    fun loadFriends(userName: String, userFullName: String) {
         viewModelScope.launch {
             try {
                 val friendsResult = getFriendsUseCase(userName)
@@ -64,8 +78,19 @@ class ChatListViewModel @Inject constructor(
                 _uiState.value = UiState.Success(ChatListState(friendsList, currentUser))
             } catch (e: Exception) {
                 Log.e("ChatListVM", "Error loading chat list: ${e.message}", e)
-                _uiState.value = UiState.Error("Ошибка загрузки чатов: ${e.message}")
+                // если данные уже показывались — не затираем их ошибкой (например, миграционная сеть)
+                if (_uiState.value !is UiState.Success) {
+                    _uiState.value = UiState.Error("Ошибка загрузки чатов: ${e.message}")
+                }
             }
+        }
+    }
+
+    fun loadRequests(userName: String) {
+        viewModelScope.launch {
+            getFriendRequestsUseCase(userName)
+                .onSuccess { requests -> _requestsCount.value = requests.size }
+                .onFailure { Log.w("ChatListVM", "Failed to load friend requests: ${it.message}") }
         }
     }
 }

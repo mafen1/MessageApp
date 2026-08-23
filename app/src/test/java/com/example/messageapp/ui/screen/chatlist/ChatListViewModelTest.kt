@@ -3,6 +3,7 @@ package com.example.messageapp.ui.screen.chatlist
 import com.example.messageapp.core.UiState
 import com.example.messageapp.domain.model.User
 import com.example.messageapp.domain.usecase.GetAllUsersUseCase
+import com.example.messageapp.domain.usecase.GetFriendRequestsUseCase
 import com.example.messageapp.domain.usecase.GetFriendsUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -29,6 +30,9 @@ class ChatListViewModelTest {
     @Mock
     private lateinit var getAllUsersUseCase: GetAllUsersUseCase
 
+    @Mock
+    private lateinit var getFriendRequestsUseCase: GetFriendRequestsUseCase
+
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var viewModel: ChatListViewModel
 
@@ -36,7 +40,7 @@ class ChatListViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         MockitoAnnotations.openMocks(this)
-        viewModel = ChatListViewModel(getFriendsUseCase, getAllUsersUseCase)
+        viewModel = ChatListViewModel(getFriendsUseCase, getAllUsersUseCase, getFriendRequestsUseCase)
     }
 
     @After
@@ -57,6 +61,7 @@ class ChatListViewModelTest {
                 )
             )
         )
+        whenever(getFriendRequestsUseCase.invoke("@me")).thenReturn(Result.success(emptyList()))
 
         viewModel.loadChatList("@me", "Me")
         advanceUntilIdle()
@@ -73,6 +78,7 @@ class ChatListViewModelTest {
         whenever(getFriendsUseCase.invoke("@me")).thenReturn(
             Result.failure(RuntimeException("Network error"))
         )
+        whenever(getFriendRequestsUseCase.invoke("@me")).thenReturn(Result.success(emptyList()))
 
         viewModel.loadChatList("@me", "Me")
         advanceUntilIdle()

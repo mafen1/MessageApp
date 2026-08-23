@@ -6,4 +6,7 @@ interface MessageRepository {
     suspend fun getMessages(user1: String, user2: String): Result<List<Message>>
     suspend fun saveMessage(message: Message, chatId: String)
     suspend fun uploadImage(imageBytes: ByteArray): Result<String>
+
+    /** Полная очистка локального кэша переписки (logout). */
+    suspend fun clearAllLocalData()
 }

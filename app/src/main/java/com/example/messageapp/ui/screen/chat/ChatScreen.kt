@@ -19,6 +19,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.DoneAll
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,7 +36,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -47,6 +52,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.example.messageapp.domain.model.Message
+import com.example.messageapp.domain.model.MessageStatus
 import com.example.messageapp.domain.model.SocketState
 import com.example.messageapp.ui.components.imageUrl
 
@@ -69,10 +75,18 @@ fun ChatScreen(
     var inputText by remember { mutableStateOf("") }
 
     val context = LocalContext.current
+    // выбранная, но ещё не отправленная картинка: сначала превью с подтверждением
+    var pendingImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
+
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let {
-            // ограничиваем размер, чтобы не упасть по OOM на больших фото
-            val bytes = context.contentResolver.openInputStream(it)?.use { stream ->
+        if (uri != null) {
+            pendingImageUri = uri
+        }
+    }
+    val confirmImageSend = {
+        val uri = pendingImageUri
+        if (uri != null) {
+            val bytes = context.contentResolver.openInputStream(uri)?.use { stream ->
                 val chunk = ByteArray(MAX_IMAGE_BYTES + 1)
                 var total = 0
                 while (total <= MAX_IMAGE_BYTES) {
@@ -81,9 +95,15 @@ fun ChatScreen(
                     total += read
                 }
                 if (total > MAX_IMAGE_BYTES) null else chunk.copyOf(total)
-            } ?: return@let
-            viewModel.sendImageMessage(otherUserName, bytes)
+            }
+            if (bytes != null) {
+                viewModel.sendImageMessage(otherUserName, bytes)
+            } else {
+                viewModel.showError("Файл слишком большой (лимит 10 МБ)")
+            }
+            pendingImageUri = null
         }
+        Unit
     }
 
     LaunchedEffect(error) {
@@ -99,12 +119,11 @@ fun ChatScreen(
         }
     }
 
-    DisposableEffect(currentUserName, otherUserName) {
+    LaunchedEffect(currentUserName, otherUserName) {
+        // сокет живёт на уровне приложения (Singleton): не рвём его при выходе с экрана,
+        // чтобы входящие продолжали сохраняться в Room
         viewModel.connect(currentUserName)
         viewModel.loadMessageHistory(currentUserName, otherUserName)
-        onDispose {
-            viewModel.disconnect()
-        }
     }
 
     Scaffold(
@@ -132,13 +151,56 @@ fun ChatScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surfaceContainer)
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
             ) {
+                pendingImageUri?.let { uri ->
+                    // превью выбранной картинки до отправки
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        AsyncImage(
+                            model = uri,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(72.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                        Text(
+                            text = "Отправить это изображение?",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(horizontal = 12.dp)
+                        )
+                        IconButton(onClick = { pendingImageUri = null }) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Отменить",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                        IconButton(onClick = confirmImageSend) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Send,
+                                contentDescription = "Отправить",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                 IconButton(onClick = { imagePicker.launch("image/*") }) {
                     Icon(
                         imageVector = Icons.Default.AttachFile,
@@ -169,6 +231,7 @@ fun ChatScreen(
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary
                     )
+                }
                 }
             }
         }
@@ -245,7 +308,44 @@ private fun ChatBubble(
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
+
+            // статус доставки — только под своими сообщениями
+            if (isMine) {
+                MessageStatusRow(status = message.status)
+            }
         }
+    }
+}
+
+@Composable
+private fun MessageStatusRow(status: MessageStatus) {
+    val (icon, label, tint) = when (status) {
+        MessageStatus.SENDING -> Triple(Icons.Default.Schedule, "отправляется…", Color.Unspecified)
+        MessageStatus.SENT -> Triple(Icons.Default.Done, "отправлено", Color.Unspecified)
+        MessageStatus.DELIVERED, MessageStatus.READ -> Triple(Icons.Default.DoneAll, "доставлено", Color.Unspecified)
+        MessageStatus.FAILED -> Triple(Icons.Default.ErrorOutline, "не доставлено", MaterialTheme.colorScheme.error)
+    }
+    Row(
+        modifier = Modifier.padding(top = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+        )
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = if (tint == Color.Unspecified) {
+                MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+            } else {
+                tint
+            },
+            modifier = Modifier
+                .padding(start = 4.dp)
+                .size(14.dp)
+        )
     }
 }
 

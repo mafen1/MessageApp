@@ -8,6 +8,7 @@ import com.example.messageapp.domain.model.User
 import com.example.messageapp.domain.usecase.AppPreferencesUseCase
 import com.example.messageapp.domain.usecase.GetFriendsUseCase
 import com.example.messageapp.domain.usecase.GetNewsFeedUseCase
+import com.example.messageapp.domain.usecase.LogoutUseCase
 import com.example.messageapp.domain.usecase.UpdateProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +23,8 @@ class AccountViewModel @Inject constructor(
     private val appPreferencesUseCase: AppPreferencesUseCase,
     private val updateProfileUseCase: UpdateProfileUseCase,
     private val getNewsFeedUseCase: GetNewsFeedUseCase,
-    private val getFriendsUseCase: GetFriendsUseCase
+    private val getFriendsUseCase: GetFriendsUseCase,
+    private val logoutUseCase: LogoutUseCase
 ) : ViewModel() {
 
     private val _user = MutableStateFlow<User?>(null)
@@ -76,10 +78,7 @@ class AccountViewModel @Inject constructor(
     suspend fun logout() {
         // await-очистка ДО навигации, чтобы Welcome не прочитал старый токен (фикс H5)
         kotlinx.coroutines.withContext(Dispatchers.IO) {
-            appPreferencesUseCase.setString(ConstVariables.tokenJWT, "")
-            appPreferencesUseCase.setString(ConstVariables.userName, "")
-            appPreferencesUseCase.setString(ConstVariables.nameUser, "")
-            TokenStorage.clear()
+            logoutUseCase()
         }
     }
 

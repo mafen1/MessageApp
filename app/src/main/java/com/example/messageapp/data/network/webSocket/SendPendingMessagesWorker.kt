@@ -17,6 +17,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltWorker
 class SendPendingMessagesWorker @AssistedInject constructor(
@@ -36,25 +37,23 @@ class SendPendingMessagesWorker @AssistedInject constructor(
             return Result.failure()
         }
 
-        // если сокет уже живой (юзер в чате) — используем его, иначе подключаемся сами
-        val wasConnected = chatSocketRepository.connectionState.value is SocketState.Authenticated
-        if (!wasConnected) {
-            chatSocketRepository.connect(userName, token)
+        // сокетом управляет Singleton-менеджер: воркер только просит подключение
+        // (идемпотентно) и ждёт готовности. disconnect() здесь нельзя — иначе после
+        // отправки очереди рвалась живая переписка, и сообщения «висели» до
+        // перезахода в чат (фикс TC-10)
+        chatSocketRepository.connect(userName, token)
+
+        // ждём Authenticated с таймаутом вместо мгновенной проверки
+        val authenticated = withTimeoutOrNull(CONNECT_TIMEOUT_MS.milliseconds) {
+            chatSocketRepository.connectionState.first { it is SocketState.Authenticated }
+            true
+        }
+        if (authenticated != true) {
+            incrementAllRetries()
+            return Result.retry()
         }
 
-        return try {
-            // ждём Authenticated с таймаутом вместо мгновенной проверки (фикс C1)
-            if (!wasConnected) {
-                val authenticated = withTimeoutOrNull(CONNECT_TIMEOUT_MS) {
-                    chatSocketRepository.connectionState.first { it is SocketState.Authenticated }
-                    true
-                } ?: false
-                if (!authenticated) {
-                    incrementAllRetries()
-                    return Result.retry()
-                }
-            }
-
+        return runCatching {
             val snapshot = pendingMessageDao.getAll()
             if (snapshot.isEmpty()) {
                 return Result.success()
@@ -99,11 +98,9 @@ class SendPendingMessagesWorker @AssistedInject constructor(
             }
 
             if (allSent) Result.success() else Result.retry()
-        } finally {
-            // закрываем сокет только если воркер сам его открыл (фикс H1)
-            if (!wasConnected) {
-                chatSocketRepository.disconnect()
-            }
+        }.getOrElse {
+            Log.e(TAG, "Outbox drain failed", it)
+            Result.retry()
         }
     }
 

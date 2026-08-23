@@ -47,6 +47,12 @@ class EncryptedSharedPreferencesChatKeyStorage @Inject constructor(
         }
     }
 
+    override fun clear() {
+        prefs.edit(commit = true) {
+            clear()
+        }
+    }
+
     private companion object {
         private const val PREFS_FILE = "chat_keys"
     }

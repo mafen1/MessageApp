@@ -98,7 +98,6 @@ object UseCaseModule {
         return UploadChatImageUseCase(messageRepository)
     }
 
-    // SaveMessageUseCase имеет @Inject constructor — отдельный @Provides не нужен (фикс C3)
 
     @Provides
     fun provideGetNewsFeedUseCase(newsRepository: NewsRepository): GetNewsFeedUseCase {

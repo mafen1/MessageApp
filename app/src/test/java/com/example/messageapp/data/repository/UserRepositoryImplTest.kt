@@ -1,12 +1,8 @@
 package com.example.messageapp.data.repository
 
-import com.example.messageapp.data.local.db.dao.MessageDao
 import com.example.messageapp.data.network.api.service.ApiService
 import com.example.messageapp.data.network.model.UserResponse
-import com.example.messageapp.data.security.ChatKeyResolver
 import com.example.messageapp.domain.model.User
-import com.example.messageapp.domain.security.EncryptionManager
-import com.google.gson.Gson
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -16,27 +12,17 @@ import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.whenever
 
-class ApiRepositoryImplTest {
+class UserRepositoryImplTest {
 
     @Mock
     private lateinit var apiService: ApiService
 
-    @Mock
-    private lateinit var messageDao: MessageDao
-
-    @Mock
-    private lateinit var encryptionManager: EncryptionManager
-
-    @Mock
-    private lateinit var chatKeyResolver: ChatKeyResolver
-
-    private val gson = Gson()
-    private lateinit var repository: ApiRepositoryImpl
+    private lateinit var repository: UserRepositoryImpl
 
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
-        repository = ApiRepositoryImpl(apiService, gson, messageDao, encryptionManager, chatKeyResolver)
+        repository = UserRepositoryImpl(apiService)
     }
 
     @Test

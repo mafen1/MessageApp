@@ -5,6 +5,9 @@ interface EncryptionManager {
     fun decrypt(chatId: String, ciphertext: String): String
     fun getOrCreateChatKey(chatId: String): ByteArray
     fun hasChatKey(chatId: String): Boolean
+
+    /** Удаляет все локальные чат-ключи (logout). */
+    fun clearAllChatKeys()
     fun unwrapChatKey(chatId: String, wrappedKey: ByteArray): ByteArray
 
     /** Разворачивает обёртку без сохранения; null, если локальный keystore не может её открыть. */

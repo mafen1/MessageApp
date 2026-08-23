@@ -93,7 +93,7 @@ fun FriendRequestDto.toDomain(): FriendRequest = FriendRequest(
     id = id,
     senderUserName = senderUserName,
     receiverUserName = receiverUserName,
-    status = status
+    status = status ?: "pending"
 )
 
 fun MessageEntity.toDomain(): Message = Message(

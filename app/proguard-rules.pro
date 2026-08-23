@@ -1,21 +1,25 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Отладочные стек-трейсы в release
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# --- Gson: DTO сериализуются рефлексией ---
+-keepattributes Signature
+-keepattributes *Annotation*
+-keep class com.example.messageapp.data.network.model.** { *; }
+-dontwarn com.google.gson.**
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# --- java-websocket (org.java_websocket) ---
+-dontwarn org.java_websocket.**
+-keep class org.java_websocket.** { *; }
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# --- OkHttp / Okio / Retrofit ---
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-dontwarn javax.annotation.**
+-keepclasseswithmembers class * {
+    @retrofit2.http.* <methods>;
+}
+
+# sl4j-facade тянется транзитивно (java-websocket), на Android биндинг не нужен
+-dontwarn org.slf4j.impl.StaticLoggerBinder
+-dontwarn org.slf4j.spi.SLF4JServiceProvider

@@ -6,7 +6,8 @@ data class FriendRequest(
     @SerializedName("id") val id: Int = 0,
     @SerializedName("senderUserName") val senderUserName: String,
     @SerializedName("receiverUserName") val receiverUserName: String,
-    @SerializedName("status") val status: String = "pending"
+    // nullable: старый сервер мог не прислать поле (kotlinx.serialization без encodeDefaults)
+    @SerializedName("status") val status: String? = null
 )
 
 data class AcceptFriendRequest(

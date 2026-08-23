@@ -6,6 +6,7 @@ import com.example.messageapp.core.logD
 import com.example.messageapp.domain.model.NewsPost
 import com.example.messageapp.domain.model.User
 import com.example.messageapp.domain.usecase.CommentPostUseCase
+import com.example.messageapp.domain.usecase.GetAllUsersUseCase
 import com.example.messageapp.domain.usecase.GetNewsFeedUseCase
 import com.example.messageapp.domain.usecase.LikePostUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +20,8 @@ import javax.inject.Inject
 class NewsViewModel @Inject constructor(
     private val getNewsFeedUseCase: GetNewsFeedUseCase,
     private val likePostUseCase: LikePostUseCase,
-    private val commentPostUseCase: CommentPostUseCase
+    private val commentPostUseCase: CommentPostUseCase,
+    private val getAllUsersUseCase: GetAllUsersUseCase
 ) : ViewModel() {
 
     private var _newsList = MutableStateFlow<List<NewsPost>>(emptyList())
@@ -28,11 +30,37 @@ class NewsViewModel @Inject constructor(
     private var _user = MutableStateFlow<User?>(null)
     var user: StateFlow<User?> = _user
 
+    private var _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing
+
     fun allNews() {
+        if (_isRefreshing.value) return
         viewModelScope.launch(Dispatchers.IO) {
-            val result = getNewsFeedUseCase()
-            result.getOrNull()?.let { _newsList.value = it }
-            logD(_newsList.value.toString())
+            _isRefreshing.value = true
+            try {
+                val result = getNewsFeedUseCase()
+                result.getOrNull()?.let { posts ->
+                    // подтягиваем актуальные имена авторов: в БД хранится снапшот на момент поста
+                    _newsList.value = applyFreshAuthorNames(posts)
+                }
+                logD(_newsList.value.toString())
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
+
+    /** Заменяет сохранённые имена авторов на текущие из профиля пользователя. */
+    private suspend fun applyFreshAuthorNames(posts: List<NewsPost>): List<NewsPost> {
+        if (posts.isEmpty()) return posts
+        val users = getAllUsersUseCase().getOrNull() ?: return posts
+        if (users.isEmpty()) return posts
+        val currentNames = users.associate { it.userName to it.name }
+        return posts.map { post ->
+            currentNames[post.userNameAuthor]
+                ?.takeIf { it.isNotBlank() && it != post.nameAuthor }
+                ?.let { post.copy(nameAuthor = it) }
+                ?: post
         }
     }
 

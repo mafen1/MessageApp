@@ -90,4 +90,16 @@
     <string name="snackbar_already_here">Вы уже находитесь на данном экране</string>
     <string name="snackbar_no_internet">Нет соединения с интернетом</string>
     <string name="btn_retry">Повторить</string>
+
+    <!-- Password visibility -->
+    <string name="show_password">Показать пароль</string>
+    <string name="hide_password">Скрыть пароль</string>
+
+    <!-- Friend requests -->
+    <string name="requests_title">Заявки в друзья</string>
+    <string name="requests_empty">Новых заявок нет</string>
+    <string name="requests_wants_to_chat">хочет добавить вас в друзья</string>
+    <string name="requests_accept">Принять</string>
+    <string name="requests_reject">Отклонить</string>
+    <string name="requests_open">Открыть заявки в друзья</string>
 </resources>

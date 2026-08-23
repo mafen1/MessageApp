@@ -24,6 +24,7 @@ import com.example.messageapp.ui.screen.chat.ChatScreen
 import com.example.messageapp.ui.screen.news.CreatePostScreen
 import com.example.messageapp.ui.screen.news.NewsFeedScreen
 import com.example.messageapp.ui.screen.onboarding.OnboardingScreen
+import com.example.messageapp.ui.screen.requests.RequestsScreen
 import com.example.messageapp.ui.screen.search.SearchScreen
 import com.example.messageapp.ui.screen.welcome.WelcomeScreen
 
@@ -164,6 +165,22 @@ fun MessageAppNavHost(
                 val args = backStackEntry.toRoute<ChatListRoute>()
                 val viewModel: ChatListViewModel = hiltViewModel()
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                val requestsCount by viewModel.requestsCount.collectAsStateWithLifecycle()
+
+                // первичная загрузка + обновление при каждом возврате на вкладку:
+                // друзья и счётчик заявок не «застаиваются» (фикс TC-15)
+                val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+                androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+                    val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+                        if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                            viewModel.loadFriends(args.userName, args.name)
+                            // счётчик заявок тоже обновляем: их могли обработать на другом экране
+                            viewModel.refreshRequests(args.userName)
+                        }
+                    }
+                    lifecycleOwner.lifecycle.addObserver(observer)
+                    onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+                }
 
                 LaunchedEffect(args.userName, args.name) {
                     viewModel.loadChatList(args.userName, args.name)
@@ -171,6 +188,7 @@ fun MessageAppNavHost(
 
                 ChatListScreen(
                     uiState = uiState,
+                    requestsCount = requestsCount,
                     onUserClick = { selectedUser ->
                         navController.navigate(
                             ChatRoute(
@@ -181,7 +199,10 @@ fun MessageAppNavHost(
                             )
                         )
                     },
-                    onRetry = { viewModel.loadChatList(args.userName, args.name) }
+                    onRetry = { viewModel.loadChatList(args.userName, args.name) },
+                    onOpenRequests = {
+                        navController.navigate(FriendRequestsRoute(args.userName, args.name))
+                    }
                 )
             }
 
@@ -192,6 +213,15 @@ fun MessageAppNavHost(
                     currentName = args.currentName,
                     otherUserName = args.otherUserName,
                     otherName = args.otherName,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable<FriendRequestsRoute> { backStackEntry ->
+                val args = backStackEntry.toRoute<FriendRequestsRoute>()
+                RequestsScreen(
+                    userName = args.userName,
+                    name = args.name,
                     onNavigateBack = { navController.popBackStack() }
                 )
             }

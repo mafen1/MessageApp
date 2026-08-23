@@ -46,6 +46,10 @@ class EncryptionManagerImpl @Inject constructor(
 
     override fun hasChatKey(chatId: String): Boolean = chatKeyStorage.getChatKey(chatId) != null
 
+    override fun clearAllChatKeys() {
+        chatKeyStorage.clear()
+    }
+
     override fun unwrapChatKey(chatId: String, wrappedKey: ByteArray): ByteArray {
         val keyPair = localKeyStore.getOrCreateKeyPair()
         val chatKey = rsaEngine.unwrapKey(wrappedKey, keyPair)

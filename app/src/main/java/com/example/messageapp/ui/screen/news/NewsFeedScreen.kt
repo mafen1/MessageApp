@@ -50,7 +50,6 @@ import com.example.messageapp.domain.model.NewsPost
 import com.example.messageapp.domain.model.User
 import com.example.messageapp.ui.components.EmptyState
 import com.example.messageapp.ui.components.imageUrl
-import com.example.messageapp.ui.screen.news.NewsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,12 +63,25 @@ fun NewsFeedScreen(
     viewModel: NewsViewModel = hiltViewModel()
 ) {
     val newsList by viewModel.newsList.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
     var commentNews by remember { mutableStateOf<NewsPost?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.saveUser(User(name = name, userName = userName))
         viewModel.allNews()
+    }
+
+    // обновление ленты при каждом возврате на вкладку (фикс «застывших» лайков, TC-14)
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                viewModel.allNews()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     commentNews?.let { news ->
@@ -103,27 +115,33 @@ fun NewsFeedScreen(
             }
         }
     ) { innerPadding ->
-        if (newsList.isEmpty()) {
+        if (newsList.isEmpty() && !isRefreshing) {
             EmptyState(
                 title = stringResource(id = R.string.news_empty_title),
                 description = stringResource(id = R.string.news_empty_desc),
                 modifier = Modifier.padding(innerPadding)
             )
         } else {
-            LazyColumn(
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+            androidx.compose.material3.pulltorefresh.PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = { viewModel.allNews() },
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                items(newsList, key = { it.id }) { news ->
-                    NewsCard(
-                        news = news,
-                        currentUserName = userName,
-                        onLikeClick = { viewModel.toggleLike(news, userName) },
-                        onCommentClick = { commentNews = news }
-                    )
+                LazyColumn(
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(newsList, key = { it.id }) { news ->
+                        NewsCard(
+                            news = news,
+                            currentUserName = userName,
+                            onLikeClick = { viewModel.toggleLike(news, userName) },
+                            onCommentClick = { commentNews = news }
+                        )
+                    }
                 }
             }
         }

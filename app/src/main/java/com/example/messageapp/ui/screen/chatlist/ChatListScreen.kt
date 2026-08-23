@@ -9,12 +9,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -33,8 +39,10 @@ import com.example.messageapp.domain.model.User
 @Composable
 fun ChatListScreen(
     uiState: UiState<ChatListViewModel.ChatListState>,
+    requestsCount: Int,
     onUserClick: (User) -> Unit,
     onRetry: () -> Unit,
+    onOpenRequests: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -42,6 +50,22 @@ fun ChatListScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text(stringResource(R.string.chats_title)) },
+                actions = {
+                    IconButton(onClick = onOpenRequests) {
+                        BadgedBox(
+                            badge = {
+                                if (requestsCount > 0) {
+                                    Badge { Text(requestsCount.toString()) }
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PersonAdd,
+                                contentDescription = stringResource(R.string.requests_open)
+                            )
+                        }
+                    }
+                },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )

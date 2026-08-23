@@ -12,7 +12,6 @@ import com.example.messageapp.domain.model.User
 import com.example.messageapp.domain.repository.ChatSocketRepository
 import com.example.messageapp.domain.usecase.AppPreferencesUseCase
 import com.example.messageapp.domain.usecase.GetChatHistoryUseCase
-import com.example.messageapp.domain.usecase.SaveMessageUseCase
 import com.example.messageapp.domain.usecase.UploadChatImageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +29,6 @@ class ChatViewModel @Inject constructor(
     private val appPreference: AppPreferencesUseCase,
     private val getChatHistoryUseCase: GetChatHistoryUseCase,
     private val uploadChatImageUseCase: UploadChatImageUseCase,
-    private val saveMessageUseCase: SaveMessageUseCase,
     private val chatSocketRepository: ChatSocketRepository
 ) : ViewModel() {
 
@@ -70,10 +68,6 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    fun disconnect() {
-        chatSocketRepository.disconnect()
-    }
-
     fun updateMessageList(message: Message) {
         _messageList.update { currentList ->
             val filtered = currentList.filter { existing ->
@@ -88,17 +82,6 @@ class ChatViewModel @Inject constructor(
                 }
             }
             filtered + message
-        }
-        saveMessage(message)
-    }
-
-    private fun saveMessage(message: Message) {
-        if (currentUserName.isBlank()) return
-        val other = if (message.isFromMe) message.recipientUsername else message.senderUsername
-        val peer = other.takeIf { it.isNotBlank() } ?: activePeerUserName
-        if (peer.isBlank()) return
-        viewModelScope.launch(Dispatchers.IO) {
-            saveMessageUseCase(message, chatId(currentUserName, peer))
         }
     }
 
@@ -141,7 +124,10 @@ class ChatViewModel @Inject constructor(
     fun sendImageMessage(targetUsername: String, imageBytes: ByteArray) {
         viewModelScope.launch(Dispatchers.IO) {
             val response = uploadChatImageUseCase(imageBytes)
-            val fileName = response.getOrNull() ?: return@launch
+            val fileName = response.getOrNull() ?: run {
+                _error.value = "Не удалось загрузить изображение: ${response.exceptionOrNull()?.message}"
+                return@launch
+            }
             val message = Message(
                 clientMessageId = java.util.UUID.randomUUID().toString(),
                 senderUsername = currentUserName,
@@ -162,16 +148,12 @@ class ChatViewModel @Inject constructor(
             senderUsername == currentUserName
     }
 
-    private fun chatId(user1: String, user2: String): String {
-        return listOf(user1, user2).sorted().joinToString("__")
-    }
-
     fun resetError() {
         _error.value = null
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        disconnect()
+    /** Внешние ошибки UI (например, слишком большой файл для отправки). */
+    fun showError(message: String) {
+        _error.value = message
     }
 }
